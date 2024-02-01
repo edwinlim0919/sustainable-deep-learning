@@ -1,0 +1,13 @@
+tqdm
+requests
+regex
+sentencepiece
+sacremoses
+torch
+huggingface_hub
+transformers
+ray[serve]
+s3fs
+joblib
+scikit-learn
+pygments
