@@ -11,4 +11,5 @@ s3fs
 joblib
 scikit-learn
 pygments
-fastapi
+starlette==0.14.2
+fastapi==0.68.0

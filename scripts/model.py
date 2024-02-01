@@ -17,7 +17,7 @@ class Translator:
     def __init__(self):
         self.model = pipeline('translation_en_to_fr', model='t5-small')
 
-    @app.post("/")
+    @app.post('/')
     def translate(self, text: str) -> str:
         model_output = self.model(text)
         translation = model_output[0]['translation_text']
