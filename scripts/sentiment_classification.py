@@ -6,5 +6,6 @@ import sklearn
 class SentimentDeployment:
     def __init__(self):
         fs = s3fs.S3FileSystem(anon=True)
-	with fs.open('ray-serve-blog/unigram_vectorizer.joblib', 'rb') as f:
-
+    with fs.open('ray-serve-blog/unigram_vectorizer.joblib', 'rb') as f:
+        self.vectorizer = joblib.load(f)
+        f
