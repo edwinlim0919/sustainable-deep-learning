@@ -1,8 +1,10 @@
 import torch
 from transformers import BertModel, BertTokenizer
+from transformers import AutoTokenizer, BertForQuestionAnswering
 
 
-class BertModelRayCPU:
+# Base model inference for feature vector
+class BertCL4InferenceRay:
     def __init__(self):
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True)
@@ -10,7 +12,7 @@ class BertModelRayCPU:
         self.model.eval()
 
     # Returns a feature vector from mean of concatenated last 4 hidden states
-    def CL4_embedding_inference(self, text: str) -> str:
+    def inference(self, text: str) -> str:
         query_ids = self.tokenizer.encode(text, return_tensors='pt')
         query_ids = query_ids.to('cpu')
         with torch.no_grad():
@@ -22,10 +24,33 @@ class BertModelRayCPU:
         return torch.mean(cat_hidden_states, dim=1).squeeze()
 
 
-bertmodel = BertModelRayCPU()
-cat_sentence_embedding = bertmodel.CL4_embedding_inference('granola bars')
+# BERT for question answering
+class BertQAInferenceRay:
+    def __init__(self):
+        self.tokenizer = AutoTokenizer.from_pretrained("deepset/bert-base-cased-squad2")
+        self.model = BertForQuestionAnswering.from_pretrained("deepset/bert-base-cased-squad2")
+
+    def inference(self, question: str, text: str) -> str:
+        inputs = self.tokenizer(question, text, return_tensors="pt")
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+        answer_start_index = outputs.start_logits.argmax()
+        answer_end_index = outputs.end_logits.argmax()
+        predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
+        return self.tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
 
 
-print('cat_sentence_embedding: ' + str(cat_sentence_embedding))
-print('cat_sentence_embedding.size(): ' + str(cat_sentence_embedding.size()))
-
+#BertCL4Inference = False
+#if BertCL4Inference:
+#    bertmodel = BertCL4InferenceRay()
+#    cat_sentence_embedding = bertmodel.inference('granola bars')
+#    print('cat_sentence_embedding: ' + str(cat_sentence_embedding))
+#    print('cat_sentence_embedding.size(): ' + str(cat_sentence_embedding.size()))
+#
+#
+#BertQAInference = True
+#if BertQAInference:
+#    bertmodel = BertQAInferenceRay()
+#    answer = bertmodel.inference("Who was Jim Henson?", "Jim Henson was a nice puppet")
+#    print(answer)
