@@ -1,4 +1,5 @@
 ray start --head
-serve run ray_bert_model:bert_inference_app
+serve run ray_bert_model:bert_cl4_inference_app
+serve run ray_bert_model:bert_qa_inference_app
 
 ray stop

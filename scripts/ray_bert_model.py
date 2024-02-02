@@ -10,7 +10,7 @@ app = FastAPI()
 
 
 # Base model inference for feature vector
-@serve.deployment(num_replicas=2, ray_actor_options={'num_cpus': 0.2, 'num_gpus': 0})
+@serve.deployment(num_replicas=2, ray_actor_options={'num_cpus': 0.2, 'num_gpus': 0}) # TODO: change resource alloc
 @serve.ingress(app)
 class BertCL4InferenceRay:
     def __init__(self):
@@ -34,23 +34,27 @@ class BertCL4InferenceRay:
 
 
 # BERT for question answering
-#class BertQAInferenceRay:
-#    def __init__(self):
-#        self.tokenizer = AutoTokenizer.from_pretrained("deepset/bert-base-cased-squad2")
-#        self.model = BertForQuestionAnswering.from_pretrained("deepset/bert-base-cased-squad2")
-#
-#    def inference(self, question: str, text: str) -> str:
-#        inputs = self.tokenizer(question, text, return_tensors="pt")
-#        with torch.no_grad():
-#            outputs = self.model(**inputs)
-#
-#        answer_start_index = outputs.start_logits.argmax()
-#        answer_end_index = outputs.end_logits.argmax()
-#        predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
-#        return self.tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
+@serve.deployment(num_replicas=2, ray_actor_options={'num_cpus': 0.2, 'num_gpus': 0}) # TODO: change resource alloc
+@serve.ingress(app)
+class BertQAInferenceRay:
+    def __init__(self):
+        self.tokenizer = AutoTokenizer.from_pretrained("deepset/bert-base-cased-squad2")
+        self.model = BertForQuestionAnswering.from_pretrained("deepset/bert-base-cased-squad2")
+
+    @app.post('/bert/qainference')
+    def inference(self, question: str, text: str) -> str:
+        inputs = self.tokenizer(question, text, return_tensors="pt")
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+        answer_start_index = outputs.start_logits.argmax()
+        answer_end_index = outputs.end_logits.argmax()
+        predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
+        return self.tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
 
 
-bert_inference_app = BertCL4InferenceRay.bind()
+bert_cl4_inference_app = BertCL4InferenceRay.bind()
+bert_qa_inference_app = BertQAInferenceRay.bind()
 
 
 #BertCL4Inference = False
@@ -59,8 +63,6 @@ bert_inference_app = BertCL4InferenceRay.bind()
 #    cat_sentence_embedding = bertmodel.inference('granola bars')
 #    print('cat_sentence_embedding: ' + str(cat_sentence_embedding))
 #    print('cat_sentence_embedding.size(): ' + str(cat_sentence_embedding.size()))
-#
-#
 #BertQAInference = True
 #if BertQAInference:
 #    bertmodel = BertQAInferenceRay()
