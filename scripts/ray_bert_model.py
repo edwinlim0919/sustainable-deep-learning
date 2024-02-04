@@ -2,8 +2,7 @@ import torch
 import ray
 from ray import serve
 from ray.serve.handle import DeploymentHandle
-from transformers import BertModel
-from transformers import AutoTokenizer, BertForQuestionAnswering
+from transformers import AutoTokenizer, BertModel, BertForQuestionAnswering
 
 
 @serve.deployment
