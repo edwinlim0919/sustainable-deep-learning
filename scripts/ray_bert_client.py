@@ -1,14 +1,14 @@
 import requests
 
 
-cl4_response = requests.post(
-    'http://127.0.0.1:8000/bert/cl4inference',
+base_response = requests.post(
+    'http://127.0.0.1:8000/bert/baseinference',
     json={
         'inference_type': 'BertCL4',
         'inference_text': 'granola bars'
     }
 )
-print('cl4_response.text: ' + str(cl4_response.text))
+print('base_response.text: ' + str(base_response.text))
 
 
 qa_response = requests.post(
