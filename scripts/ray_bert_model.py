@@ -14,7 +14,7 @@ class BertEndpointRay:
     async def __call__(self, http_request):
         request = await http_request.json()
         inference_type = request['inference_type']
-        if inference_type == 'BertCL4':
+        if inference_type == 'BertBase':
             inference_text = request['inference_text']
             response = self.bert_base_inference.inference.remote(inference_text)
         elif inference_type == 'BertQA':
