@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoTokenizer, RobertaModel
+from transformers import AutoTokenizer, RobertaModel, RobertaForQuestionAnswering
 
 
 # Base model inference for feature vector
@@ -20,9 +20,28 @@ class RobertaBaseInferenceRay:
         return str(torch.mean(cat_hidden_states, dim=1).squeeze())
 
 
+# Roberta for question answering
+class RobertaQAInferenceRay:
+    def __init__(self):
+        self.tokenizer = AutoTokenizer.from_pretrained('deepset/roberta-base-squad2')
+        self.model = RobertaForQuestionAnswering.from_pretrained("deepset/roberta-base-squad2")
+
+    # Answers a question given an additional text for context
+    def inference(self, question: str, text: str) -> str:
+        inputs = self.tokenizer(question, text, return_tensors='pt')
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+        answer_start_index = outputs.start_logits.argmax()
+        answer_end_index = outputs.end_logits.argmax()
+        predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
+        return self.tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
 
 
-
-roberta_model = RobertaBaseInferenceRay()
-cl4_inf_result = roberta_model.inference('granola bars')
+roberta_base_model = RobertaBaseInferenceRay()
+cl4_inf_result = roberta_base_model.inference('granola bars')
 print('cl4_inf_result: ' + cl4_inf_result)
+
+roberta_qa_model = RobertaQAInferenceRay()
+qa_inf_result = roberta_qa_model.inference('Who was Jim Henson?', 'Jim Henson was a nice puppet')
+print(qa_inf_result)
