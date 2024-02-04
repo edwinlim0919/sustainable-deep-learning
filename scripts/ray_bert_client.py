@@ -4,7 +4,7 @@ import requests
 base_response = requests.post(
     'http://127.0.0.1:8000/bert/baseinference',
     json={
-        'inference_type': 'BertCL4',
+        'inference_type': 'BertBase',
         'inference_text': 'granola bars'
     }
 )
