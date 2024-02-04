@@ -70,3 +70,6 @@ class BertQAInferenceRay:
 bert_base_inference = BertBaseInferenceRay.bind()
 bert_qa_inference = BertQAInferenceRay.bind()
 bert_endpoint = BertEndpointRay.bind(bert_base_inference, bert_qa_inference)
+#bert_endpoint = BertEndpointRay.options(route_prefix='/bert').bind(bert_base_inference, bert_qa_inference)
+#bert_endpoint = BertEndpointRay.bind(bert_base_inference, bert_qa_inference)
+#serve.run(bert_endpoint, route_prefix=)
