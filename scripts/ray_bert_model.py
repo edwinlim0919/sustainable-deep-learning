@@ -36,13 +36,13 @@ class BertCL4InferenceRay:
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
         self.model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True)
-        self.model = self.model.to('cpu')
-        self.model.eval()
+        #self.model = self.model.to('cpu')
+        #self.model.eval()
 
     # Returns a feature vector from mean of concatenated last 4 hidden states
     def inference(self, text: str) -> str:
         query_ids = self.tokenizer.encode(text, return_tensors='pt')
-        query_ids = query_ids.to('cpu')
+        #query_ids = query_ids.to('cpu')
         with torch.no_grad():
             out = self.model(input_ids=query_ids)
 
