@@ -1,4 +1,12 @@
 ray start --head
+
+
 serve run ray_bert_model:bert_endpoint
+serve run ray_roberta_model:roberta_endpoint
+
+
+serve build ray_bert_model:bert_endpoint -o ../configs/ray_bert_roberta.yaml
+serve deploy ../configs/ray_bert_roberta.yaml
+
 
 ray stop
