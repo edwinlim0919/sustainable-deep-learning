@@ -11,9 +11,28 @@ from transformers import AutoTokenizer, BertForQuestionAnswering
 #app = FastAPI()
 
 
+@serve.deployment
+class BertEndpointRay:
+    def __init__(self, bert_cl4_inference: DeploymentHandle): #, bert_qa_inference: DeploymentHandle):
+        self.bert_cl4_inference = bert_cl4_inference
+        #self.bert_qa_inference = bert_qa_inference
+
+    async def __call__(self, http_request):
+        request = await http_request.json()
+        inference_type = request['inference_type']
+        if inference_type == 'BertCL4':
+            inference_text = request['inference_text']
+            response = self.bert_cl4_inference.inference.remote(inference_text)
+        else:
+            return 'inference_type not supported'
+
+        return await response
+
+
 # Base model inference for feature vector
-@serve.deployment(num_replicas=2, ray_actor_options={'num_cpus': 0.2, 'num_gpus': 0}) # TODO: change resource alloc
+#@serve.deployment(num_replicas=2, ray_actor_options={'num_cpus': 0.2, 'num_gpus': 0}) # TODO: change resource alloc
 #@serve.ingress(app)
+@serve.deployment
 class BertCL4InferenceRay:
     def __init__(self):
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -23,8 +42,8 @@ class BertCL4InferenceRay:
 
     # Returns a feature vector from mean of concatenated last 4 hidden states
     #@app.post('/bert/cl4inference')
-    #def inference(self, text: str) -> str:
-    async def __call__(self, text: str) -> str:
+    def inference(self, text: str) -> str:
+    #async def __call__(self, text: str) -> str:
         query_ids = self.tokenizer.encode(text, return_tensors='pt')
         query_ids = query_ids.to('cpu')
         with torch.no_grad():
@@ -61,5 +80,9 @@ class BertCL4InferenceRay:
 #bert_qa_inference_app = BertQAInferenceRay.bind()
 
 
-d = DAGDriver.bind({'/bert/cl4inference': BertCL4InferenceRay.bind(), '/bert/qainference': BertQAInferenceRay})
-handle = serve.run(d)
+#d = DAGDriver.bind({'/bert/cl4inference': BertCL4InferenceRay.bind(), '/bert/qainference': BertQAInferenceRay})
+#handle = serve.run(d)
+
+
+bert_cl4_inference = BertCL4InferenceRay.bind()
+bert_endpoint = BertEndpointRay.bind(bert_cl4_inference)
