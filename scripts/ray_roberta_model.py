@@ -74,5 +74,5 @@ class RobertaBaseInferenceRay:
 
 
 roberta_base_inference = RobertaBaseInferenceRay.bind()
-roberta_endpoint = RobertaEndpointRay.options(route_prefix='/roberta').bind(roberta_base_inference)
+roberta_endpoint = RobertaEndpointRay.bind(roberta_base_inference)
 #roberta_endpoint = RobertaEndpointRay.options(route_prefix='/roberta').bind(roberta_base_inference)
