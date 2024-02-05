@@ -9,7 +9,23 @@
 #   ...
 #   args[n] : name of last weights folder
 #
-# Usage
-#   ./scp_model_weights.sh edwinlim@clnode219.clemson.cloudlab.us 
+# Example Usage
+#   ./scp_model_weights.sh edwinlim@clnode219.clemson.cloudlab.us /dev/shm/hardware-systems-sustainability/sustainable-deep-learning/model_weights llama-2-7b-chat llama-2-13b-chat llama-2-70b-chat
 
-#scp -r
+
+if [ "$#" -lt 3 ]; then
+    echo "Usage: $0 <user>@<address> <destination_path> <folder1> ... <folderN>"
+    exit 1
+fi
+
+
+remote_user_host=$1
+destination_path=$2
+echo "Remote user@host: $remote_user_host"
+echo "Destination path: $destination_path"
+
+
+for folder in "${@:3}"; do
+  echo $folder
+  scp -r ${folder} ${remote_user_host}:${destination_path}/${folder}
+done
