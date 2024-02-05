@@ -1,17 +1,17 @@
 import requests
 
 
-base_response = requests.post(
+bert_base_response = requests.post(
     'http://127.0.0.1:8000/bert',
     json={
         'inference_type': 'BertBase',
         'inference_text': 'granola bars'
     }
 )
-print('base_response.text: ' + str(base_response.text))
+print('BERT base_response.text: ' + str(bert_base_response.text))
 
 
-qa_response = requests.post(
+bert_qa_response = requests.post(
     'http://127.0.0.1:8000/bert',
     json={
         'inference_type': 'BertQA',
@@ -19,4 +19,4 @@ qa_response = requests.post(
         'inference_text': "Jim Henson was a nice puppet"
     }
 )
-print('qa_response.text: ' + str(qa_response.text))
+print('BERT qa_response.text: ' + str(bert_qa_response.text))

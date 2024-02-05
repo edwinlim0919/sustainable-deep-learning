@@ -28,7 +28,7 @@ applications:
 
 - name: app1
 
-  route_prefix: /bert
+  route_prefix: /
 
   import_path: ray_bert_model:bert_endpoint
 
@@ -41,17 +41,3 @@ applications:
   - name: BertQAInferenceRay
 
   - name: BertEndpointRay
-
-- name: app2
-
-  route_prefix: /roberta
-
-  import_path: ray_roberta_model:roberta_endpoint
-
-  runtime_env: {}
-
-  deployments:
-
-  - name: RobertaBaseInferenceRay
-
-  - name: RobertaEndpointRay

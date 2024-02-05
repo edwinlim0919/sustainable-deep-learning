@@ -1,8 +1,34 @@
 import torch
+import ray
+from ray import serve
+from ray.serve.handle import DeploymentHandle
 from transformers import AutoTokenizer, RobertaModel, RobertaForQuestionAnswering
 
 
+@serve.deployment
+class RobertaEndpointRay:
+    def __init__(self, roberta_base_inference: DeploymentHandle): #, roberta_qa_inference: DeploymentHandle):
+        self.roberta_base_inference = roberta_base_inference
+        #self.roberta_qa_inference = roberta_qa_inference
+
+    async def __call__(self, http_request):
+        request = await http_request.json()
+        inference_type = request['inference_type']
+        if inference_type == 'RobertaBase':
+            inference_text = request['inference_text']
+            response = self.roberta_base_inference.inference.remote(inference_text)
+        #elif inference_type == 'RobertaQA':
+        #    inference_text = request['inference_text']
+        #    inference_question = request['inference_question']
+        #    response = self.roberta_qa_inference.inference.remote(inference_question, inference_text)
+        else:
+            return 'inference_type not supported'
+
+        return await response
+
+
 # Base model inference for feature vector
+@serve.deployment # TODO: change resource alloc
 class RobertaBaseInferenceRay:
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained('roberta-base')
@@ -21,27 +47,32 @@ class RobertaBaseInferenceRay:
 
 
 # Roberta for question answering
-class RobertaQAInferenceRay:
-    def __init__(self):
-        self.tokenizer = AutoTokenizer.from_pretrained('deepset/roberta-base-squad2')
-        self.model = RobertaForQuestionAnswering.from_pretrained("deepset/roberta-base-squad2")
+#class RobertaQAInferenceRay:
+#    def __init__(self):
+#        self.tokenizer = AutoTokenizer.from_pretrained('deepset/roberta-base-squad2')
+#        self.model = RobertaForQuestionAnswering.from_pretrained("deepset/roberta-base-squad2")
+#
+#    # Answers a question given an additional text for context
+#    def inference(self, question: str, text: str) -> str:
+#        inputs = self.tokenizer(question, text, return_tensors='pt')
+#        with torch.no_grad():
+#            outputs = self.model(**inputs)
+#
+#        answer_start_index = outputs.start_logits.argmax()
+#        answer_end_index = outputs.end_logits.argmax()
+#        predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
+#        return self.tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
+#
+#
+#roberta_base_model = RobertaBaseInferenceRay()
+#cl4_inf_result = roberta_base_model.inference('granola bars')
+#print('cl4_inf_result: ' + cl4_inf_result)
+#
+#roberta_qa_model = RobertaQAInferenceRay()
+#qa_inf_result = roberta_qa_model.inference('Who was Jim Henson?', 'Jim Henson was a nice puppet')
+#print(qa_inf_result)
 
-    # Answers a question given an additional text for context
-    def inference(self, question: str, text: str) -> str:
-        inputs = self.tokenizer(question, text, return_tensors='pt')
-        with torch.no_grad():
-            outputs = self.model(**inputs)
 
-        answer_start_index = outputs.start_logits.argmax()
-        answer_end_index = outputs.end_logits.argmax()
-        predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
-        return self.tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
-
-
-roberta_base_model = RobertaBaseInferenceRay()
-cl4_inf_result = roberta_base_model.inference('granola bars')
-print('cl4_inf_result: ' + cl4_inf_result)
-
-roberta_qa_model = RobertaQAInferenceRay()
-qa_inf_result = roberta_qa_model.inference('Who was Jim Henson?', 'Jim Henson was a nice puppet')
-print(qa_inf_result)
+roberta_base_inference = RobertaBaseInferenceRay.bind()
+roberta_endpoint = RobertaEndpointRay.options(route_prefix='/roberta').bind(roberta_base_inference)
+#roberta_endpoint = RobertaEndpointRay.options(route_prefix='/roberta').bind(roberta_base_inference)
