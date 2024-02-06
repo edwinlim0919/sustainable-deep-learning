@@ -13,3 +13,11 @@ scikit-learn
 pygments
 starlette==0.14.2
 fastapi==0.68.0
+accelerate
+tokenizers
+bitsandbytes
+einops
+xformers
+langchain
+faiss-gpu
+sentence_transformers
