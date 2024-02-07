@@ -7,7 +7,7 @@
 #   args[1] : absolute path to weights file/folder destination in remote machine
 #   args[2] : name of first weights file/folder
 #   ...
-#   args[n] : name of last weights filefolder
+#   args[N] : name of last weights filefolder
 #
 # Example Usage
 #   ./scp_model_weights.sh edwinlim@clnode219.clemson.cloudlab.us /dev/shm/hardware-systems-sustainability/sustainable-deep-learning/model_weights llama-2-7b-chat llama-2-13b-chat llama-2-70b-chat tokenizer.model tokenizer_checklist.chk
