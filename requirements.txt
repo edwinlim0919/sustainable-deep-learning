@@ -21,3 +21,4 @@ xformers
 langchain
 faiss-gpu
 sentence_transformers
+protobuf
