@@ -33,6 +33,7 @@ class RobertaBaseInferenceRay:
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained('roberta-base')
         self.model = RobertaModel.from_pretrained('roberta-base', output_hidden_states=True)
+        self.model.eval()
 
     # Returns a feature vector from mean of concatenated last 4 hidden states
     def inference(self, text: str) -> str:
@@ -52,6 +53,7 @@ class RobertaQAInferenceRay:
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained('deepset/roberta-base-squad2')
         self.model = RobertaForQuestionAnswering.from_pretrained("deepset/roberta-base-squad2")
+        self.model.eval()
 
     # Answers a question given an additional text for context
     def inference(self, question: str, text: str) -> str:
