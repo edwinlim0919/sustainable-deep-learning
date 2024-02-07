@@ -34,6 +34,7 @@ class BertBaseInferenceRay:
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
         self.model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True)
+        self.model.eval()
 
     # Returns a feature vector from mean of concatenated last 4 hidden states
     def inference(self, text: str) -> str:
@@ -54,6 +55,7 @@ class BertQAInferenceRay:
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained("deepset/bert-base-cased-squad2")
         self.model = BertForQuestionAnswering.from_pretrained("deepset/bert-base-cased-squad2")
+        self.model.eval()
 
     # Answers a question given an additional text for context
     def inference(self, question: str, text: str) -> str:
