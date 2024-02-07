@@ -1,2 +1,3 @@
 *
 !.gitignore
+!convert_llama2_weights.sh
