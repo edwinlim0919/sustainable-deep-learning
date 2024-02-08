@@ -19,6 +19,7 @@ bitsandbytes
 einops
 xformers
 langchain
+langchain-community
 faiss-gpu
 sentence_transformers
 protobuf
