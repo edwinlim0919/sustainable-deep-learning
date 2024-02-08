@@ -5,6 +5,8 @@ from transformers import LlamaForCausalLM, LlamaTokenizer
 from transformers import StoppingCriteria, StoppingCriteriaList
 
 from embeddings_vector_store import EmbeddingsVectorStore
+
+
 #class Llama7BChatEndpointRay:
 
 
@@ -71,6 +73,8 @@ class Llama7BChatQAInferenceRay:
 #llm_chain = LLMChain(llm=llama_7b_chat)
 
 
-llama_7b_chat = Llama7BChatQAInferenceRay('llama-2-7b-chat-hf')
-res = llama_7b_chat.generate('Explain me the difference between Data Lakehouse and Data Warehouse.')
-print(res[0]['generated_text'])
+class Llama7BChatPipeline:
+    def __init__(self):
+        llama_7b_chat = Llama7BChatQAInferenceRay('llama-2-7b-chat-hf')
+        #res = llama_7b_chat.generate('Explain me the difference between Data Lakehouse and Data Warehouse.')
+        #print(res[0]['generated_text'])
