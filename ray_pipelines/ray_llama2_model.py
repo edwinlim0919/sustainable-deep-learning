@@ -6,7 +6,7 @@ from transformers import StoppingCriteria, StoppingCriteriaList
 from langchain.chains import ConversationalRetrievalChain
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models.llms import LLM
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Mapping
 
 from embeddings_vector_store import EmbeddingsVectorStore
 
@@ -40,7 +40,7 @@ class StopOnTokens(StoppingCriteria):
         return False
 
 
-class Llama7BChatQAInferenceRay(LLM):
+class CustomLLM(LLM):
     def __init__(self, model_name): # TODO model_name does not do anything
         model_dir = '../model_weights/llama-2-7b-chat-hf'
         device = f'cuda:{cuda.current_device()}' if cuda.is_available() else 'cpu'
@@ -95,14 +95,20 @@ class Llama7BChatQAInferenceRay(LLM):
             'temperature' : 0.1,
             'max_new_tokens' : 512,
             'repetition_penalty' : 1.1,
-            **generation_kwargs
+            **kwargs
         }
-        return global_generate_text(input_text, **kwargs)
+        return 'fuck'
+        #return global_generate_text(input_text, **kwargs)
+
+    # TODO: This is kind of bullshit
+    #@property
+    #def _identifying_params(self) -> Mapping[str, Any]:
+    #    return {'n': 10}
 
 
 class Llama7BChatPipeline:
     def __init__(self):
-        self.llm = Llama7BChatQAInferenceRay('llama-2-7b-chat-hf')
+        self.llm = CustomLLM('llama-2-7b-chat-hf')
         self.embeddings_vector_store = EmbeddingsVectorStore()
         self.chain = ConversationalRetrievalChain.from_llm(
             self.llm,
@@ -111,15 +117,16 @@ class Llama7BChatPipeline:
         )
         self.chat_history = []
 
-    def reset_chat_history():
+    def reset_chat_history(self):
         self.chat_history.clear()
 
-    def query(query_text):
-        result = self.chain({'question' : query, 'chat_history' : self.chat_history})
-        self.chat_history.append((query, result['answer']))
-        return result['answer']
+    def query(self, query_text):
+        return self.llm._call('fuck')
+        #result = self.chain({'question' : query_text, 'chat_history' : self.chat_history})
+        #self.chat_history.append((query_text, result['answer']))
+        #return result['answer']
 
 
 llama_7b_chat_pipeline = Llama7BChatPipeline()
-llama_7b_chat_pipeline.query('My name is Edwin.')
-llama_7b_chat_pipeline.query('What is my name?')
+print(llama_7b_chat_pipeline.query('My name is Edwin.'))
+print(llama_7b_chat_pipeline.query('What is my name?'))
