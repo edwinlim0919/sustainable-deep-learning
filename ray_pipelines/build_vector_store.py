@@ -9,4 +9,4 @@ from langchain.vectorstores import FAISS
 from typing import List
 from embeddings import LocalHuggingFaceEmbeddings
 
-FAISS_INDEX_PATH = '../'
+FAISS_INDEX_PATH = '../document_embeddings/faiss_index'
