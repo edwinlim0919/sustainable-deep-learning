@@ -3,6 +3,10 @@ import transformers
 from torch import cuda, bfloat16
 from transformers import LlamaForCausalLM, LlamaTokenizer
 from transformers import StoppingCriteria, StoppingCriteriaList
+from langchain.chains import ConversationalRetrievalChain
+from langchain_core.callbacks.manager import CallbackManagerForLLMRun
+from langchain_core.language_models.llms import LLM
+from typing import Any, List, Optional
 
 from embeddings_vector_store import EmbeddingsVectorStore
 
@@ -10,8 +14,7 @@ from embeddings_vector_store import EmbeddingsVectorStore
 #class Llama7BChatEndpointRay:
 
 
-# TODO: Should make this optional, can potentially quantify sustainability benefits of quantization
-# TODO: Quantization is only available for GPUs
+# TODO: Can potentially quantify sustainability benefits of quantization
 # Enabling quanitzation for large model with less memory requirements
 bnb_config = transformers.BitsAndBytesConfig(
     load_in_4bit=True,
@@ -19,6 +22,10 @@ bnb_config = transformers.BitsAndBytesConfig(
     bnb_4bit_use_double_quant=True,
     bnb_4bit_compute_dtype=bfloat16
 )
+
+
+# TODO: This is janky but not sure what else to do
+global_generate_text = None
 
 
 # Custom stopping criteria object
@@ -33,48 +40,86 @@ class StopOnTokens(StoppingCriteria):
         return False
 
 
-class Llama7BChatQAInferenceRay:
+class Llama7BChatQAInferenceRay(LLM):
     def __init__(self, model_name): # TODO model_name does not do anything
         model_dir = '../model_weights/llama-2-7b-chat-hf'
         device = f'cuda:{cuda.current_device()}' if cuda.is_available() else 'cpu'
-        self.model_config = transformers.AutoConfig.from_pretrained(model_dir)
-        self.model = transformers.AutoModelForCausalLM.from_pretrained(
-            model_dir,
-            config=self.model_config,
-            #quantization_config=bnb_config, # TODO: only available for GPUs
-            device_map='auto'
-        )
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_dir)
-        self.model.eval()
+        model_config = transformers.AutoConfig.from_pretrained(model_dir)
+        if cuda.is_available():
+            model = transformers.AutoModelForCausalLM.from_pretrained(
+                model_dir,
+                config=model_config,
+                quantization_config=bnb_config,
+                device_map='auto'
+            )
+        else:
+            model = transformers.AutoModelForCausalLM.from_pretrained(
+                model_dir,
+                config=model_config,
+                #quantization_config=bnb_config, # TODO: only available for GPUs
+                device_map='auto'
+            )
+        tokenizer = transformers.AutoTokenizer.from_pretrained(model_dir)
+        model.eval()
 
         # Stopping criteria
         stop_list = ['\nHuman:', '\n```\n']
-        stop_token_ids = [self.tokenizer(x)['input_ids'] for x in stop_list]
+        stop_token_ids = [tokenizer(x)['input_ids'] for x in stop_list]
         stop_token_ids = [torch.LongTensor(x).to(device) for x in stop_token_ids]
-        self.stopping_criteria = StoppingCriteriaList([StopOnTokens(stop_token_ids)])
+        stopping_criteria = StoppingCriteriaList([StopOnTokens(stop_token_ids)])
 
         # Ensuring reasonable text generation
-        self.generate_text = transformers.pipeline(
-            model=self.model, 
-            tokenizer=self.tokenizer,
+        global_generate_text = transformers.pipeline(
+            model=model, 
+            tokenizer=tokenizer,
             return_full_text=True,
             task='text-generation',
-            stopping_criteria=self.stopping_criteria,
+            stopping_criteria=stopping_criteria,
             temperature=0.1,
             max_new_tokens=512,
             repetition_penalty=1.1
         )
 
-    def generate(self, input_text, **generation_kwargs):
-        return self.generate_text(input_text) # TODO: Not sure what to do with generation_kwargs
+    @property
+    def _llm_type(self) -> str:
+        return 'custom'
 
-
-#llama_7b_chat = Llama7BChatQAInferenceRay()
-#llm_chain = LLMChain(llm=llama_7b_chat)
+    def _call(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> str:
+        kwargs = {
+            'temperature' : 0.1,
+            'max_new_tokens' : 512,
+            'repetition_penalty' : 1.1,
+            **generation_kwargs
+        }
+        return global_generate_text(input_text, **kwargs)
 
 
 class Llama7BChatPipeline:
     def __init__(self):
-        llama_7b_chat = Llama7BChatQAInferenceRay('llama-2-7b-chat-hf')
-        #res = llama_7b_chat.generate('Explain me the difference between Data Lakehouse and Data Warehouse.')
-        #print(res[0]['generated_text'])
+        self.llm = Llama7BChatQAInferenceRay('llama-2-7b-chat-hf')
+        self.embeddings_vector_store = EmbeddingsVectorStore()
+        self.chain = ConversationalRetrievalChain.from_llm(
+            self.llm,
+            self.embeddings_vector_store.vectorstore.as_retriever(),
+            return_source_documents=False
+        )
+        self.chat_history = []
+
+    def reset_chat_history():
+        self.chat_history.clear()
+
+    def query(query_text):
+        result = self.chain({'question' : query, 'chat_history' : self.chat_history})
+        self.chat_history.append((query, result['answer']))
+        return result['answer']
+
+
+llama_7b_chat_pipeline = Llama7BChatPipeline()
+llama_7b_chat_pipeline.query('My name is Edwin.')
+llama_7b_chat_pipeline.query('What is my name?')

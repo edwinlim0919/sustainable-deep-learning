@@ -5,16 +5,20 @@ from langchain_community.document_loaders import ReadTheDocsLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.chains import ConversationalRetrievalChain
 
+from langchain_community.document_loaders import WebBaseLoader
 
 class EmbeddingsVectorStore:
     def __init__(self):
         ct = datetime.datetime.fromtimestamp(time.time())
         print('Loading documents... ' + str(ct.strftime('%Y-%m-%d %H:%M:%S')))
-        loader = ReadTheDocsLoader('../document_embeddings/docs.ray.io/en/master/')
+        #loader = ReadTheDocsLoader('../document_embeddings/docs.ray.io/en/master/')
+        #documents = loader.load()
+
+        web_links = ["https://www.databricks.com/"]
+        loader = WebBaseLoader(web_links)
         documents = loader.load()
-        
+
         # TODO: Arbitrarily chose chunk_size and chunk_overlap based off of Medium articles
         ct = datetime.datetime.fromtimestamp(time.time())
         print('Splitting documents...' + str(ct.strftime('%Y-%m-%d %H:%M:%S')))
@@ -31,7 +35,7 @@ class EmbeddingsVectorStore:
         ct = datetime.datetime.fromtimestamp(time.time())
         print('Generating and storing embeddings...' + str(ct.strftime('%Y-%m-%d %H:%M:%S')))
         embeddings = HuggingFaceEmbeddings(model_name=model_name, model_kwargs=model_kwargs)
-        vectorstore = FAISS.from_documents(all_splits, embeddings)
+        self.vectorstore = FAISS.from_documents(all_splits, embeddings)
         
         ct = datetime.datetime.fromtimestamp(time.time())
         print('Done.' + str(ct.strftime('%Y-%m-%d %H:%M:%S')))
