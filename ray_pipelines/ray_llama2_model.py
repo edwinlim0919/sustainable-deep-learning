@@ -4,7 +4,7 @@ from torch import cuda, bfloat16
 from transformers import LlamaForCausalLM, LlamaTokenizer
 from transformers import StoppingCriteria, StoppingCriteriaList
 
-
+from embeddings_vector_store import EmbeddingsVectorStore
 #class Llama7BChatEndpointRay:
 
 
@@ -32,7 +32,7 @@ class StopOnTokens(StoppingCriteria):
 
 
 class Llama7BChatQAInferenceRay:
-    def __init__(self):
+    def __init__(self, model_name): # TODO model_name does not do anything
         model_dir = '../model_weights/llama-2-7b-chat-hf'
         device = f'cuda:{cuda.current_device()}' if cuda.is_available() else 'cpu'
         self.model_config = transformers.AutoConfig.from_pretrained(model_dir)
@@ -63,6 +63,14 @@ class Llama7BChatQAInferenceRay:
             repetition_penalty=1.1
         )
 
-llama_7b_chat = Llama7BChatQAInferenceRay()
-res = llama_7b_chat.generate_text('Explain me the difference between Data Lakehouse and Data Warehouse.')
+    def generate(self, input_text, **generation_kwargs):
+        return self.generate_text(input_text) # TODO: Not sure what to do with generation_kwargs
+
+
+#llama_7b_chat = Llama7BChatQAInferenceRay()
+#llm_chain = LLMChain(llm=llama_7b_chat)
+
+
+llama_7b_chat = Llama7BChatQAInferenceRay('llama-2-7b-chat-hf')
+res = llama_7b_chat.generate('Explain me the difference between Data Lakehouse and Data Warehouse.')
 print(res[0]['generated_text'])
