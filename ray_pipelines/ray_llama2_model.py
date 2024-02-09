@@ -16,7 +16,8 @@ class StopOnTokens(StoppingCriteria):
     def __init__(self, stop_token_ids):
         self.stop_token_ids = stop_token_ids
 
-    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+    #def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+    def invoke(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
         for stop_ids in self.stop_token_ids:
             if torch.eq(input_ids[0][-len(stop_ids):], stop_ids).all():
                 return True
@@ -89,38 +90,40 @@ class Llama7BChatQAInferenceRay(LLM):
             'repetition_penalty' : 1.1,
             **kwargs
         }
-        something = global_generate_text(prompt, **kwargs)
-        return something[0]['generated_text']
+        result = global_generate_text(prompt, **kwargs)
+        print('RESULT _CALL START')
+        print(result)
+        print('RESULT _CALL END')
+        return result[0]['generated_text']
 
 
-llm = Llama7BChatQAInferenceRay()
-print(llm.invoke('MY FUCKING NAME IS JEFF'))
+class Llama7BChatPipeline:
+    def __init__(self):
+        self.llm = Llama7BChatQAInferenceRay()
+        self.embeddings_vector_store = EmbeddingsVectorStore()
+        self.chain = ConversationalRetrievalChain.from_llm(
+            self.llm,
+            self.embeddings_vector_store.vectorstore.as_retriever(),
+            return_source_documents=False
+        )
+        self.chat_history = []
+
+    def reset_chat_history(self):
+        self.chat_history.clear()
+
+    def query(self, query_text):
+        #return self.llm._call(query_text)
+        result = self.chain({'question' : query_text, 'chat_history' : self.chat_history})
+        self.chat_history.append((query_text, result['answer']))
+        print('RESULT QUERY START')
+        print(result)
+        print('RESULT QUERY END')
+        return result['answer']
 
 
-#class Llama7BChatPipeline:
-#    def __init__(self):
-#        self.llm = Llama7BChatQAInferenceRay()
-#        self.embeddings_vector_store = EmbeddingsVectorStore()
-#        self.chain = ConversationalRetrievalChain.from_llm(
-#            self.llm,
-#            self.embeddings_vector_store.vectorstore.as_retriever(),
-#            return_source_documents=False
-#        )
-#        self.chat_history = []
-#
-#    def reset_chat_history(self):
-#        self.chat_history.clear()
-#
-#    def query(self, query_text):
-#        #return self.llm._call(query_text)
-#        result = self.chain({'question' : query_text, 'chat_history' : self.chat_history})
-#        self.chat_history.append((query_text, result['answer']))
-#        return result['answer']
-#
-#
-#llama_7b_chat_pipeline = Llama7BChatPipeline()
-#print(llama_7b_chat_pipeline.query('My name is Edwin.'))
-#print(llama_7b_chat_pipeline.query('What is my name?'))
+llama_7b_chat_pipeline = Llama7BChatPipeline()
+print(llama_7b_chat_pipeline.query('My name is Edwin.'))
+print(llama_7b_chat_pipeline.query('What is my name?'))
 
 
 #llm = Llama7BChatQAInferenceRay()
