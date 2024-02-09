@@ -32,8 +32,6 @@ bnb_config = transformers.BitsAndBytesConfig(
     bnb_4bit_compute_dtype=bfloat16
 )
 
-
-# TODO: This is janky but not sure what else to do
 model_dir = '../model_weights/llama-2-7b-chat-hf'
 device = f'cuda:{cuda.current_device()}' if cuda.is_available() else 'cpu'
 model_config = transformers.AutoConfig.from_pretrained(model_dir)
@@ -50,7 +48,7 @@ else:
         config=model_config,
         device_map='auto'
     )
-tokenizer = transformers.AutoTokenizer.from_pretrained(model_dir)
+tokenizer = transformers.AutoTokenizer.from_pretrained(model_dir, add_special_token=False)
 model.eval()
 
 # Stopping criteria
@@ -66,6 +64,7 @@ global_generate_text = transformers.pipeline(
     return_full_text=True,
     task='text-generation',
     stopping_criteria=stopping_criteria,
+    do_sample=True,
     temperature=0.1,
     max_new_tokens=512,
     repetition_penalty=1.1
@@ -73,44 +72,6 @@ global_generate_text = transformers.pipeline(
 
 
 class Llama7BChatQAInferenceRay(LLM):
-    #def __init__(self):
-    #    model_dir = '../model_weights/llama-2-7b-chat-hf'
-    #    device = f'cuda:{cuda.current_device()}' if cuda.is_available() else 'cpu'
-    #    model_config = transformers.AutoConfig.from_pretrained(model_dir)
-    #    if cuda.is_available():
-    #        model = transformers.AutoModelForCausalLM.from_pretrained(
-    #            model_dir,
-    #            config=model_config,
-    #            quantization_config=bnb_config,
-    #            device_map='auto'
-    #        )
-    #    else:
-    #        model = transformers.AutoModelForCausalLM.from_pretrained(
-    #            model_dir,
-    #            config=model_config,
-    #            device_map='auto'
-    #        )
-    #    tokenizer = transformers.AutoTokenizer.from_pretrained(model_dir)
-    #    model.eval()
-
-    #    # Stopping criteria
-    #    stop_list = ['\nHuman:', '\n```\n']
-    #    stop_token_ids = [tokenizer(x)['input_ids'] for x in stop_list]
-    #    stop_token_ids = [torch.LongTensor(x).to(device) for x in stop_token_ids]
-    #    stopping_criteria = StoppingCriteriaList([StopOnTokens(stop_token_ids)])
-
-    #    # Ensuring reasonable text generation
-    #    global_generate_text = transformers.pipeline(
-    #        model=model, 
-    #        tokenizer=tokenizer,
-    #        return_full_text=True,
-    #        task='text-generation',
-    #        stopping_criteria=stopping_criteria,
-    #        temperature=0.1,
-    #        max_new_tokens=512,
-    #        repetition_penalty=1.1
-    #    )
-
     @property
     def _llm_type(self) -> str:
         return 'custom'
