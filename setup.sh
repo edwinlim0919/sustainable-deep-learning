@@ -12,3 +12,4 @@ conda create --name neural-speed-env
 conda activate neural-speed-env
 conda install pip
 pip install -r neural-speed/requirements.txt
+pip install ./neural-speed/
