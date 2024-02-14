@@ -10,6 +10,7 @@ rm -rf ~/miniconda3/miniconda.sh
 
 conda create --name neural-speed-env
 conda activate neural-speed-env
+export PATH='/users/'"${USER}"'/miniconda3/envs/neural-speed-env/bin:'"$PATH"
 conda install pip
 pip install -r neural-speed/requirements.txt
 pip install ./neural-speed/
