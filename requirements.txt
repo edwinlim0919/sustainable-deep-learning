@@ -24,3 +24,4 @@ faiss-gpu
 sentence_transformers
 protobuf
 bs4
+intel-extension-for-transformers
