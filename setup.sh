@@ -29,6 +29,6 @@ conda create --name intel-transformers python=3.11
 conda activate intel-transformers
 conda install pip
 export PATH='/users/'"${USER}"'/miniconda3/envs/intel-transformers/bin:'"$PATH"
-pip install -r neural-speed/requirements.txt
-pip install ./neural-speed/
+#pip install -r neural-speed/requirements.txt
+#pip install ./neural-speed/
 conda deactivate
