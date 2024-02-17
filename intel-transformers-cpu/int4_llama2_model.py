@@ -1,14 +1,14 @@
-import transformers
+#import transformers
 from transformers import AutoTokenizer, TextStreamer
 from intel_extension_for_transformers.transformers import AutoModelForCausalLM
-from intel_extension_for_transformers.transformers.pipeline import pipeline
-from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
+#from intel_extension_for_transformers.transformers.pipeline import pipeline
+#from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 
 
 model_name = 'TheBloke/Llama-2-7B-Chat-GGUF'
 model_file = 'llama-2-7b-chat.Q4_0.gguf'
 tokenizer_name = 'meta-llama/Llama-2-7b-chat-hf'
-model_config = transformers.AutoConfig.from_pretrained(model_name, model_file=model_file)
+#model_config = transformers.AutoConfig.from_pretrained(model_name, model_file=model_file)
 
 print('model_config: ' + str(model_config))
 
@@ -45,16 +45,16 @@ model = AutoModelForCausalLM.from_pretrained(
 #)
 
 
-generate_text = pipeline(
-    model=model,
-    config=model_config,
-    tokenizer=tokenizer,
-    return_full_text=True,
-    task='text-generation',
-    temperature=0.0,
-    max_new_tokens=512,
-    repetition_penalty=1.1
-)
+#generate_text = pipeline(
+#    model=model,
+#    config=model_config,
+#    tokenizer=tokenizer,
+#    return_full_text=True,
+#    task='text-generation',
+#    temperature=0.0,
+#    max_new_tokens=512,
+#    repetition_penalty=1.1
+#)
 
 #pipe = HuggingFacePipeline(pipeline=pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=128))
 #retriever = VectorStoreRetriever(vectorstore=knowledge_base, search_type='mmr', search_kwargs={'k':1, 'fetch_k':5})
