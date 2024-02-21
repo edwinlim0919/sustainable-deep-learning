@@ -1,0 +1,9 @@
+ray start --head
+
+
+serve build int4_llama2_model:llama2_endpoint -o ../configs/ray_llama2.yaml
+serve run ../configs/ray_llama2.yaml
+python3 int4_llama2_client.py
+
+
+ray stop
