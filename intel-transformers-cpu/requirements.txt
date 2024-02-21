@@ -3,3 +3,6 @@ accelerate
 langchain
 xformers
 bitsandbytes
+ray
+ray[serve]
+requests
