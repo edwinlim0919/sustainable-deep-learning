@@ -1,4 +1,6 @@
 import ray
+import time
+import datetime
 from ray import serve
 from ray.serve.handle import DeploymentHandle
 from transformers import AutoTokenizer, TextStreamer
@@ -11,11 +13,9 @@ class Llama2EndpointRay:
         self.llama2_int4_base_inference = llama2_int4_base_inference
 
     async def __call__(self, http_request):
-        #print('Llama2EndpointRay __call__ START')
         request = await http_request.json()
         prompt = request['prompt']
         response = self.llama2_int4_base_inference.inference.remote(prompt)
-        #print('Llama2EndpointRay __call__ END')
         return await response
 
 
@@ -37,6 +37,10 @@ class Llama2Int4BaseInferenceRay:
         )
 
     def inference(self, prompt: str) -> str:
+        start_time = time.time()
+
+        # TODO: pre-tokenize and post-decode?
+        #       only inference on this end
         inputs = self.tokenizer(
             prompt,
             return_tensors='pt'
@@ -48,10 +52,20 @@ class Llama2Int4BaseInferenceRay:
             eos_token_id=eos_token_id,
             early_stopping=True
         )
+        #print('OUTPUTS: ' + str(outputs))
+        num_output_tokens = len(outputs[0])
         response = self.tokenizer.decode(
             outputs[0],
             skip_special_tokens=True
         )
+
+        end_time = time.time()
+        elapsed_time_seconds = end_time - start_time
+        seconds_per_token = elapsed_time_seconds / num_output_tokens
+        elapsed_time_readable = str(datetime.timedelta(seconds=elapsed_time_seconds))
+        print(f'INFERENCE Elapsed Time: {elapsed_time_readable} (hours:min:seconds)')
+        print(f'INFERENCE Seconds Per Token: {seconds_per_token}')
+
         return response
 
 
