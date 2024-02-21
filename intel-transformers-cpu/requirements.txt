@@ -7,3 +7,5 @@ ray
 ray[serve]
 requests
 datetime
+paramiko
+argparse
