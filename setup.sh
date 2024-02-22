@@ -10,10 +10,6 @@ rm -rf ~/miniconda3/miniconda.sh
 
 sudo apt install docker.io
 
-#conda create --name intel-transformers python=3.11
-#conda activate intel-transformers
-#conda install pip
-#export PATH='/users/'"${USER}"'/miniconda3/envs/intel-transformers/bin:'"$PATH"
-#conda deactivate
+
 git submodule init neural-speed
 git submodule update neural-speed

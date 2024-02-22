@@ -3,6 +3,7 @@ import subprocess
 import argparse
 import paramiko
 import re
+import os
 
 
 def execute_cmd(cmd):
@@ -57,15 +58,83 @@ def start_head_node():
     return execute_cmd(start_cmd)
 
 
-def setup_node(username, host):
+def setup_worker_node(username, host):
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(host, username=username)
+
+        # copy setup files
+        sftp = ssh.open_sftp()
+        curr_dir = os.getcwd()
+        local_script_path = f'{curr_dir}/worker_setup.sh'
+        remote_script_path = f'/users/{username}/worker_setup.sh'
+        sftp.put(
+            local_script_path,
+            remote_script_path
+        )
+        local_env_path = f'{curr_dir}/environment.yaml'
+        remote_env_path = f'/users/{username}/environment.yaml'
+        sftp.put(
+            local_env_path,
+            remote_env_path
+        )
+        sftp.close()
+
+        # setup base dependencies
+        command = f'chmod +x {remote_script_path} && yes | {remote_script_path}'
+        stdin, stdout, stderr = ssh.exec_command(command)
+
+        exit_status = stdout.channel.recv_exit_status()
+        if exit_status == 0:
+            print("Script executed successfully")
+            print(stdout.read().decode())
+        else:
+            print("Error executing script")
+            print(stderr.read().decode())
+
+        # setup conda env
+        combined_commands = (
+            'export PATH="$HOME/miniconda3/bin:$PATH" && '
+            'eval "$(conda shell.bash hook)" && '
+            f'conda env create -f {remote_env_path} -n worker-env && '
+            'conda activate worker-env'
+        )
+        stdin, stdout, stderr = ssh.exec_command(combined_commands)
+        output = stdout.read().decode()
+        error = stderr.read().decode()
+        if output:
+            print(output)
+        if error:
+            print(error)
+
+        #commands = [
+        #    'export PATH="$HOME/miniconda3/bin:$PATH"',
+        #    'eval "$(conda shell.bash hook)"',
+        #    f'conda env create -f {remote_env_path} -n worker-env',
+        #    'conda activate worker-env'
+        #]
+        #for command in commands:
+        #    stdin, stdout, stderr = ssh.exec_command(command)
+        #    print(stdout.read().decode())
+        #    err = stderr.read().decode()
+        #    if err:
+        #        print(f"Error: {err}")
+
+        ssh.close()
+    except Exception as e:
+        print(f'Failed to connect worker for {host}: {e}')
 
 
-def setup_nodes(ssh_list_file):
-    # clone repository
+def setup_worker_nodes(ssh_list_file):
+    with open(ssh_list_file, 'r') as file:
+        ssh_commands = file.readlines()
 
-    # setup base dependencies
-
-    # setup conda env
+    for command in ssh_commands:
+        parts = command.strip().split('@')
+        username = parts[0].split()[1]
+        host = parts[1]
+        setup_worker_node(username, host)
 
 
 if __name__ == '__main__':
@@ -82,7 +151,9 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    worker_connect_command = start_head_node()
-    print(f'worker_connect_command: {worker_connect_command}')
+    setup_worker_nodes(args.ssh_list)
 
-    connect_worker_nodes(args.ssh_list, worker_connect_command)
+    #worker_connect_command = start_head_node()
+    #print(f'worker_connect_command: {worker_connect_command}')
+
+    #connect_worker_nodes(args.ssh_list, worker_connect_command)
