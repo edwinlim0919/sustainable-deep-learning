@@ -1,4 +1,5 @@
 import paramiko
+import argparse
 
 
 def get_hostnames_from_file(file_name):
@@ -8,13 +9,14 @@ def get_hostnames_from_file(file_name):
     hostnames = []
     for command in ssh_commands:
         parts = command.strip().split('@')
-        if len(parts) == 2:
-            username, host = parts[1].split('@')
-            hostname = get_hostname(username, host)
-            if hostname:
-                hostnames.append(hostname)
+        username = parts[0].split()[1]
+        host = parts[1]
+
+        hostname = get_hostname(username, host)
+        if hostname:
+            hostnames.append(hostname)
     
-    return hostnames
+    return hostnames, username
 
 
 def get_hostname(username, host):
@@ -27,14 +29,24 @@ def get_hostname(username, host):
         ssh.close()
         return hostname
     except Exception as e:
-        print(f"Failed to get hostname for {host}: {e}")
+        print(f'Failed to get hostname for {host}: {e}')
         return None
 
 
+def write_hostnames_to_file(hostnames, outfile, username):
+    with open(outfile, 'w') as file:
+        file.write(f'{username}\n')
+
+        for hostname in hostnames:
+            file.write(f'{hostname}\n')
+
+
 if __name__ == '__main__':
-    file_name = input('Enter the name of the file containing SSH commands: ')
-    hostnames = get_hostnames_from_file(file_name)
-    
-    print('Hostnames:')
-    for hostname in hostnames:
-        print(hostname)
+    parser = argparse.ArgumentParser(description='Get hostnames from a list of SSH commands.')
+    parser.add_argument('--ssh-list', required=True, help='The filename containing SSH commands.')
+    parser.add_argument('--outfile', type=str, required=True, help='File to write the hostnames to.')
+    args = parser.parse_args()
+
+    hostnames, username = get_hostnames_from_file(args.ssh_list)
+    write_hostnames_to_file(hostnames, args.outfile, username)
+    print(f'Username and hostnames have been written to {args.outfile}.')
