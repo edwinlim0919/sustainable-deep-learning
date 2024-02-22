@@ -77,7 +77,7 @@ idle_timeout_minutes: 5
 # that directory to all nodes and call `conda -n my_env -f /path1/on/remote/machine/environment.yaml`. In this
 # example paths on all nodes must be the same (so that conda can be called always with the same argument)
 file_mounts: {
-    ""
+    # "/dev/shm/hardware-systems-sustainability/" : "/dev/shm/hardware-systems-sustainability/"
 }
 # file_mounts: {
 #     "/path1/on/remote/machine": "/path1/on/local/machine",
@@ -88,7 +88,8 @@ file_mounts: {
 # list of paths. The same path on the head node will be copied to the worker node.
 # This behavior is a subset of the file_mounts behavior. In the vast majority of cases
 # you should just use file_mounts. Only use this if you know what you're doing!
-cluster_synced_files: []
+cluster_synced_files: ["/dev/shm/hardware-systems-sustainability/"]
+# cluster_synced_files: []
 
 # Whether changes to directories in file_mounts or cluster_synced_files in the head node
 # should sync to the worker node continuously
@@ -111,7 +112,8 @@ rsync_filter:
 initialization_commands: []
 
 # List of shell commands to run to set up each nodes.
-setup_commands: []
+setup_commands: ["conda env create -q -n intel-transformers -f "]
+# setup_commands: []
     # If we have e.g. conda dependencies stored in "/path1/on/local/machine/environment.yaml", we can prepare the
     # work environment on each worker by:
     #   1. making sure each worker has access to this file i.e. see the `file_mounts` section
