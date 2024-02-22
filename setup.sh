@@ -8,6 +8,8 @@ rm -rf ~/miniconda3/miniconda.sh
 ~/miniconda3/bin/conda init bash
 
 
+sudo apt install docker.io
+
 #conda create --name intel-transformers python=3.11
 #conda activate intel-transformers
 #conda install pip
