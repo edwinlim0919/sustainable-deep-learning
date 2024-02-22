@@ -1,0 +1,6 @@
+edwinlim
+node0.siafg.datacenter-soc-pg0.clemson.cloudlab.us
+node1.siafg.datacenter-soc-pg0.clemson.cloudlab.us
+node2.siafg.datacenter-soc-pg0.clemson.cloudlab.us
+node3.siafg.datacenter-soc-pg0.clemson.cloudlab.us
+node4.siafg.datacenter-soc-pg0.clemson.cloudlab.us

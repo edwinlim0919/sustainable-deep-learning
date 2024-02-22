@@ -1,1 +1,4 @@
 python3 get_hostnames.py --ssh-list ../../node-ssh-lists/c6420_5_ray.txt --outfile ../../node-ssh-lists/c6420_5_ray_nodenames.txt
+
+
+python3 setup_ray_cluster.py --ssh-list ../../node-ssh-lists/c6420_5_ray.txt
