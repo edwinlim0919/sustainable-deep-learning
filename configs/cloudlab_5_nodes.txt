@@ -1,0 +1,6 @@
+edwinlim
+10.10.1.1 clnode212.clemson.cloudlab.us
+10.10.1.2 clnode193.clemson.cloudlab.us
+10.10.1.3 clnode186.clemson.cloudlab.us
+10.10.1.4 clnode221.clemson.cloudlab.us
+10.10.1.5 clnode182.clemson.cloudlab.us
