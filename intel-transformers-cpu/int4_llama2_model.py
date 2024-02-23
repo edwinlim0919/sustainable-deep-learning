@@ -6,19 +6,34 @@ from ray import serve
 from ray.serve.handle import DeploymentHandle
 from transformers import AutoTokenizer, TextStreamer
 from intel_extension_for_transformers.transformers import AutoModelForCausalLM
-from asyncio import Queue
+
+
+inference_queue = asyncio.Queue()
 
 
 @serve.deployment
 class Llama2EndpointRay:
     def __init__(self, llama2_int4_base_inference: DeploymentHandle):
         self.llama2_int4_base_inference = llama2_int4_base_inference
+        task = asyncio.create_task(self.continuous_inference())
 
     async def __call__(self, http_request):
         request = await http_request.json()
         prompt = request['prompt']
-        response = self.llama2_int4_base_inference.inference.remote(prompt)
-        return await response
+
+        # Create a Future for this request's result
+        future = asyncio.get_running_loop().create_future()
+        await inference_queue.put((prompt, future))
+
+        # Wait for the result to be set on the Future
+        result = await future
+        return result
+
+    async def continuous_inference(self):
+        while True:
+            prompt, future = await inference_queue.get()
+            result = await self.llama2_int4_base_inference.inference.remote(prompt)
+            future.set_result(result)
 
 
 # Base inference setup, no tensor parallelism
@@ -39,16 +54,10 @@ class Llama2Int4BaseInferenceRay:
         )
 
     def inference(self, prompt: str) -> str:
-        #start_time = time.time()
-
-        # TODO: pre-tokenize and post-decode?
-        #       only inference on this end
         inputs = self.tokenizer(
             prompt,
             return_tensors='pt'
         ).input_ids
-
-        #encode_end = time.time()
 
         eos_token_id = self.tokenizer.eos_token_id
         outputs = self.model.generate(
@@ -58,43 +67,13 @@ class Llama2Int4BaseInferenceRay:
             early_stopping=True
         )
 
-        #raw_inference_end = time.time()
-
-        num_output_tokens = len(outputs[0])
+        num_output_tokens = str(len(outputs[0]))
         response = self.tokenizer.decode(
             outputs[0],
             skip_special_tokens=True
         )
 
-        return response
-
-        #end_time = time.time()
-
-        #encode_time = encode_end - start_time
-        #raw_inference_time = raw_inference_end - encode_end
-        #decode_time = end_time - raw_inference_end
-        #total_inference_time = end_time - start_time
-
-        #raw_seconds_per_token = raw_inference_time / num_output_tokens
-        #total_second_per_token = total_inference_time / num_output_tokens
-
-        #encode_time_readable = str(datetime.timedelta(seconds=encode_time))
-        #raw_inference_time_readable = str(datetime.timedelta(seconds=raw_inference_time))
-        #decode_time_readable = str(datetime.timedelta(seconds=decode_time))
-        #total_inference_time_readable = str(datetime.timedelta(seconds=total_inference_time))
-
-        #print(f'ENCODE Time: {encode_time_readable} (hours:min:seconds)')
-        #print(f'RAW INFERENCE Time: {raw_inference_time_readable} (hours:min:seconds)')
-        #print(f'DECODE Time: {decode_time_readable} (hours:min:seconds)')
-        #print(f'TOTAL INFERENCE Time: {total_inference_time_readable} (hours:min:seconds)')
-
-        #elapsed_time_seconds = end_time - start_time
-        #seconds_per_token = elapsed_time_seconds / num_output_tokens
-        #elapsed_time_readable = str(datetime.timedelta(seconds=elapsed_time_seconds))
-        #print(f'INFERENCE Elapsed Time: {elapsed_time_readable} (hours:min:seconds)')
-        #print(f'INFERENCE Seconds Per Token: {seconds_per_token}')
-
-        #return response
+        return f'{response} {num_output_tokens}'
 
 
 llama2_int4_base_inference = Llama2Int4BaseInferenceRay.bind()
