@@ -1,10 +1,12 @@
 import ray
 import time
 import datetime
+import asyncio
 from ray import serve
 from ray.serve.handle import DeploymentHandle
 from transformers import AutoTokenizer, TextStreamer
 from intel_extension_for_transformers.transformers import AutoModelForCausalLM
+from asyncio import Queue
 
 
 @serve.deployment
@@ -37,7 +39,7 @@ class Llama2Int4BaseInferenceRay:
         )
 
     def inference(self, prompt: str) -> str:
-        start_time = time.time()
+        #start_time = time.time()
 
         # TODO: pre-tokenize and post-decode?
         #       only inference on this end
@@ -45,6 +47,9 @@ class Llama2Int4BaseInferenceRay:
             prompt,
             return_tensors='pt'
         ).input_ids
+
+        #encode_end = time.time()
+
         eos_token_id = self.tokenizer.eos_token_id
         outputs = self.model.generate(
             inputs,
@@ -52,27 +57,45 @@ class Llama2Int4BaseInferenceRay:
             eos_token_id=eos_token_id,
             early_stopping=True
         )
-        #print('OUTPUTS: ' + str(outputs))
+
+        #raw_inference_end = time.time()
+
         num_output_tokens = len(outputs[0])
         response = self.tokenizer.decode(
             outputs[0],
             skip_special_tokens=True
         )
 
-        end_time = time.time()
-        elapsed_time_seconds = end_time - start_time
-        seconds_per_token = elapsed_time_seconds / num_output_tokens
-        elapsed_time_readable = str(datetime.timedelta(seconds=elapsed_time_seconds))
-        print(f'INFERENCE Elapsed Time: {elapsed_time_readable} (hours:min:seconds)')
-        print(f'INFERENCE Seconds Per Token: {seconds_per_token}')
-
         return response
+
+        #end_time = time.time()
+
+        #encode_time = encode_end - start_time
+        #raw_inference_time = raw_inference_end - encode_end
+        #decode_time = end_time - raw_inference_end
+        #total_inference_time = end_time - start_time
+
+        #raw_seconds_per_token = raw_inference_time / num_output_tokens
+        #total_second_per_token = total_inference_time / num_output_tokens
+
+        #encode_time_readable = str(datetime.timedelta(seconds=encode_time))
+        #raw_inference_time_readable = str(datetime.timedelta(seconds=raw_inference_time))
+        #decode_time_readable = str(datetime.timedelta(seconds=decode_time))
+        #total_inference_time_readable = str(datetime.timedelta(seconds=total_inference_time))
+
+        #print(f'ENCODE Time: {encode_time_readable} (hours:min:seconds)')
+        #print(f'RAW INFERENCE Time: {raw_inference_time_readable} (hours:min:seconds)')
+        #print(f'DECODE Time: {decode_time_readable} (hours:min:seconds)')
+        #print(f'TOTAL INFERENCE Time: {total_inference_time_readable} (hours:min:seconds)')
+
+        #elapsed_time_seconds = end_time - start_time
+        #seconds_per_token = elapsed_time_seconds / num_output_tokens
+        #elapsed_time_readable = str(datetime.timedelta(seconds=elapsed_time_seconds))
+        #print(f'INFERENCE Elapsed Time: {elapsed_time_readable} (hours:min:seconds)')
+        #print(f'INFERENCE Seconds Per Token: {seconds_per_token}')
+
+        #return response
 
 
 llama2_int4_base_inference = Llama2Int4BaseInferenceRay.bind()
 llama2_endpoint = Llama2EndpointRay.bind(llama2_int4_base_inference)
-
-
-#llama2_int4_inference = Llama2Int4InferenceRay()
-#response = llama2_int4_inference.inference('What are the ingredients of olio de aglio? I do not want the entire recipe, only a list of ingredients.')
-#print(response)
