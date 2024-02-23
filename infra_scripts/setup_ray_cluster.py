@@ -105,12 +105,6 @@ def setup_worker_node(username, host):
             config_path,
             config_path
         )
-        #local_env_path = f'{curr_dir}/environment.yaml'
-        #remote_env_path = f'/users/{username}/environment.yaml'
-        #sftp.put(
-        #    local_env_path,
-        #    remote_env_path
-        #)
         local_reqs_path = f'{curr_dir}/../intel-transformers-cpu/requirements.txt'
         remote_reqs_path = f'/users/{username}/requirements.txt'
         sftp.put(
@@ -132,34 +126,6 @@ def setup_worker_node(username, host):
         else:
             print("Error executing script")
             print(stderr.read().decode())
-
-        # setup conda env
-        #combined_commands = (
-        #    'export PATH="$HOME/miniconda3/bin:$PATH" && '
-        #    'eval "$(conda shell.bash hook)" && '
-        #    f'conda env create -f {remote_env_path} -n worker-env && '
-        #    'conda activate worker-env'
-        #)
-        #stdin, stdout, stderr = ssh.exec_command(combined_commands)
-        #output = stdout.read().decode()
-        #error = stderr.read().decode()
-        #if output:
-        #    print(output)
-        #if error:
-        #    print(error)
-
-        #commands = [
-        #    'export PATH="$HOME/miniconda3/bin:$PATH"',
-        #    'eval "$(conda shell.bash hook)"',
-        #    f'conda env create -f {remote_env_path} -n worker-env',
-        #    'conda activate worker-env'
-        #]
-        #for command in commands:
-        #    stdin, stdout, stderr = ssh.exec_command(command)
-        #    print(stdout.read().decode())
-        #    err = stderr.read().decode()
-        #    if err:
-        #        print(f"Error: {err}")
 
         ssh.close()
     except Exception as e:
@@ -184,11 +150,6 @@ if __name__ == '__main__':
         required=True,
         help='The filename containing SSH commands.'
     )
-    #parser.add_argument(
-    #    '--conda-env-yaml',
-    #    required=True,
-    #    help='Name of .yaml describing your conda environment.'
-    #)
     args = parser.parse_args()
     setup_worker_nodes(args.ssh_list)
 

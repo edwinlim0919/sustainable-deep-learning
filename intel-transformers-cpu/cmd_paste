@@ -1,9 +1,25 @@
 ray start --head
 
-
 serve build int4_llama2_model:llama2_endpoint -o ../configs/ray_llama2.yaml
 serve run ../configs/ray_llama2.yaml
 python3 int4_llama2_client.py
 
-
 ray stop
+
+
+
+
+# Flow from https://docs.ray.io/en/latest/serve/production-guide/index.html
+serve build int4_llama2_model:llama2_endpoint -o serve_config.yaml
+ray start --head
+serve deploy serve_config.yaml
+python3 int4_llama2_client.py
+
+
+
+
+# Single-node cluster
+ray start --head --port=6379
+serve deploy serve_config.yaml
+python3 int4_llama2_client.py
+
