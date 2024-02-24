@@ -19,7 +19,7 @@ python3 int4_llama2_client.py
 
 
 # Single-node cluster
+serve build int4_llama2_model:llama2_endpoint -o serve_config.yaml
 ray start --head --port=6379
 serve deploy serve_config.yaml
 python3 int4_llama2_client.py
-
