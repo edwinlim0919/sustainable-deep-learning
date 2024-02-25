@@ -4,6 +4,7 @@ import argparse
 import paramiko
 import re
 import os
+import concurrent.futures
 
 import utils
 
@@ -61,11 +62,26 @@ def setup_worker_nodes(ssh_list_file):
     with open(ssh_list_file, 'r') as file:
         ssh_commands = file.readlines()
 
-    for command in ssh_commands:
-        parts = command.strip().split('@')
-        username = parts[0].split()[1]
-        host = parts[1]
-        setup_worker_node(username, host)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for command in ssh_commands:
+            parts = command.strip().split('@')
+            username = parts[0].split()[1]
+            host = parts[1]
+            future = executor.submit(setup_worker_node, username, host)
+            futures.append(future)
+
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                print(f"Error during setup: {e}")
+
+    #for command in ssh_commands:
+    #    parts = command.strip().split('@')
+    #    username = parts[0].split()[1]
+    #    host = parts[1]
+    #    setup_worker_node(username, host)
 
 
 if __name__ == '__main__':
