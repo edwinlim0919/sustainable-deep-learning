@@ -34,3 +34,7 @@ pip install -r requirements.txt
 
 pip install -r neural-speed/requirements.txt
 pip install ./neural-speed/
+
+
+
+echo "conda activate intel-transformers" >> ~/.bashrc
