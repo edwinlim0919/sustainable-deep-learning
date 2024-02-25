@@ -1,40 +1,22 @@
 import ray
 import time
 import datetime
-#import asyncio
 from ray import serve
 from ray.serve.handle import DeploymentHandle
 from transformers import AutoTokenizer, TextStreamer
 from intel_extension_for_transformers.transformers import AutoModelForCausalLM
 
 
-#inference_queue = asyncio.Queue()
-
-
 @serve.deployment
 class Llama2EndpointRay:
     def __init__(self, llama2_int4_base_inference: DeploymentHandle):
         self.llama2_int4_base_inference = llama2_int4_base_inference
-        #task = asyncio.create_task(self.continuous_inference())
 
     async def __call__(self, http_request):
         request = await http_request.json()
         prompt = request['prompt']
         result = self.llama2_int4_base_inference.inference.remote(prompt)
-
-        # Create a Future for this request's result
-        #future = asyncio.get_running_loop().create_future()
-        #await inference_queue.put((prompt, future))
-
-        # Wait for the result to be set on the Future
-        #result = await future
         return await result
-
-    #async def continuous_inference(self):
-    #    while True:
-    #        prompt, future = await inference_queue.get()
-    #        result = await self.llama2_int4_base_inference.inference.remote(prompt)
-    #        future.set_result(result)
 
 
 # Base inference setup, no tensor parallelism
