@@ -7,3 +7,8 @@ python3 setup_ray_cluster.py --ssh-list ../../node-ssh-lists/c6420_5_ray.txt --c
 
 python3 setup_ray_cluster.py --ssh-list ../../node-ssh-lists/c6420_1.txt
 python3 connect_ray_cluster.py --ssh-list ../../node-ssh-lists/c6420_1.txt
+
+
+
+# Uploading ShareGPT datset from local computer
+scp ~/Downloads/ShareGPT_V3_unfiltered_cleaned_split.json edwinlim@clnode212.clemson.cloudlab.us:/dev/shm/hardware-systems-sustainability/sustainable-deep-learning/infra_scripts/ShareGPT_V3_unfiltered_cleaned_split.json

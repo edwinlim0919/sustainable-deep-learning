@@ -45,7 +45,7 @@ class Llama2Int4BaseInferenceRay:
         eos_token_id = self.tokenizer.eos_token_id
         outputs = self.model.generate(
             inputs,
-            max_new_tokens=1024,
+            max_new_tokens=2048,
             eos_token_id=eos_token_id,
             early_stopping=True
         )
