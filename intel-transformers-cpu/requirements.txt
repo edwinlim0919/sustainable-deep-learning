@@ -3,8 +3,8 @@ accelerate
 langchain
 xformers
 bitsandbytes
-ray
-ray[serve]
+ray==2.9.2
+ray[serve]==2.9.2
 requests
 datetime
 paramiko

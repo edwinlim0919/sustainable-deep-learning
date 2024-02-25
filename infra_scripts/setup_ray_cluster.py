@@ -30,16 +30,6 @@ def setup_worker_node(username, host):
             local_script_path,
             remote_script_path
         )
-        key_path = f'/users/{username}/.ssh/id_rsa'
-        sftp.put(
-            key_path,
-            key_path
-        )
-        config_path = f'/users/{username}/.ssh/config'
-        sftp.put(
-            config_path,
-            config_path
-        )
         local_reqs_path = f'{curr_dir}/../intel-transformers-cpu/requirements.txt'
         remote_reqs_path = f'/users/{username}/requirements.txt'
         sftp.put(

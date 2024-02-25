@@ -9,11 +9,33 @@ import utils
 
 
 def connect_worker_node(username, host, worker_connect_command):
+    curr_dir = os.getcwd()
+    local_script_path = f'{curr_dir}/worker_connect.sh'
+    remote_script_path = f'/users/{username}/worker_connect.sh'
+    with open(local_script_path, 'w') as file:
+        file.write("#!/bin/bash\n")
+        file.write("conda activate intel-transformers\n")
+        file.write(worker_connect_command)
+    os.chmod(local_script_path, 0o755)
+
     try:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(host, username=username)
-        stdin, stdout, stderr = ssh.exec_command(worker_connect_command)
+
+        sftp = ssh.open_sftp()
+        sftp.put(
+            local_script_path,
+            remote_script_path
+        )
+        sftp.close()
+
+        chmod_command = f'chmod +x {remote_script_path}'
+        stdin, stdout, stderr = ssh.exec_command(chmod_command)
+
+        execute_remote_script_command = f'{remote_script_path}'
+        print(f'execute_remote_script_command: {execute_remote_script_command}')
+        stdin, stdout, stderr = ssh.exec_command(execute_remote_script_command)
         worker_stdout = stdout.read().decode().strip()
         print(worker_stdout)
         ssh.close()
@@ -52,5 +74,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     worker_connect_command = start_head_node()
+    #full_connect_command = f'conda activate intel-transformers && {worker_connect_command}'
     print(f'worker_connect_command: {worker_connect_command}')
+    #print(f'full_connect_command: {full_connect_command}')
+
     connect_worker_nodes(args.ssh_list, worker_connect_command)
