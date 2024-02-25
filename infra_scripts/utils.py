@@ -30,6 +30,7 @@ def execute_cmd(cmd):
 # because I can't figure out ssh forwarding...
 def ssh_and_run_command(host, command):
     ssh_command = f"ssh -A {host} {command}"
+    print(f'ssh_command: {ssh_command}')
     try:
         result = subprocess.run(
             ssh_command,

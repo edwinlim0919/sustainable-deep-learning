@@ -4,17 +4,19 @@ import argparse
 import paramiko
 import re
 import os
+import shutil
 
 import utils
 
 
 def connect_worker_node(username, host, worker_connect_command):
     curr_dir = os.getcwd()
+    local_script_template_path = f'{curr_dir}/intel-transformers_worker_connect_template.sh'
     local_script_path = f'{curr_dir}/worker_connect.sh'
     remote_script_path = f'/users/{username}/worker_connect.sh'
-    with open(local_script_path, 'w') as file:
-        file.write("#!/bin/bash\n")
-        file.write("conda activate intel-transformers\n")
+    shutil.copy(local_script_template_path, local_script_path)
+
+    with open(local_script_path, 'a') as file:
         file.write(worker_connect_command)
     os.chmod(local_script_path, 0o755)
 
@@ -32,13 +34,11 @@ def connect_worker_node(username, host, worker_connect_command):
 
         chmod_command = f'chmod +x {remote_script_path}'
         stdin, stdout, stderr = ssh.exec_command(chmod_command)
-
-        execute_remote_script_command = f'{remote_script_path}'
-        print(f'execute_remote_script_command: {execute_remote_script_command}')
-        stdin, stdout, stderr = ssh.exec_command(execute_remote_script_command)
-        worker_stdout = stdout.read().decode().strip()
-        print(worker_stdout)
         ssh.close()
+
+        run_worker_connect = './worker_connect.sh'
+        utils.ssh_and_run_command(host, run_worker_connect)
+
     except Exception as e:
         print(f'Failed to connect worker for {host}: {e}')
 
@@ -74,8 +74,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     worker_connect_command = start_head_node()
-    #full_connect_command = f'conda activate intel-transformers && {worker_connect_command}'
     print(f'worker_connect_command: {worker_connect_command}')
-    #print(f'full_connect_command: {full_connect_command}')
 
     connect_worker_nodes(args.ssh_list, worker_connect_command)
