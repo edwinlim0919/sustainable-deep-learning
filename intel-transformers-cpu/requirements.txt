@@ -9,3 +9,5 @@ requests
 datetime
 paramiko
 argparse
+asyncio
+aiohttp
