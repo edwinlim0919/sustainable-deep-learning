@@ -1,0 +1,6 @@
+# Uploading ShareGPT datset from local computer
+scp ~/Downloads/ShareGPT_V3_unfiltered_cleaned_split.json edwinlim@clnode212.clemson.cloudlab.us:/dev/shm/hardware-systems-sustainability/sustainable-deep-learning/infra_scripts/ShareGPT_V3_unfiltered_cleaned_split.json
+
+
+# Throughput experiments
+python3 llama2_throughput_wrkgen.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split_top100.json --num-requests 0
