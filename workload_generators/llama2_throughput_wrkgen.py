@@ -4,6 +4,8 @@ import argparse
 import requests
 import numpy as np
 import time
+import asyncio
+import aiohttp
 
 
 # Sampling dataset prompts for throughput experiments
@@ -28,6 +30,36 @@ def sample_dataset_prompts(
     return sampled_dataset
 
 
+async def send_request(session, prompt):
+    async with session.post('http://127.0.0.1:8000/', json={'prompt': prompt}) as response:
+        print(f"Request sent: Status Code: {response.status}")
+        # TODO: Accounting stuff
+
+
+async def send_requests_rate(
+    sampled_dataset: List[str],
+    curr_rate: int,
+    requests_per_rate: int
+):
+    # requests per minute converted to requests per second
+    lambda_rate = curr_rate / 60
+
+    # calculating arrival times
+    inter_arrival_times = np.random.exponential(1 / lambda_rate, size=requests_per_rate)
+    arrival_times = np.cumsum(inter_arrival_times)
+    start_time = time.time()
+
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for i in range(requests_per_rate):
+            send_time = start_time + arrival_times[i]
+            await asyncio.sleep(max(0, send_time - time.time()))
+            task = asyncio.create_task(send_request(session, sampled_dataset[i]))
+            tasks.append(task)
+
+        await asyncio.gather(*tasks)
+
+
 # Generate a slowly increasing amount of request rates according to a Poisson distribution
 def generate_requests(
     sampled_dataset: List[str],
@@ -42,18 +74,12 @@ def generate_requests(
 
     while curr_rate < end_rate:
         # requests per minute converted to requests per second
-        lambda_rate = curr_rate / 60
-
-        # calculating arrival times
-        inter_arrival_times = np.random.exponential(1 / lambda_rate, size=requests_per_rate)
-        arrival_times = np.cumsum(inter_arrival_times)
-
+        asyncio.run(send_requests_rate(
+            sampled_dataset,
+            curr_rate,
+            requests_per_rate
+        ))
         curr_rate += rate_increase
-
-
-#shareGPT_file_path = 'ShareGPT_V3_unfiltered_cleaned_split.json'
-#shareGPT_dataset_path = 'ShareGPT_V3_unfiltered_cleaned_split_top100.json'
-#sample_dataset_prompts(shareGPT_dataset_path, 0)
 
 
 if __name__ == '__main__':
