@@ -8,6 +8,10 @@ import asyncio
 import aiohttp
 
 
+global_request_data = []
+global_request_data_lock = asyncio.Lock()
+
+
 # Sampling dataset prompts for throughput experiments
 def sample_dataset_prompts(
     dataset_path: str,
@@ -23,10 +27,7 @@ def sample_dataset_prompts(
     if num_requests < 1:
         num_requests = len(dataset)
 
-    print('SAMPLED DATASET')
     sampled_dataset = random.sample(dataset, num_requests)
-    print(sampled_dataset)
-
     return sampled_dataset
 
 
@@ -35,10 +36,21 @@ async def send_request(session, prompt):
 
     async with session.post('http://127.0.0.1:8000/', json={'prompt': prompt}) as response:
         print(f"Request sent: Status Code: {response.status}")
-        # TODO: Accounting stuff
+        response_text = await response.text()
 
     client_side_end_time = time.time()
+    response_split = response_text.split()
     client_side_latency = client_side_end_time - client_side_start_time
+    server_side_latency = float(response_split[-1])
+    num_output_tokens = int(response_split[-2])
+
+    request_data = {
+        'client_side_latency': client_side_latency,
+        'server_side_latency': server_side_latency,
+        'num_output_tokens': num_output_tokens
+    }
+    async with global_request_data_lock:
+        global_request_data.append(request_data)
 
 
 async def send_requests_rate(

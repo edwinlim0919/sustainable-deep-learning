@@ -25,11 +25,7 @@ server_side_tokens_per_sec = num_output_tokens / server_side_latency
 client_side_latency_readable = str(datetime.timedelta(seconds=client_side_latency))
 server_side_latency_readable = str(datetime.timedelta(seconds=server_side_latency))
 
-#elapsed_time_seconds = end_time - start_time
-#elapsed_time_readable = str(datetime.timedelta(seconds=elapsed_time_seconds))
-#print(f'E2E Elapsed Time: {elapsed_time_readable} (hours:min:seconds)')
 
-#print('llama2_base_response.text: ' + str(llama2_base_response.text))
 print(f'llama2_base_response.text: {llama2_base_response.text}')
 print(f'CLIENT SIDE LATENCY: {client_side_latency_readable}')
 print(f'CLIENT SIDE TOKEN/SEC: {client_side_tokens_per_sec}')
