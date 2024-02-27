@@ -37,6 +37,8 @@ class Llama2Int4BaseInferenceRay:
         )
 
     def inference(self, prompt: str) -> str:
+        server_side_start_time = time.time()
+
         inputs = self.tokenizer(
             prompt,
             return_tensors='pt'
@@ -56,7 +58,10 @@ class Llama2Int4BaseInferenceRay:
             skip_special_tokens=True
         )
 
-        return f'{response} {num_output_tokens}'
+        server_side_end_time = time.time()
+        server_side_latency = server_side_end_time - server_side_start_time
+
+        return f'{response} {num_output_tokens} {server_side_latency}'
 
 
 llama2_int4_base_inference = Llama2Int4BaseInferenceRay.bind()
