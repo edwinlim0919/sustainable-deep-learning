@@ -31,9 +31,14 @@ def sample_dataset_prompts(
 
 
 async def send_request(session, prompt):
+    client_side_start_time = time.time()
+
     async with session.post('http://127.0.0.1:8000/', json={'prompt': prompt}) as response:
         print(f"Request sent: Status Code: {response.status}")
         # TODO: Accounting stuff
+
+    client_side_end_time = time.time()
+    client_side_latency = client_side_end_time - client_side_start_time
 
 
 async def send_requests_rate(
