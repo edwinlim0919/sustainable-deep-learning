@@ -49,14 +49,16 @@ async def send_request(session, prompt):
         'server_side_latency': server_side_latency,
         'num_output_tokens': num_output_tokens
     }
+    print('REQUEST_DATA: {request_data}')
+
     async with global_request_data_lock:
         global_request_data.append(request_data)
 
 
 async def send_requests_rate(
     sampled_dataset: List[str],
-    curr_rate: int,
-    requests_per_rate: int
+    curr_rate: float,
+    requests_per_rate: float
 ):
     # requests per minute converted to requests per second
     lambda_rate = curr_rate / 60
@@ -78,25 +80,25 @@ async def send_requests_rate(
 
 
 # Generate a slowly increasing amount of request rates according to a Poisson distribution
-def generate_requests(
+async def generate_requests(
     sampled_dataset: List[str],
     requests_per_rate: int,         # requests
-    start_rate: int,                # requests per minute
-    end_rate: int,                  # requests per minute
-    rate_increase: int              # requests per minute
+    start_rate: float,              # requests per minute
+    end_rate: float,                # requests per minute
+    increase_rate: float            # requests per minute
 ):
     # for reproducability
     np.random.seed(42)
     curr_rate = start_rate
 
     while curr_rate < end_rate:
-        # requests per minute converted to requests per second
-        asyncio.run(send_requests_rate(
+        print('Request rate: {curr_rate}...')
+        await send_requests_rate(
             sampled_dataset,
             curr_rate,
             requests_per_rate
-        ))
-        curr_rate += rate_increase
+        )
+        curr_rate += increase_rate
 
 
 if __name__ == '__main__':
@@ -104,16 +106,63 @@ if __name__ == '__main__':
     parser.add_argument(
         '--dataset-path',
         required=True,
+        type=str,
         help='The path to the dataset file.'
     )
     parser.add_argument(
-        '--num-requests',
+        '--output-file-path',
         required=True,
+        type=str,
+        help='The path to the JSON output file.'
+    )
+    parser.add_argument(
+        '--num-requests-sample',
+        required=True,
+        type=int,
         help='The number of requests to sample. Specify 0 or less to sample the entire dataset.'
+    )
+    parser.add_argument(
+        '--num-requests-rate',
+        required=True,
+        type=int,
+        help='The number of requests to send per request rate.'
+    )
+    parser.add_argument(
+        '--start-rate',
+        required=True,
+        type=float,
+        help='The starting request rate in requests per minute.'
+    )
+    parser.add_argument(
+        '--end-rate',
+        required=True,
+        type=float,
+        help='The ending request rate in requests per minute.'
+    )
+    parser.add_argument(
+        '--increase-rate',
+        required=True,
+        type=float,
+        help='Request rate increase increment per iteration.'
     )
     args = parser.parse_args()
 
+    print('Sampling dataset {args.dataset_path}...')
     sampled_dataset = sample_dataset_prompts(
         args.dataset_path,
-        int(args.num_requests)
+        args.num_requests_sample
     )
+
+    print('Generating requests...')
+    asyncio.run(generate_requests(
+        sampled_dataset,
+        args.num_requests_rate,
+        args.start_rate,
+        args.end_rate,
+        args.increase_rate
+    ))
+
+    print('Writing results...')
+    with open(args.output_file_path, 'w') as outfile:
+        json.dump(global_request_data, outfile, indent=4)
+    print('Done.')
