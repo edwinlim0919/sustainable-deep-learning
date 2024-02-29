@@ -11,13 +11,6 @@ import utils
 
 def setup_worker_node(username, host):
     try:
-        # ugh
-        remote_host = f'{username}@{host}'
-        rm_command = 'rm -rf neural-speed'
-        clone_command = 'git clone git@github.com:edwinlim0919/neural-speed.git'
-        utils.ssh_and_run_command(remote_host, rm_command)
-        utils.ssh_and_run_command(remote_host, clone_command)
-
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(host, username=username)
@@ -37,8 +30,42 @@ def setup_worker_node(username, host):
             local_reqs_path,
             remote_reqs_path
         )
+        ssh_config_path = f'/users/{username}/.ssh/config'
+        sftp.put(
+            ssh_config_path,
+            ssh_config_path
+        )
         sftp.close()
         ssh.close()
+
+        # ugh
+        remote_host = f'{username}@{host}'
+        rm_command = f'rm -rf /users/{username}/neural-speed'
+        clone_command = 'git clone git@github.com:edwinlim0919/neural-speed.git'
+        utils.ssh_and_run_command(remote_host, rm_command)
+        utils.ssh_and_run_command(remote_host, clone_command)
+
+        #ssh = paramiko.SSHClient()
+        #ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        #ssh.connect(host, username=username)
+
+        ## copy setup files
+        #sftp = ssh.open_sftp()
+        #curr_dir = os.getcwd()
+        #local_script_path = f'{curr_dir}/worker_setup.sh'
+        #remote_script_path = f'/users/{username}/worker_setup.sh'
+        #sftp.put(
+        #    local_script_path,
+        #    remote_script_path
+        #)
+        #local_reqs_path = f'{curr_dir}/../intel-transformers-cpu/requirements.txt'
+        #remote_reqs_path = f'/users/{username}/requirements.txt'
+        #sftp.put(
+        #    local_reqs_path,
+        #    remote_reqs_path
+        #)
+        #sftp.close()
+        #ssh.close()
 
         # setup base dependencies
         ssh.connect(host, username=username)
@@ -76,12 +103,6 @@ def setup_worker_nodes(ssh_list_file):
                 future.result()
             except Exception as e:
                 print(f"Error during setup: {e}")
-
-    #for command in ssh_commands:
-    #    parts = command.strip().split('@')
-    #    username = parts[0].split()[1]
-    #    host = parts[1]
-    #    setup_worker_node(username, host)
 
 
 if __name__ == '__main__':
