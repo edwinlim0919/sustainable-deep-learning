@@ -34,12 +34,13 @@ def sample_dataset_prompts(
 async def send_request(
     session,
     prompt: str,
+    head_node_ip: str,
     curr_rate: float,
     requests_per_rate: int
 ):
     client_side_start_time = time.time()
 
-    async with session.post('http://127.0.0.1:8000/', json={'prompt': prompt}) as response:
+    async with session.post(head_node_ip, json={'prompt': prompt}) as response:
         print(f"Request sent: Status Code: {response.status}")
         response_text = await response.text()
 
@@ -56,14 +57,15 @@ async def send_request(
         'server_side_latency': server_side_latency,
         'num_output_tokens': num_output_tokens
     }
-    print('REQUEST_DATA: {request_data}')
+    print(f'REQUEST_DATA: {request_data}')
 
     async with global_request_data_lock:
         global_request_data.append(request_data)
 
 
 async def send_requests_rate(
-    sampled_dataset: List[str],
+    sampled_dataset: list[str],
+    head_node_ip: str,
     curr_rate: float,
     requests_per_rate: int
 ):
@@ -83,6 +85,7 @@ async def send_requests_rate(
             task = asyncio.create_task(send_request(
                 session,
                 sampled_dataset[i],
+                head_node_ip,
                 curr_rate,
                 requests_per_rate
             ))
@@ -93,7 +96,8 @@ async def send_requests_rate(
 
 # Generate a slowly increasing amount of request rates according to a Poisson distribution
 async def generate_requests(
-    sampled_dataset: List[str],
+    sampled_dataset: list[str],
+    head_node_ip: str,
     requests_per_rate: int,         # requests
     start_rate: float,              # requests per minute
     end_rate: float,                # requests per minute
@@ -104,9 +108,10 @@ async def generate_requests(
     curr_rate = start_rate
 
     while curr_rate < end_rate:
-        print('Request rate: {curr_rate}...')
+        print(f'Request rate: {curr_rate}...')
         await send_requests_rate(
             sampled_dataset,
+            head_node_ip,
             curr_rate,
             requests_per_rate
         )
@@ -126,6 +131,12 @@ if __name__ == '__main__':
         required=True,
         type=str,
         help='The path to the JSON output file.'
+    )
+    parser.add_argument(
+        '--head-node-ip',
+        required=True,
+        type=str,
+        help='The ip address of the Ray head node.'
     )
     parser.add_argument(
         '--num-requests-sample',
@@ -159,7 +170,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    print('Sampling dataset {args.dataset_path}...')
+    print(f'Sampling dataset {args.dataset_path}...')
     sampled_dataset = sample_dataset_prompts(
         args.dataset_path,
         args.num_requests_sample
@@ -174,6 +185,7 @@ if __name__ == '__main__':
     print(f'increase_rate: {args.increase_rate}')
     asyncio.run(generate_requests(
         sampled_dataset,
+        args.head_node_ip,
         args.requests_per_rate,
         args.start_rate,
         args.end_rate,
