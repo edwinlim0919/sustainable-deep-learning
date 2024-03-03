@@ -15,7 +15,7 @@ global_request_data_lock = asyncio.Lock()
 # Sampling dataset prompts for throughput experiments
 def sample_dataset_prompts(
     dataset_path: str,
-    num_requests: int
+    num_requests_sample: int
 ):
     with open(dataset_path, 'r', encoding='utf-8') as f:
         dataset = json.load(f)
@@ -24,14 +24,19 @@ def sample_dataset_prompts(
     dataset = [data for data in dataset if len(data["conversations"]) >= 2]
     # Only keep the first prompt of each conversation.
     dataset = [data["conversations"][0]["value"] for data in dataset]
-    if num_requests < 1:
-        num_requests = len(dataset)
+    if num_requests_sample < 1:
+        num_requests_sample = len(dataset)
 
-    sampled_dataset = random.sample(dataset, num_requests)
+    sampled_dataset = random.sample(dataset, num_requests_sample)
     return sampled_dataset
 
 
-async def send_request(session, prompt):
+async def send_request(
+    session,
+    prompt: str,
+    curr_rate: float,
+    requests_per_rate: int
+):
     client_side_start_time = time.time()
 
     async with session.post('http://127.0.0.1:8000/', json={'prompt': prompt}) as response:
@@ -45,6 +50,8 @@ async def send_request(session, prompt):
     num_output_tokens = int(response_split[-2])
 
     request_data = {
+        'curr_rate' : curr_rate,
+        'requests_per_rate' : requests_per_rate,
         'client_side_latency': client_side_latency,
         'server_side_latency': server_side_latency,
         'num_output_tokens': num_output_tokens
@@ -58,7 +65,7 @@ async def send_request(session, prompt):
 async def send_requests_rate(
     sampled_dataset: List[str],
     curr_rate: float,
-    requests_per_rate: float
+    requests_per_rate: int
 ):
     # requests per minute converted to requests per second
     lambda_rate = curr_rate / 60
@@ -73,7 +80,12 @@ async def send_requests_rate(
         for i in range(requests_per_rate):
             send_time = start_time + arrival_times[i]
             await asyncio.sleep(max(0, send_time - time.time()))
-            task = asyncio.create_task(send_request(session, sampled_dataset[i]))
+            task = asyncio.create_task(send_request(
+                session,
+                sampled_dataset[i],
+                curr_rate,
+                requests_per_rate
+            ))
             tasks.append(task)
 
         await asyncio.gather(*tasks)
@@ -98,7 +110,7 @@ async def generate_requests(
             curr_rate,
             requests_per_rate
         )
-        curr_rate += increase_rate
+        curr_rate = curr_rate * increase_rate
 
 
 if __name__ == '__main__':
@@ -122,7 +134,7 @@ if __name__ == '__main__':
         help='The number of requests to sample. Specify 0 or less to sample the entire dataset.'
     )
     parser.add_argument(
-        '--num-requests-rate',
+        '--requests-per-rate',
         required=True,
         type=int,
         help='The number of requests to send per request rate.'
@@ -143,7 +155,7 @@ if __name__ == '__main__':
         '--increase-rate',
         required=True,
         type=float,
-        help='Request rate increase increment per iteration.'
+        help='Request rate multiplicative increase per iteration.'
     )
     args = parser.parse_args()
 
@@ -152,11 +164,17 @@ if __name__ == '__main__':
         args.dataset_path,
         args.num_requests_sample
     )
+    sampled_dataset_len = len(sampled_dataset)
 
     print('Generating requests...')
+    print(f'sampled_dataset_len: {sampled_dataset_len}')
+    print(f'requests_per_rate: {args.requests_per_rate}')
+    print(f'start_rate: {args.start_rate}')
+    print(f'end_rate: {args.end_rate}')
+    print(f'increase_rate: {args.increase_rate}')
     asyncio.run(generate_requests(
         sampled_dataset,
-        args.num_requests_rate,
+        args.requests_per_rate,
         args.start_rate,
         args.end_rate,
         args.increase_rate
