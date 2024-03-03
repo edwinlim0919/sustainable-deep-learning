@@ -22,7 +22,7 @@ def execute_cmd(cmd):
     else:
         print('Error executing command: {cmd}')
         print(result.stderr.decode())
-        raise ValueError('! uh oh !')
+        #raise ValueError('! uh oh !')
 
     return result_stdout
 
