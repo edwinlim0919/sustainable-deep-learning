@@ -45,28 +45,6 @@ def setup_worker_node(username, host):
         utils.ssh_and_run_command(remote_host, rm_command)
         utils.ssh_and_run_command(remote_host, clone_command)
 
-        #ssh = paramiko.SSHClient()
-        #ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        #ssh.connect(host, username=username)
-
-        ## copy setup files
-        #sftp = ssh.open_sftp()
-        #curr_dir = os.getcwd()
-        #local_script_path = f'{curr_dir}/worker_setup.sh'
-        #remote_script_path = f'/users/{username}/worker_setup.sh'
-        #sftp.put(
-        #    local_script_path,
-        #    remote_script_path
-        #)
-        #local_reqs_path = f'{curr_dir}/../intel-transformers-cpu/requirements.txt'
-        #remote_reqs_path = f'/users/{username}/requirements.txt'
-        #sftp.put(
-        #    local_reqs_path,
-        #    remote_reqs_path
-        #)
-        #sftp.close()
-        #ssh.close()
-
         # setup base dependencies
         ssh.connect(host, username=username)
         command = f'chmod +x {remote_script_path} && yes | {remote_script_path}'
