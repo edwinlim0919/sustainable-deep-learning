@@ -68,7 +68,7 @@ async def send_request(
         async with aiofiles.open(output_file_path, 'a') as outfile:
         #with open(output_file_path, 'a') as outfile:
             #json.dump(global_request_data, outfile, indent=4)
-            outfile.write(str(request_data) + '\n')
+            await outfile.write(str(request_data) + '\n')
 
 
 async def send_requests_rate(
