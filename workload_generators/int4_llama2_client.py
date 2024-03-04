@@ -6,12 +6,6 @@ import requests
 
 client_side_start_time = time.time()
 
-#llama2_base_response = requests.post(
-#    'http://127.0.0.1:8000/',
-#    json={
-#        'prompt': 'What are the ingredients of olio de aglio? I do not want the entire recipe, only a list of ingredients.'
-#    }
-#)
 llama2_base_response = requests.post(
     #'http://127.0.0.1:8000/',
     'http://130.127.133.221:8000/',
