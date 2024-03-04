@@ -19,6 +19,7 @@ client_side_end_time = time.time()
 client_side_latency = client_side_end_time - client_side_start_time
 server_side_latency = float(llama2_base_response_split[-1])
 num_output_tokens = int(llama2_base_response_split[-2])
+#num_output_tokens = len(llama2_base_response_split) - 1
 
 client_side_tokens_per_sec = num_output_tokens / client_side_latency
 server_side_tokens_per_sec = num_output_tokens / server_side_latency
