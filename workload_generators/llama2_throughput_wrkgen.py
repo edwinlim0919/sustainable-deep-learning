@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 result_file_lock = asyncio.Lock()
-request_file_lock = asyncio.Lock()
+#request_file_lock = asyncio.Lock()
 
 
 # Sampling dataset prompts for throughput experiments
@@ -28,21 +28,17 @@ def sample_dataset_prompts(
     # Filter out the conversations with less than 2 turns.
     dataset = [data for data in dataset if len(data["conversations"]) >= 2]
 
-    # Only keep the first prompt of each conversation.
-    #dataset = [data["conversations"][0]["value"] for data in dataset]
+    # Only keep human prompts from each conversation.
     dataset_human = []
     for data in dataset:
         for conv in data['conversations']:
             if conv['from'] == 'human':
-                #print(conv)
                 dataset_human.append(conv['value'])
 
     if num_requests_sample < 1:
         num_requests_sample = len(dataset_human)
 
     sampled_dataset = random.sample(dataset_human, num_requests_sample)
-    #for prompt in sampled_dataset:
-    #    print(prompt)
     return sampled_dataset
 
 
@@ -59,6 +55,8 @@ def send_request(
     )
     client_side_end_time = time.time()
 
+    return response, client_side_start_time, client_side_end_time
+
 
 
 async def send_request_and_log(
@@ -73,25 +71,10 @@ async def send_request_and_log(
     print(f'SEND_REQUEST_AND_LOG START prompt: {prompt}')
     sys.stdout.flush()
 
-    #client_side_start_time = time.time()
-    #async with session.post(head_node_ip, json={'prompt': prompt}) as response:
-    #    print(f"Request sent: Status Code: {response.status}")
-    #    response_text = await response.text()
-    #client_side_end_time = time.time()
+    loop = asyncio.get_running_loop()
+    response, client_side_start_time, client_side_end_time = await loop.run_in_executor(None, send_request, prompt, head_node_ip)
 
-    req_file_path = curr_dir + '/req_' + output_file_path
-    request_data = {
-        'client_side_start_time' : client_side_start_time,
-        'request_text' : prompt
-    }
-    print(f'SEND_REQUEST_AND_LOG WRITE REQ: {request_data}')
-    print(f'SEND_REQUEST_AND_LOG req_file_path: {req_file_path}')
-    sys.stdout.flush()
-    async with request_file_lock:
-        async with aiofiles.open(req_file_path, 'a') as reqfile:
-            await reqfile.write(str(request_data) + '\n')
-
-    response_split = response_text.split()
+    response_split = response.text.split()
     client_side_latency = client_side_end_time - client_side_start_time
     server_side_latency = float(response_split[-1])
     num_output_tokens = int(response_split[-2])
@@ -105,7 +88,6 @@ async def send_request_and_log(
         'num_output_tokens': num_output_tokens,
         'response_text' : response_text
     }
-    #print(f'REQUEST_DATA: {response_data}')
 
     resp_file_path = curr_dir + '/' + output_file_path
     print(f'SEND_REQUEST_AND_LOG WRITE RESP: {response_data}')
@@ -130,30 +112,30 @@ async def send_requests_rate(
     # calculating arrival times
     inter_arrival_times = np.random.exponential(1 / lambda_rate, size=requests_per_rate)
     arrival_times = np.cumsum(inter_arrival_times)
+
+    # eliminate unnecessary waiting time for first arrival time
+    initial_arrival_time_offset = arrival_times[0] * 0.9
+    arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
     print(f'SEND_REQUESTS_RATE lambda_rate: {lambda_rate}')
     print(f'SEND_REQUESTS_RATE arrival_times: {arrival_times}')
     sys.stdout.flush()
+
     start_time = time.time()
+    tasks = []
+    for i in range(requests_per_rate):
+        send_time = start_time + arrival_times[i]
+        await asyncio.sleep(max(0, send_time - time.time()))
+        task = asyncio.create_task(send_request_and_log(
+            sampled_dataset[i],
+            head_node_ip,
+            curr_rate,
+            requests_per_rate,
+            output_file_path,
+            curr_dir
+        ))
+        tasks.append(task)
 
-
-
-    #async with aiohttp.ClientSession() as session:
-    #    tasks = []
-    #    for i in range(requests_per_rate):
-    #        send_time = start_time + arrival_times[i]
-    #        await asyncio.sleep(max(0, send_time - time.time()))
-    #        task = asyncio.create_task(send_request(
-    #            session,
-    #            sampled_dataset[i],
-    #            head_node_ip,
-    #            curr_rate,
-    #            requests_per_rate,
-    #            output_file_path,
-    #            curr_dir
-    #        ))
-    #        tasks.append(task)
-
-    #    await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks)
 
 
 # Generate a slowly increasing amount of request rates according to a Poisson distribution
@@ -254,30 +236,29 @@ if __name__ == '__main__':
     print(f'increase_rate: {args.increase_rate}')
     print(f'output_file_path: {args.output_file_path}')
     print(f'curr_dir: {curr_dir}')
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(generate_requests(
-            sampled_dataset,
-            args.head_node_ip,
-            args.requests_per_rate,
-            args.start_rate,
-            args.end_rate,
-            args.increase_rate,
-            args.output_file_path,
-            curr_dir
-        ))
-    finally:
-        loop.close()
-
-    #asyncio.run(generate_requests(
-    #    sampled_dataset,
-    #    args.head_node_ip,
-    #    args.requests_per_rate,
-    #    args.start_rate,
-    #    args.end_rate,
-    #    args.increase_rate,
-    #    args.output_file_path,
-    #    curr_dir
-    #))
+    #loop = asyncio.get_event_loop()
+    #try:
+    #    loop.run_until_complete(generate_requests(
+    #        sampled_dataset,
+    #        args.head_node_ip,
+    #        args.requests_per_rate,
+    #        args.start_rate,
+    #        args.end_rate,
+    #        args.increase_rate,
+    #        args.output_file_path,
+    #        curr_dir
+    #    ))
+    #finally:
+    #    loop.close()
+    asyncio.run(generate_requests(
+        sampled_dataset,
+        args.head_node_ip,
+        args.requests_per_rate,
+        args.start_rate,
+        args.end_rate,
+        args.increase_rate,
+        args.output_file_path,
+        curr_dir
+    ))
 
     print('Done.')
