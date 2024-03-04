@@ -8,8 +8,9 @@ import asyncio
 import aiohttp
 
 
-global_request_data = []
-global_request_data_lock = asyncio.Lock()
+#global_request_data = []
+#global_request_data_lock = asyncio.Lock()
+result_file_lock = asyncio.Lock()
 
 
 # Sampling dataset prompts for throughput experiments
@@ -36,7 +37,8 @@ async def send_request(
     prompt: str,
     head_node_ip: str,
     curr_rate: float,
-    requests_per_rate: int
+    requests_per_rate: int,
+    output_file_path: str
 ):
     client_side_start_time = time.time()
 
@@ -57,17 +59,22 @@ async def send_request(
         'server_side_latency': server_side_latency,
         'num_output_tokens': num_output_tokens
     }
-    print(f'REQUEST_DATA: {request_data}')
+    #print(f'REQUEST_DATA: {request_data}')
 
-    async with global_request_data_lock:
-        global_request_data.append(request_data)
+    #async with global_request_data_lock:
+    #    global_request_data.append(request_data)
+    async with result_file_lock:
+        with open(output_file_path, 'a') as outfile:
+            #json.dump(global_request_data, outfile, indent=4)
+            file.write(str(request_data) + '\n')
 
 
 async def send_requests_rate(
     sampled_dataset: list[str],
     head_node_ip: str,
     curr_rate: float,
-    requests_per_rate: int
+    requests_per_rate: int,
+    output_file_path: str
 ):
     # requests per minute converted to requests per second
     lambda_rate = curr_rate / 60
@@ -87,7 +94,8 @@ async def send_requests_rate(
                 sampled_dataset[i],
                 head_node_ip,
                 curr_rate,
-                requests_per_rate
+                requests_per_rate,
+                output_file_path
             ))
             tasks.append(task)
 
@@ -101,7 +109,8 @@ async def generate_requests(
     requests_per_rate: int,         # requests
     start_rate: float,              # requests per minute
     end_rate: float,                # requests per minute
-    increase_rate: float            # requests per minute
+    increase_rate: float,           # requests per minute
+    output_file_path: str
 ):
     # for reproducability
     np.random.seed(42)
@@ -113,7 +122,8 @@ async def generate_requests(
             sampled_dataset,
             head_node_ip,
             curr_rate,
-            requests_per_rate
+            requests_per_rate,
+            output_file_path
         )
         curr_rate = curr_rate * increase_rate
 
@@ -189,10 +199,11 @@ if __name__ == '__main__':
         args.requests_per_rate,
         args.start_rate,
         args.end_rate,
-        args.increase_rate
+        args.increase_rate,
+        args.output_file_path
     ))
 
-    print('Writing results...')
-    with open(args.output_file_path, 'w') as outfile:
-        json.dump(global_request_data, outfile, indent=4)
+    #print('Writing results...')
+    #with open(args.output_file_path, 'w') as outfile:
+    #    json.dump(global_request_data, outfile, indent=4)
     print('Done.')
