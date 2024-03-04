@@ -14,7 +14,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 result_file_lock = asyncio.Lock()
-#request_file_lock = asyncio.Lock()
 
 
 # Sampling dataset prompts for throughput experiments
@@ -236,20 +235,6 @@ if __name__ == '__main__':
     print(f'increase_rate: {args.increase_rate}')
     print(f'output_file_path: {args.output_file_path}')
     print(f'curr_dir: {curr_dir}')
-    #loop = asyncio.get_event_loop()
-    #try:
-    #    loop.run_until_complete(generate_requests(
-    #        sampled_dataset,
-    #        args.head_node_ip,
-    #        args.requests_per_rate,
-    #        args.start_rate,
-    #        args.end_rate,
-    #        args.increase_rate,
-    #        args.output_file_path,
-    #        curr_dir
-    #    ))
-    #finally:
-    #    loop.close()
     asyncio.run(generate_requests(
         sampled_dataset,
         args.head_node_ip,
