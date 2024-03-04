@@ -52,7 +52,7 @@ class Llama2Int4BaseInferenceRay:
             early_stopping=True
         )
 
-        num_output_tokens = str(len(outputs[0]))
+        #num_output_tokens = str(len(outputs[0]))
         response = self.tokenizer.decode(
             outputs[0],
             skip_special_tokens=True
@@ -61,7 +61,7 @@ class Llama2Int4BaseInferenceRay:
         server_side_end_time = time.time()
         server_side_latency = server_side_end_time - server_side_start_time
 
-        return f'{response} {num_output_tokens} {server_side_latency}'
+        return f'{response} {server_side_latency}'
 
 
 llama2_int4_base_inference = Llama2Int4BaseInferenceRay.bind()
