@@ -6,6 +6,7 @@ import numpy as np
 import time
 import asyncio
 import aiohttp
+import aiofiles
 
 
 #global_request_data = []
@@ -64,9 +65,10 @@ async def send_request(
     #async with global_request_data_lock:
     #    global_request_data.append(request_data)
     async with result_file_lock:
-        with open(output_file_path, 'a') as outfile:
+        async with aiofiles.open(output_file_path, 'a') as outfile:
+        #with open(output_file_path, 'a') as outfile:
             #json.dump(global_request_data, outfile, indent=4)
-            file.write(str(request_data) + '\n')
+            outfile.write(str(request_data) + '\n')
 
 
 async def send_requests_rate(
@@ -195,7 +197,8 @@ if __name__ == '__main__':
     print(f'increase_rate: {args.increase_rate}')
     asyncio.run(generate_requests(
         sampled_dataset,
-        args.head_node_ip,
+        #args.head_node_ip,
+        'http://130.127.133.221:8000/',
         args.requests_per_rate,
         args.start_rate,
         args.end_rate,

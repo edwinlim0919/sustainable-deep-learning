@@ -4,3 +4,4 @@ numpy
 asyncio
 aiohttp
 datetime
+aiofiles
