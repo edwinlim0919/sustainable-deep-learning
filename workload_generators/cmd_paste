@@ -4,4 +4,4 @@ scp ~/Downloads/ShareGPT_V3_unfiltered_cleaned_split.json edwinlim@clnode212.cle
 
 # Throughput experiments
 python3 llama2_throughput_wrkgen.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split_top100.json --num-requests 0
-python3 llama2_throughput_wrkgen.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path c6420_1_1000_10_05_3_5.txt --head-node-ip http://130.127.133.221:6379/ --num-requests-sample 1000 --requests-per-rate 10 --start-rate 0.5 --end-rate 3 --increase-rate 5
+python3 llama2_throughput_wrkgen.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path c6420_1_1000_10_05_3_5.txt --head-node-ip http://130.127.133.221:8000/ --num-requests-sample 1000 --requests-per-rate 10 --start-rate 0.5 --end-rate 3 --increase-rate 5

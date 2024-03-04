@@ -5,10 +5,12 @@ import requests
 import numpy as np
 import time
 import asyncio
-import aiohttp
+#import aiohttp
 import aiofile
 import os
 import sys
+
+from concurrent.futures import ThreadPoolExecutor
 
 
 result_file_lock = asyncio.Lock()
@@ -44,8 +46,23 @@ def sample_dataset_prompts(
     return sampled_dataset
 
 
-async def send_request(
-    session,
+def send_request(
+    prompt: str,
+    head_node_ip: str
+):
+    client_side_start_time = time.time()
+    response = requests.post(
+        head_node_ip,
+        json={
+            'prompt': prompt
+        }
+    )
+    client_side_end_time = time.time()
+
+
+
+async def send_request_and_log(
+    #session,
     prompt: str,
     head_node_ip: str,
     curr_rate: float,
@@ -53,22 +70,22 @@ async def send_request(
     output_file_path: str,
     curr_dir: str
 ):
-    print(f'SEND_REQUEST START prompt: {prompt}')
+    print(f'SEND_REQUEST_AND_LOG START prompt: {prompt}')
     sys.stdout.flush()
 
-    client_side_start_time = time.time()
-    async with session.post(head_node_ip, json={'prompt': prompt}) as response:
-        print(f"Request sent: Status Code: {response.status}")
-        response_text = await response.text()
-    client_side_end_time = time.time()
+    #client_side_start_time = time.time()
+    #async with session.post(head_node_ip, json={'prompt': prompt}) as response:
+    #    print(f"Request sent: Status Code: {response.status}")
+    #    response_text = await response.text()
+    #client_side_end_time = time.time()
 
     req_file_path = curr_dir + '/req_' + output_file_path
     request_data = {
         'client_side_start_time' : client_side_start_time,
         'request_text' : prompt
     }
-    print(f'SEND_REQUEST WRITE REQ: {request_data}')
-    print(f'SEND_REQUEST req_file_path: {req_file_path}')
+    print(f'SEND_REQUEST_AND_LOG WRITE REQ: {request_data}')
+    print(f'SEND_REQUEST_AND_LOG req_file_path: {req_file_path}')
     sys.stdout.flush()
     async with request_file_lock:
         async with aiofiles.open(req_file_path, 'a') as reqfile:
@@ -91,8 +108,8 @@ async def send_request(
     #print(f'REQUEST_DATA: {response_data}')
 
     resp_file_path = curr_dir + '/' + output_file_path
-    print(f'SEND_REQUEST WRITE RESP: {response_data}')
-    print(f'SEND_REQUEST resp_file_path: {resp_file_path}')
+    print(f'SEND_REQUEST_AND_LOG WRITE RESP: {response_data}')
+    print(f'SEND_REQUEST_AND_LOG resp_file_path: {resp_file_path}')
     sys.stdout.flush()
     async with result_file_lock:
         async with aiofiles.open(resp_file_path, 'a') as respfile:
@@ -118,29 +135,25 @@ async def send_requests_rate(
     sys.stdout.flush()
     start_time = time.time()
 
-    async with aiohttp.ClientSession() as session:
-        tasks = []
-        for i in range(requests_per_rate):
-            send_time = start_time + arrival_times[i]
-            await asyncio.sleep(max(0, send_time - time.time()))
 
-            print(f'SEND_REQUESTS_RATE prompt: {sampled_dataset[i]}')
-            print(f'SEND_REQUESTS_RATE send_time: {send_time}')
-            print(f'SEND_REQUESTS_RATE curr_rate: {curr_rate}')
-            sys.stdout.flush()
 
-            task = asyncio.create_task(send_request(
-                session,
-                sampled_dataset[i],
-                head_node_ip,
-                curr_rate,
-                requests_per_rate,
-                output_file_path,
-                curr_dir
-            ))
-            tasks.append(task)
+    #async with aiohttp.ClientSession() as session:
+    #    tasks = []
+    #    for i in range(requests_per_rate):
+    #        send_time = start_time + arrival_times[i]
+    #        await asyncio.sleep(max(0, send_time - time.time()))
+    #        task = asyncio.create_task(send_request(
+    #            session,
+    #            sampled_dataset[i],
+    #            head_node_ip,
+    #            curr_rate,
+    #            requests_per_rate,
+    #            output_file_path,
+    #            curr_dir
+    #        ))
+    #        tasks.append(task)
 
-        await asyncio.gather(*tasks)
+    #    await asyncio.gather(*tasks)
 
 
 # Generate a slowly increasing amount of request rates according to a Poisson distribution
