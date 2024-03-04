@@ -25,15 +25,22 @@ def sample_dataset_prompts(
 
     # Filter out the conversations with less than 2 turns.
     dataset = [data for data in dataset if len(data["conversations"]) >= 2]
+
     # Only keep the first prompt of each conversation.
-    dataset = [data["conversations"][0]["value"] for data in dataset]
+    #dataset = [data["conversations"][0]["value"] for data in dataset]
+    dataset_human = []
+    for data in dataset:
+        for conv in data['conversations']:
+            if conv['from'] == 'human':
+                #print(conv)
+                dataset_human.append(conv['value'])
+
     if num_requests_sample < 1:
-        num_requests_sample = len(dataset)
+        num_requests_sample = len(dataset_human)
 
-    sampled_dataset = random.sample(dataset, num_requests_sample)
-    for prompt in sampled_dataset:
-        print(prompt)
-
+    sampled_dataset = random.sample(dataset_human, num_requests_sample)
+    #for prompt in sampled_dataset:
+    #    print(prompt)
     return sampled_dataset
 
 
@@ -133,7 +140,6 @@ async def send_requests_rate(
             ))
             tasks.append(task)
 
-
         await asyncio.gather(*tasks)
 
 
@@ -225,30 +231,30 @@ if __name__ == '__main__':
     )
     sampled_dataset_len = len(sampled_dataset)
 
-    #curr_dir = os.getcwd()
-    #print('Generating requests...')
-    #print(f'sampled_dataset_len: {sampled_dataset_len}')
-    #print(f'head_node_ip: {args.head_node_ip}')
-    #print(f'requests_per_rate: {args.requests_per_rate}')
-    #print(f'start_rate: {args.start_rate}')
-    #print(f'end_rate: {args.end_rate}')
-    #print(f'increase_rate: {args.increase_rate}')
-    #print(f'output_file_path: {args.output_file_path}')
-    #print(f'curr_dir: {curr_dir}')
-    #loop = asyncio.get_event_loop()
-    #try:
-    #    loop.run_until_complete(generate_requests(
-    #        sampled_dataset,
-    #        args.head_node_ip,
-    #        args.requests_per_rate,
-    #        args.start_rate,
-    #        args.end_rate,
-    #        args.increase_rate,
-    #        args.output_file_path,
-    #        curr_dir
-    #    ))
-    #finally:
-    #    loop.close()
+    curr_dir = os.getcwd()
+    print('Generating requests...')
+    print(f'sampled_dataset_len: {sampled_dataset_len}')
+    print(f'head_node_ip: {args.head_node_ip}')
+    print(f'requests_per_rate: {args.requests_per_rate}')
+    print(f'start_rate: {args.start_rate}')
+    print(f'end_rate: {args.end_rate}')
+    print(f'increase_rate: {args.increase_rate}')
+    print(f'output_file_path: {args.output_file_path}')
+    print(f'curr_dir: {curr_dir}')
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(generate_requests(
+            sampled_dataset,
+            args.head_node_ip,
+            args.requests_per_rate,
+            args.start_rate,
+            args.end_rate,
+            args.increase_rate,
+            args.output_file_path,
+            curr_dir
+        ))
+    finally:
+        loop.close()
 
     #asyncio.run(generate_requests(
     #    sampled_dataset,
