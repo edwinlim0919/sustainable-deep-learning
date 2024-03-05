@@ -19,9 +19,56 @@ model = AutoModelForCausalLM.from_pretrained(
     model_name,
     model_file=model_file
 )
-executor = ProcessPoolExecutor()
-eos_token_id = self.tokenizer.eos_token_id
+eos_token_id = tokenizer.eos_token_id
 
+
+def int4_llama2_cpu_inference(prompt: str):
+    e2e_inference_start_time = time.time()
+
+    inputs = tokenizer(
+        prompt,
+        return_tensors='pt'
+    ).input_ids
+
+    outputs = model.generate(
+        inputs,
+        max_new_tokens=2048,
+        eos_token_id=eos_token_id,
+        early_stopping=True
+    )
+    num_output_tokens = len(outputs[0])
+
+    response = tokenizer.decode(
+        outputs[0],
+        skip_special_tokens=True
+    )
+
+    e2e_inference_end_time = time.time()
+    e2e_inference_latency = e2e_inference_end_time - e2e_inference_start_time
+
+    return response, num_output_tokens, e2e_inference_latency
+
+
+async def async_inference(prompt: str) -> str:
+    executor = ProcessPoolExecutor()
+
+    loop = asyncio.get_event_loop()
+    response, num_output_tokens, e2e_inference_latency = await loop.run_in_executor(
+        executor,
+        int4_llama2_cpu_inference,
+        prompt
+    )
+
+    executor.shutdown()
+    return f'{response} {num_output_tokens} {e2e_inference_latency}'
+
+
+async def main():
+    response = await async_inference('What are the ingredients of olio de aglio? I do not want the entire recipe, only a list of ingredients.')
+    print(response)
+
+
+asyncio.run(main())
     #def tokenize_prompt(self, prompt: str):
     #    inputs = self.tokenizer(
     #        prompt,
@@ -52,9 +99,9 @@ eos_token_id = self.tokenizer.eos_token_id
     #@staticmethod
     #def prepare_
 
-    async def e2e_inference(self, prompt: str) -> str:
-        loop = asyncio.get_event_loop()
-        e2e_inference_start_time = time.time()
+    #async def e2e_inference(self, prompt: str) -> str:
+    #    loop = asyncio.get_event_loop()
+    #    e2e_inference_start_time = time.time()
 
         #def decode_output():
         #    return self.tokenizer(
