@@ -49,26 +49,32 @@ def int4_llama2_cpu_inference(prompt: str):
     return response, num_output_tokens, e2e_inference_latency
 
 
-async def async_inference(prompt: str) -> str:
-    executor = ProcessPoolExecutor()
-
+async def async_inference(
+    prompt: str,
+    executor: ProcessPoolExecutor
+) -> str:
     loop = asyncio.get_event_loop()
+
     response, num_output_tokens, e2e_inference_latency = await loop.run_in_executor(
         executor,
         int4_llama2_cpu_inference,
         prompt
     )
 
-    executor.shutdown()
     return f'{response} {num_output_tokens} {e2e_inference_latency}'
 
 
 async def main():
-    response = await async_inference('What are the ingredients of olio de aglio? I do not want the entire recipe, only a list of ingredients.')
+    executor = ProcessPoolExecutor()
+    response = await async_inference('What are the ingredients of olio de aglio? I do not want the entire recipe, only a list of ingredients.', executor)
     print(response)
+    executor.shutdown()
 
 
 asyncio.run(main())
+
+
+
     #def tokenize_prompt(self, prompt: str):
     #    inputs = self.tokenizer(
     #        prompt,
