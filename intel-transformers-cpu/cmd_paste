@@ -28,3 +28,4 @@ python3 int4_llama2_client.py
 # Ray is hot garbage for CPU inference
 python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path c6420_1_1000_10_05_3_5.txt --head-node-ip http://130.127.133.221:8000/ --num-requests-sample 1000 --requests-per-rate 10 --start-rate 0.5 --end-rate 3 --increase-rate 5
 python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path c6420_1_1000_20_05_10_2.txt --num-requests-sample 1000 --requests-per-rate 20 --start-rate 0.5 --end-rate 10 --increase-rate 2
+ps aux | grep int4_llama2_local.py | grep -v grep | awk '{print }' | xargs kill
