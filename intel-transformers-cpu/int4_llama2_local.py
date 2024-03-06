@@ -1,4 +1,5 @@
 import asyncio
+import aiofiles
 import time
 import argparse
 import random
@@ -100,7 +101,7 @@ async def send_request_and_log(
         'curr_rate' : curr_rate,
         'requests_per_rate' : requests_per_rate
     }
-    printf(f'SEND_REQUEST_AND_LOG response_data: {response_data}')
+    print(f'SEND_REQUEST_AND_LOG response_data: {response_data}')
     sys.stdout.flush()
 
     async with result_file_lock:
@@ -108,24 +109,64 @@ async def send_request_and_log(
             await outfile.write(str(response_data) + '\n')
 
 
-async def send_requests_rate(
+#async def send_requests_rate(
+#    sampled_dataset: list[str],
+#    curr_rate: float,
+#    requests_per_rate: int,
+#    output_file_path: str,
+#    executor: ProcessPoolExecutor
+#):
+#    # requests per minute converted to requests per second
+#    lambda_rate = curr_rate / 60
+#
+#    # calculating arrival times
+#    inter_arrival_times = np.random.exponential(1 / lambda_rate, size=requests_per_rate)
+#    arrival_times = np.cumsum(inter_arrival_times)
+#
+#    # eliminate some unnecessary waiting time for first arrival time
+#    initial_arrival_time_offset = arrival_times[0] * 0.8
+#    arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
+#
+#    print(f'SEND_REQUESTS_RATE arrival_times: {arrival_times}')
+#    sys.stdout.flush()
+#
+#    start_time = time.time()
+#    tasks = []
+#    for i in range(requests_per_rate):
+#        send_time = start_time + arrival_times[i]
+#        await asyncio.sleep(max(0, send_time - time.time()))
+#        task = asyncio.create_task(send_request_and_log(
+#            sampled_dataset[i],
+#            curr_rate,
+#            requests_per_rate,
+#            output_file_path,
+#            executor
+#        ))
+#        tasks.append(task)
+#
+#    await asyncio.gather(*tasks)
+#
+#
+async def async_main(
     sampled_dataset: list[str],
-    curr_rate: float,
     requests_per_rate: int,
+    start_rate: float,
+    end_rate: float,
+    increase_rate: float,
     output_file_path: str,
-    executor: ProcessPoolExecutor
 ):
-    # requests per minute converted to requests per second
-    lambda_rate = curr_rate / 60
+    executor = ProcessPoolExecutor()
 
-    # calculating arrival times
+    # for reproducability
+    np.random.seed(42)
+    curr_rate = start_rate
+
+    lambda_rate = curr_rate / 60
     inter_arrival_times = np.random.exponential(1 / lambda_rate, size=requests_per_rate)
     arrival_times = np.cumsum(inter_arrival_times)
 
-    # eliminate some unnecessary waiting time for first arrival time
     initial_arrival_time_offset = arrival_times[0] * 0.8
     arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
-
     print(f'SEND_REQUESTS_RATE arrival_times: {arrival_times}')
     sys.stdout.flush()
 
@@ -145,34 +186,35 @@ async def send_requests_rate(
 
     await asyncio.gather(*tasks)
 
+    #while curr_rate < end_rate:
+    #    print(f'ASYNC_MAIN curr_rate: {curr_rate}')
+    #    sys.stdout.flush()
+    #    await send_requests_rate(
+    #        sampled_dataset,
+    #        curr_rate,
+    #        requests_per_rate,
+    #        output_file_path,
+    #        executor
+    #    )
+    #    curr_rate = curr_rate * increase_rate
 
-async def async_main(
-    sampled_dataset: list[str],
-    requests_per_rate: int,
-    start_rate: float,
-    end_rate: float,
-    increase_rate: float,
-    output_file_path: str,
-):
-    executor = ProcessPoolExecutor()
-
-    # for reproducability
-    np.random.seed(42)
-    curr_rate = start_rate
-
-    while curr_rate < end_rate:
-        print(f'ASYNC_MAIN curr_rate: {curr_rate}')
-        sys.stdout.flush()
-        await send_requests_rate(
-            sampled_dataset,
-            curr_rate,
-            requests_per_rate,
-            output_file_path,
-            executor
-        )
-        curr_rate = curr_rate * increase_rate
+    #await send_request_and_log(
+    #    'What are the ingredients of olio de aglio? I do not want the entire recipe, only a list of ingredients.',
+    #    69,
+    #    69,
+    #    output_file_path,
+    #    executor
+    #)
 
     executor.shutdown()
+
+#async def send_request_and_log(
+#    prompt: str,
+#    curr_rate: float,
+#    requests_per_rate: int,
+#    output_file_path: str,
+#    executor: ProcessPoolExecutor
+#):
 
 
 # Sampling dataset prompts for throughput experiments
@@ -269,84 +311,4 @@ if __name__ == '__main__':
         args.output_file_path
     ))
 
-    #def tokenize_prompt(self, prompt: str):
-    #    inputs = self.tokenizer(
-    #        prompt,
-    #        return_tensors='pt'
-    #    ).input_ids
-    #    return inputs
 
-    #def decode_output(self, output):
-    #    response = self.tokenizer.decode(
-    #        output,
-    #        skip_special_tokens=True
-    #    )
-    #    return response
-
-    #def raw_inference(self, inputs):
-    #    raw_inference_start_time = time.time()
-    #    outputs = self.model.generate(
-    #        inputs,
-    #        max_new_tokens=2048,
-    #        eos_token_id=self.eos_token_id,
-    #        early_stopping=True
-    #    )
-    #    raw_inference_end_time = time.time()
-    #    raw_inference_latency = raw_inference_end_time - raw_inference_start_time
-
-    #    return outputs, raw_inference_latency
-
-    #@staticmethod
-    #def prepare_
-
-    #async def e2e_inference(self, prompt: str) -> str:
-    #    loop = asyncio.get_event_loop()
-    #    e2e_inference_start_time = time.time()
-
-        #def decode_output():
-        #    return self.tokenizer(
-        #        prompt,
-        #        return_tensors='pt'
-        #    ).inputs
-
-        #inputs = await loop.run_in_executor(
-        #    self.executor,
-        #    decode_output
-        #    #partial(
-        #    #    self.tokenize_prompt,
-        #    #    prompt
-        #    #)
-        #)
-
-        #outputs, raw_inference_latency = await loop.run_in_executor(
-        #    self.executor,
-        #    partial(
-        #        self.raw_inference,
-        #        inputs
-        #    )
-        #)
-        #num_output_tokens = len(outputs[0])
-
-        #response = await loop.run_in_executor(
-        #    self.executor,
-        #    partial(
-        #        self.decode_output,
-        #        outputs[0]
-        #    )
-        #)
-
-        #e2e_inference_end_time = time.time()
-        #e2e_inference_latency = e2e_inference_end_time - e2e_inference_start_time
-        #return f'{response} {num_output_tokens} {e2e_inference_latency} {raw_inference_latency}'
-        #return 'jeff'
-
-
-#if __name__ == '__main__':
-#async def main():
-#    llama2_inference = Llama2Int4BaseInferenceRay()
-#    inf_test_prompt = 'What are the ingredients of olio de aglio? I do not want the entire recipe, only a list of ingredients.'
-#    inf_test_resp = await llama2_inference.e2e_inference(inf_test_prompt)
-#    print(f'inf_test_resp: {inf_test_resp}')
-#
-#
-#asyncio.run(main())
