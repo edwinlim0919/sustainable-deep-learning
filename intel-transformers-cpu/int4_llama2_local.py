@@ -107,6 +107,14 @@ async def inference_worker(executor: ProcessPoolExecutor):
         inference_queue.task_done()
 
 
+async def write_results(output_file_path):
+    with open(output_file_path, 'a') as file:
+        while not result_queue.empty():
+            result = await result_queue.get()
+            file.write(str(result) + '\n')
+            result_queue.task_done()
+
+
 async def async_main(
     sampled_dataset: list[str],
     requests_per_rate: int,
@@ -147,8 +155,12 @@ async def async_main(
             ))
 
         await inference_queue.join()
+
+        # After inferencing is done, write results to output file
+        await write_results(output_file_path)
         curr_rate = curr_rate * increase_rate
 
+    worker.cancel()
     executor.shutdown()
 
 
