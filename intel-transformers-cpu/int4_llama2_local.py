@@ -47,8 +47,9 @@ def int4_llama2_cpu_inference(prompt: str):
     outputs = model.generate(
         inputs,
         max_new_tokens=2048,
-        eos_token_id=eos_token_id,
-        early_stopping=True
+        #eos_token_id=eos_token_id,
+        early_stopping=True,
+        repetition_penalty=1.1
     )
     raw_inference_end_time = time.time()
     num_output_tokens = len(outputs[0])
@@ -169,6 +170,24 @@ async def async_main(
     executor.shutdown()
 
 
+#def llama_v2_prompt(messages: list[dict]):
+#    B_INST, E_INST = "[INST]", "[/INST]"
+#    B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
+#    BOS, EOS = "<s>", "</s>"
+#    DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+#    if messages[0]["role"] != "system":
+#        messages = [{
+#            "role": "system",
+#            "content": DEFAULT_SYSTEM_PROMPT,
+#        }] + messages
+#    messages = [{
+#        "role": messages[1]["role"],
+#        "content": B_SYS + messages[0]["content"] + E_SYS + messages[1]["content"],
+#    }] + messages[2:]
+#
+#    m
+
+
 # Sampling dataset prompts for throughput experiments
 def sample_dataset_prompts(
     dataset_path: str,
@@ -196,6 +215,8 @@ def sample_dataset_prompts(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Throughput generation script for LLM inference experiments.')
+
+    # Throughput generation experiment arguments
     parser.add_argument(
         '--dataset-path',
         required=True,
@@ -238,27 +259,48 @@ if __name__ == '__main__':
         type=float,
         help='Request rate multiplicative increase per iteration.'
     )
+
+    # Misc. testing arguments
+    parser.add_argument(
+        '--prompt',
+        required=False,
+        type=str,
+        help='Provide a specifc prompt to test on the model.'
+    )
+
     args = parser.parse_args()
 
-    print(f'Sampling dataset {args.dataset_path}...')
-    sampled_dataset = sample_dataset_prompts(
-        args.dataset_path,
-        args.num_requests_sample
-    )
-    sampled_dataset_len = len(sampled_dataset)
+    if args.prompt:
+        DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+        prompt = f'[INST] <<SYS>>\n{DEFAULT_SYSTEM_PROMPT}\n<</SYS>>\n\n{args.prompt} [/INST]'
+        #response, num_output_tokens, e2e_inference_latency, raw_inference_latency = int4_llama2_cpu_inference(args.prompt)
+        #prompt = args.prompt
+        print(f'Test request: {prompt}')
+        response, num_output_tokens, e2e_inference_latency, raw_inference_latency = int4_llama2_cpu_inference(prompt)
+        print(f'response: {response}')
+        print(f'num_output_tokens {num_output_tokens}')
+        print(f'e2e_inference_latency {e2e_inference_latency}')
+        print(f'raw_inference_latency {raw_inference_latency}')
+    else:
+        print(f'Sampling dataset {args.dataset_path}...')
+        sampled_dataset = sample_dataset_prompts(
+            args.dataset_path,
+            args.num_requests_sample
+        )
+        sampled_dataset_len = len(sampled_dataset)
 
-    print('Generating requests...')
-    print(f'sampled_dataset_len: {sampled_dataset_len}')
-    print(f'requests_per_rate: {args.requests_per_rate}')
-    print(f'start_rate: {args.start_rate}')
-    print(f'end_rate: {args.end_rate}')
-    print(f'increase_rate: {args.increase_rate}')
-    print(f'output_file_path: {args.output_file_path}')
-    asyncio.run(async_main(
-        sampled_dataset,
-        args.requests_per_rate,
-        args.start_rate,
-        args.end_rate,
-        args.increase_rate,
-        args.output_file_path
-    ))
+        print('Generating requests...')
+        print(f'sampled_dataset_len: {sampled_dataset_len}')
+        print(f'requests_per_rate: {args.requests_per_rate}')
+        print(f'start_rate: {args.start_rate}')
+        print(f'end_rate: {args.end_rate}')
+        print(f'increase_rate: {args.increase_rate}')
+        print(f'output_file_path: {args.output_file_path}')
+        asyncio.run(async_main(
+            sampled_dataset,
+            args.requests_per_rate,
+            args.start_rate,
+            args.end_rate,
+            args.increase_rate,
+            args.output_file_path
+        ))

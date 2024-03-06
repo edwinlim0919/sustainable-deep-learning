@@ -32,6 +32,6 @@ python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split
 
 python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path c6420_1_1000_25_05_10_2.txt --num-requests-sample 1000 --requests-per-rate 25 --start-rate 0.5 --end-rate 10 --increase-rate 2
 
-python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path c6420_1_1000_1_05_10_2.txt --num-requests-sample 1000 --requests-per-rate 1 --start-rate 0.5 --end-rate 10 --increase-rate 2
+python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path prompt_testing.txt --num-requests-sample 1000 --requests-per-rate 1 --start-rate 0.5 --end-rate 10 --increase-rate 2 --prompt "Based of the following text message, create an appealing email subject line to send my application.\n\nYea so me and my colleague are prioritizing hiring for 8 month terms starting in May for Project coordinator roles (mostly project finance, data analysis, & admin based) within the IT sector, however length might change depending on competitiveness & just any HR developments."
 
 ps aux | grep int4_llama2_local.py | grep -v grep | awk '{print $2}' | xargs kill
