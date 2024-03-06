@@ -82,7 +82,7 @@ async def async_inference(
 
 async def inference_worker(executor: ProcessPoolExecutor):
     while True:
-        prompt, curr_rate, requests_per_rate = await inference_queue.get()
+        prompt, curr_rate, requests_per_rate, inference_enqueue_time = await inference_queue.get()
         print(f'INFERENCE_WORKER prompt: {prompt}, curr_rate: {curr_rate}, requests_per_rate: {requests_per_rate}')
         sys.stdout.flush()
 
@@ -90,6 +90,8 @@ async def inference_worker(executor: ProcessPoolExecutor):
             prompt,
             executor
         )
+        result_enqueue_time = time.time()
+        e2e_query_time = result_enqueue_time - inference_enqueue_time
 
         response_data = {
             'prompt' : prompt,
@@ -97,6 +99,7 @@ async def inference_worker(executor: ProcessPoolExecutor):
             'num_output_tokens' : num_output_tokens,
             'e2e_inference_latency' : e2e_inference_latency,
             'raw_inference_latency' : raw_inference_latency,
+            'e2e_query_time' : e2e_query_time,
             'curr_rate' : curr_rate,
             'requests_per_rate' : requests_per_rate
         }
@@ -148,10 +151,12 @@ async def async_main(
         for i in range(requests_per_rate):
             send_time = start_time + arrival_times[i]
             await asyncio.sleep(max(0, send_time - time.time()))
+            inference_enqueue_time = time.time()
             await inference_queue.put((
                 sampled_dataset[i],
                 curr_rate,
-                requests_per_rate
+                requests_per_rate,
+                inference_enqueue_time
             ))
 
         await inference_queue.join()
