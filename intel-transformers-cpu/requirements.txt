@@ -11,3 +11,4 @@ paramiko
 argparse
 asyncio
 aiohttp
+aiofiles
