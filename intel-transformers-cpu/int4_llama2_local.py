@@ -14,6 +14,9 @@ from functools import partial
 
 
 result_file_lock = asyncio.Lock()
+inference_queue = asyncio.Queue()
+result_queue = asyncio.Queue()
+
 
 model_name = 'TheBloke/Llama-2-7B-Chat-GGUF'
 model_file = 'llama-2-7b-chat.Q4_0.gguf'
@@ -77,76 +80,33 @@ async def async_inference(
     return response, num_output_tokens, e2e_inference_latency, raw_inference_latency
 
 
-async def send_request_and_log(
-    prompt: str,
-    curr_rate: float,
-    requests_per_rate: int,
-    output_file_path: str,
-    executor: ProcessPoolExecutor
-):
-    print(f'SEND_REQUEST_AND_LOG prompt: {prompt}')
-    sys.stdout.flush()
+async def inference_worker(executor: ProcessPoolExecutor):
+    while True:
+        prompt, curr_rate, requests_per_rate = await inference_queue.get()
+        print(f'INFERENCE_WORKER prompt: {prompt}, curr_rate: {curr_rate}, requests_per_rate: {requests_per_rate}')
+        sys.stdout.flush()
 
-    response, num_output_tokens, e2e_inference_latency, raw_inference_latency = await async_inference(
-        prompt,
-        executor
-    )
+        response, num_output_tokens, e2e_inference_latency, raw_inference_latency = await async_inference(
+            prompt,
+            executor
+        )
 
-    response_data = {
-        'prompt' : prompt,
-        'response' : response,
-        'num_output_tokens' : num_output_tokens,
-        'e2e_inference_latency' : e2e_inference_latency,
-        'raw_inference_latency' : raw_inference_latency,
-        'curr_rate' : curr_rate,
-        'requests_per_rate' : requests_per_rate
-    }
-    print(f'SEND_REQUEST_AND_LOG response_data: {response_data}')
-    sys.stdout.flush()
+        response_data = {
+            'prompt' : prompt,
+            'response' : response,
+            'num_output_tokens' : num_output_tokens,
+            'e2e_inference_latency' : e2e_inference_latency,
+            'raw_inference_latency' : raw_inference_latency,
+            'curr_rate' : curr_rate,
+            'requests_per_rate' : requests_per_rate
+        }
+        print(f'INFERENCE_WORKER response_data: {response_data}')
+        sys.stdout.flush()
 
-    async with result_file_lock:
-        async with aiofiles.open(output_file_path, 'a') as outfile:
-            await outfile.write(str(response_data) + '\n')
+        await result_queue.put(response_data)
+        inference_queue.task_done()
 
 
-#async def send_requests_rate(
-#    sampled_dataset: list[str],
-#    curr_rate: float,
-#    requests_per_rate: int,
-#    output_file_path: str,
-#    executor: ProcessPoolExecutor
-#):
-#    # requests per minute converted to requests per second
-#    lambda_rate = curr_rate / 60
-#
-#    # calculating arrival times
-#    inter_arrival_times = np.random.exponential(1 / lambda_rate, size=requests_per_rate)
-#    arrival_times = np.cumsum(inter_arrival_times)
-#
-#    # eliminate some unnecessary waiting time for first arrival time
-#    initial_arrival_time_offset = arrival_times[0] * 0.8
-#    arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
-#
-#    print(f'SEND_REQUESTS_RATE arrival_times: {arrival_times}')
-#    sys.stdout.flush()
-#
-#    start_time = time.time()
-#    tasks = []
-#    for i in range(requests_per_rate):
-#        send_time = start_time + arrival_times[i]
-#        await asyncio.sleep(max(0, send_time - time.time()))
-#        task = asyncio.create_task(send_request_and_log(
-#            sampled_dataset[i],
-#            curr_rate,
-#            requests_per_rate,
-#            output_file_path,
-#            executor
-#        ))
-#        tasks.append(task)
-#
-#    await asyncio.gather(*tasks)
-#
-#
 async def async_main(
     sampled_dataset: list[str],
     requests_per_rate: int,
@@ -156,6 +116,7 @@ async def async_main(
     output_file_path: str,
 ):
     executor = ProcessPoolExecutor()
+    worker = asyncio.create_task(inference_worker(executor))
 
     # for reproducability
     #np.random.seed(42)
@@ -179,16 +140,13 @@ async def async_main(
         for i in range(requests_per_rate):
             send_time = start_time + arrival_times[i]
             await asyncio.sleep(max(0, send_time - time.time()))
-            task = asyncio.create_task(send_request_and_log(
+            await inference_queue.put((
                 sampled_dataset[i],
                 curr_rate,
-                requests_per_rate,
-                output_file_path,
-                executor
+                requests_per_rate
             ))
-            tasks.append(task)
 
-        await asyncio.gather(*tasks)
+        await inference_queue.join()
         curr_rate = curr_rate * increase_rate
 
     executor.shutdown()
