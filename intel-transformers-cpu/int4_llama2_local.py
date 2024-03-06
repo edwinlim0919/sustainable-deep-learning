@@ -158,63 +158,40 @@ async def async_main(
     executor = ProcessPoolExecutor()
 
     # for reproducability
-    np.random.seed(42)
+    #np.random.seed(42)
     curr_rate = start_rate
 
-    lambda_rate = curr_rate / 60
-    inter_arrival_times = np.random.exponential(1 / lambda_rate, size=requests_per_rate)
-    arrival_times = np.cumsum(inter_arrival_times)
+    while curr_rate < end_rate:
+        print(f'ASYNC_MAIN curr_rate: {curr_rate}')
+        sys.stdout.flush()
 
-    initial_arrival_time_offset = arrival_times[0] * 0.8
-    arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
-    print(f'SEND_REQUESTS_RATE arrival_times: {arrival_times}')
-    sys.stdout.flush()
+        lambda_rate = curr_rate / 60
+        inter_arrival_times = np.random.exponential(1 / lambda_rate, size=requests_per_rate)
+        arrival_times = np.cumsum(inter_arrival_times)
 
-    start_time = time.time()
-    tasks = []
-    for i in range(requests_per_rate):
-        send_time = start_time + arrival_times[i]
-        await asyncio.sleep(max(0, send_time - time.time()))
-        task = asyncio.create_task(send_request_and_log(
-            sampled_dataset[i],
-            curr_rate,
-            requests_per_rate,
-            output_file_path,
-            executor
-        ))
-        tasks.append(task)
+        initial_arrival_time_offset = arrival_times[0] * 0.8
+        arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
+        print(f'ASYNC_MAIN arrival_times: {arrival_times}')
+        sys.stdout.flush()
 
-    await asyncio.gather(*tasks)
+        start_time = time.time()
+        tasks = []
+        for i in range(requests_per_rate):
+            send_time = start_time + arrival_times[i]
+            await asyncio.sleep(max(0, send_time - time.time()))
+            task = asyncio.create_task(send_request_and_log(
+                sampled_dataset[i],
+                curr_rate,
+                requests_per_rate,
+                output_file_path,
+                executor
+            ))
+            tasks.append(task)
 
-    #while curr_rate < end_rate:
-    #    print(f'ASYNC_MAIN curr_rate: {curr_rate}')
-    #    sys.stdout.flush()
-    #    await send_requests_rate(
-    #        sampled_dataset,
-    #        curr_rate,
-    #        requests_per_rate,
-    #        output_file_path,
-    #        executor
-    #    )
-    #    curr_rate = curr_rate * increase_rate
-
-    #await send_request_and_log(
-    #    'What are the ingredients of olio de aglio? I do not want the entire recipe, only a list of ingredients.',
-    #    69,
-    #    69,
-    #    output_file_path,
-    #    executor
-    #)
+        await asyncio.gather(*tasks)
+        curr_rate = curr_rate * increase_rate
 
     executor.shutdown()
-
-#async def send_request_and_log(
-#    prompt: str,
-#    curr_rate: float,
-#    requests_per_rate: int,
-#    output_file_path: str,
-#    executor: ProcessPoolExecutor
-#):
 
 
 # Sampling dataset prompts for throughput experiments
@@ -310,5 +287,3 @@ if __name__ == '__main__':
         args.increase_rate,
         args.output_file_path
     ))
-
-
