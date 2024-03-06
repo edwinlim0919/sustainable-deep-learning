@@ -47,7 +47,6 @@ def int4_llama2_cpu_inference(prompt: str):
     outputs = model.generate(
         inputs,
         max_new_tokens=2048,
-        #eos_token_id=eos_token_id,
         early_stopping=True,
         repetition_penalty=1.1
     )
@@ -129,9 +128,6 @@ async def async_main(
 ):
     executor = ProcessPoolExecutor()
     worker = asyncio.create_task(inference_worker(executor))
-
-    # for reproducability
-    #np.random.seed(42)
     curr_rate = start_rate
 
     while curr_rate < end_rate:
@@ -170,22 +166,37 @@ async def async_main(
     executor.shutdown()
 
 
-#def llama_v2_prompt(messages: list[dict]):
-#    B_INST, E_INST = "[INST]", "[/INST]"
-#    B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
-#    BOS, EOS = "<s>", "</s>"
-#    DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
-#    if messages[0]["role"] != "system":
-#        messages = [{
-#            "role": "system",
-#            "content": DEFAULT_SYSTEM_PROMPT,
-#        }] + messages
-#    messages = [{
-#        "role": messages[1]["role"],
-#        "content": B_SYS + messages[0]["content"] + E_SYS + messages[1]["content"],
-#    }] + messages[2:]
-#
-#    m
+# General Llama2 prompt formatting given a list of message dicts
+# https://huggingface.co/TheBloke/Llama-2-13B-chat-GPTQ/discussions/5
+def llama_v2_prompt_general(prompts: list[dict]):
+    B_INST, E_INST = "[INST]", "[/INST]"
+    B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
+    BOS, EOS = "<s>", "</s>"
+    DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+
+    if prompts[0]["role"] != "system":
+        prompts = [{
+            "role": "system",
+            "content": DEFAULT_SYSTEM_PROMPT
+        }] + prompts
+    prompts = [{
+        "role": prompts[1]["role"],
+        "content": B_SYS + prompts[0]["content"] + E_SYS + prompts[1]["content"],
+    }] + prompts[2:]
+
+    prompts_list = [
+        f"{BOS}{B_INST} {(prompt['content']).strip()} {E_INST} {(answer['content']).strip()} {EOS}"
+        for prompt, answer in zip(prompts[::2], prompts[1::2])
+    ]
+    prompts_list.append(f"{BOS}{B_INST} {(prompts[-1]['content']).strip()} {E_INST}")
+
+    return "".join(prompts_list)
+
+
+# Simple Llama2 prompt formatting given a single human prompt
+def llama_v2_prompt_single(prompt: str):
+    DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+    return f'[INST] <<SYS>>\n{DEFAULT_SYSTEM_PROMPT}\n<</SYS>>\n\n{prompt} [/INST]'
 
 
 # Sampling dataset prompts for throughput experiments
@@ -271,10 +282,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.prompt:
-        DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
-        prompt = f'[INST] <<SYS>>\n{DEFAULT_SYSTEM_PROMPT}\n<</SYS>>\n\n{args.prompt} [/INST]'
-        #response, num_output_tokens, e2e_inference_latency, raw_inference_latency = int4_llama2_cpu_inference(args.prompt)
-        #prompt = args.prompt
+        prompt = llama_v2_prompt_single(args.prompt)
         print(f'Test request: {prompt}')
         response, num_output_tokens, e2e_inference_latency, raw_inference_latency = int4_llama2_cpu_inference(prompt)
         print(f'response: {response}')
