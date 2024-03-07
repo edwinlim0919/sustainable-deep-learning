@@ -94,14 +94,14 @@ async def inference_worker(executor: ProcessPoolExecutor):
         e2e_query_time = result_enqueue_time - inference_enqueue_time
 
         response_data = {
-            'prompt' : prompt,
-            'response' : response,
-            'num_output_tokens' : num_output_tokens,
-            'e2e_inference_latency' : e2e_inference_latency,
-            'raw_inference_latency' : raw_inference_latency,
-            'e2e_query_time' : e2e_query_time,
-            'curr_rate' : curr_rate,
-            'requests_per_rate' : requests_per_rate
+            'prompt': prompt,
+            'response': response,
+            'num_output_tokens': num_output_tokens,
+            'e2e_inference_latency': e2e_inference_latency,
+            'raw_inference_latency': raw_inference_latency,
+            'e2e_query_time': e2e_query_time,
+            'curr_rate': curr_rate,
+            'requests_per_rate': requests_per_rate
         }
         print(f'INFERENCE_WORKER response_data: {response_data}')
         sys.stdout.flush()
@@ -207,21 +207,60 @@ def sample_dataset_prompts(
     with open(dataset_path, 'r', encoding='utf-8') as f:
         dataset = json.load(f)
 
-    # Filter out the conversations with less than 2 turns.
+    # Filter out the conversations with less than 2 turns
     dataset = [data for data in dataset if len(data["conversations"]) >= 2]
 
-    # Only keep human prompts from each conversation.
-    dataset_human = []
+    # Only keep conversations that were initiated by a human
+    human_initiated_dataset = []
     for data in dataset:
-        for conv in data['conversations']:
-            if conv['from'] == 'human':
-                dataset_human.append(conv['value'])
+        if data['conversations'][0]['from'] == 'human':
+            human_initiated_dataset.append(data)
+    dataset = human_initiated_dataset
 
-    if num_requests_sample < 1:
-        num_requests_sample = len(dataset_human)
+    # Only keep the first two turns of each conversation and use Llama2 dict format
+    llama2_dict_dataset = []
+    for data in dataset:
+        human_dict = {
+            'role': data['conversations'][0]['from'],
+            'content': data['conversations'][0]['value']
+        }
+        gpt_dict = {
+            'role': data['conversations'][1]['from'],
+            'content': data['conversations'][1]['value']
+        }
+        llama2_dict_dataset.append([
+            human_dict,
+            gpt_dict
+        ])
+    dataset = llama2_dict_dataset
 
-    sampled_dataset = random.sample(dataset_human, num_requests_sample)
-    return sampled_dataset
+    # TODO: Augment conversation turns with Llama2 prompt format
+    llama2_dataset = []
+    for data in dataset:
+        print(f'data: {data}\n')
+        #llama2_conversation = llama_v2_prompt_general(data)
+        #print(f'llama2_conversation: {llama2_conversation}\n\n')
+
+    ## Tokenize the prompts and completions.
+    #prompts = [prompt for prompt, _ in dataset]
+    #prompt_token_ids = tokenizer(prompts).input_ids
+    #completions = [completion for _, completion in dataset]
+    #completion_token_ids = tokenizer(completions).input_ids
+
+    ## Only keep human prompts from each conversation.
+    #dataset_human = []
+    #for data in dataset:
+    #    for conv in data['conversations']:
+    #        if conv['from'] == 'human':
+    #            dataset_human.append(conv['value'])
+
+    #if num_requests_sample < 1:
+    #    num_requests_sample = len(dataset_human)
+
+    #sampled_dataset = random.sample(dataset_human, num_requests_sample)
+    #return sampled_dataset
+
+    return []
 
 
 if __name__ == '__main__':
@@ -278,7 +317,6 @@ if __name__ == '__main__':
         type=str,
         help='Provide a specifc prompt to test on the model.'
     )
-
     args = parser.parse_args()
 
     if args.prompt:
@@ -297,18 +335,18 @@ if __name__ == '__main__':
         )
         sampled_dataset_len = len(sampled_dataset)
 
-        print('Generating requests...')
-        print(f'sampled_dataset_len: {sampled_dataset_len}')
-        print(f'requests_per_rate: {args.requests_per_rate}')
-        print(f'start_rate: {args.start_rate}')
-        print(f'end_rate: {args.end_rate}')
-        print(f'increase_rate: {args.increase_rate}')
-        print(f'output_file_path: {args.output_file_path}')
-        asyncio.run(async_main(
-            sampled_dataset,
-            args.requests_per_rate,
-            args.start_rate,
-            args.end_rate,
-            args.increase_rate,
-            args.output_file_path
-        ))
+        #print('Generating requests...')
+        #print(f'sampled_dataset_len: {sampled_dataset_len}')
+        #print(f'requests_per_rate: {args.requests_per_rate}')
+        #print(f'start_rate: {args.start_rate}')
+        #print(f'end_rate: {args.end_rate}')
+        #print(f'increase_rate: {args.increase_rate}')
+        #print(f'output_file_path: {args.output_file_path}')
+        #asyncio.run(async_main(
+        #    sampled_dataset,
+        #    args.requests_per_rate,
+        #    args.start_rate,
+        #    args.end_rate,
+        #    args.increase_rate,
+        #    args.output_file_path
+        #))
