@@ -122,6 +122,9 @@ async def inference_worker(executor: ProcessPoolExecutor):
 
 
 async def write_results(output_file_path):
+    # Make sure all the tasks are done
+    #await inference_queue.join()
+
     with open(output_file_path, 'a') as file:
         while not result_queue.empty():
             result = await result_queue.get()
