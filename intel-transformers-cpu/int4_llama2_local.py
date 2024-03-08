@@ -86,9 +86,13 @@ async def async_inference(
 
 async def inference_worker(executor: ProcessPoolExecutor):
     while True:
-        prompt, curr_rate, requests_per_rate, inference_enqueue_time = await inference_queue.get()
+        prompt, curr_rate, requests_per_rate, inference_enqueue_time, time_limit = await inference_queue.get()
         print(f'INFERENCE_WORKER prompt: {prompt}, curr_rate: {curr_rate}, requests_per_rate: {requests_per_rate}')
         sys.stdout.flush()
+
+        if time.time() > time_limit:
+            inference_queue.task_done()
+            return
 
         response, num_output_tokens, e2e_inference_latency, raw_inference_latency = await async_inference(
             prompt,
@@ -122,8 +126,9 @@ async def write_results(output_file_path):
             result_queue.task_done()
 
 
-async def async_main(
-    sampled_dataset: list[str],
+# Request generation for reqests_per_rate requests for each rate
+async def async_main_requests(
+    sampled_prompts: list[str],
     requests_per_rate: int,
     start_rate: float,
     end_rate: float,
@@ -134,8 +139,8 @@ async def async_main(
     worker = asyncio.create_task(inference_worker(executor))
     curr_rate = start_rate
 
-    while curr_rate < end_rate:
-        print(f'ASYNC_MAIN curr_rate: {curr_rate}')
+    while curr_rate <= end_rate:
+        print(f'ASYNC_MAIN_REQUESTS curr_rate: {curr_rate}')
         sys.stdout.flush()
 
         lambda_rate = curr_rate / 60
@@ -144,20 +149,74 @@ async def async_main(
 
         initial_arrival_time_offset = arrival_times[0] * 0.8
         arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
-        print(f'ASYNC_MAIN arrival_times: {arrival_times}')
+        print(f'ASYNC_MAIN_REQUESTS arrival_times: {arrival_times}')
         sys.stdout.flush()
 
         start_time = time.time()
-        tasks = []
+        time_limit = start_time + sys.maxsize
         for i in range(requests_per_rate):
             send_time = start_time + arrival_times[i]
             await asyncio.sleep(max(0, send_time - time.time()))
             inference_enqueue_time = time.time()
             await inference_queue.put((
-                sampled_dataset[i],
+                sampled_prompts[i],
                 curr_rate,
                 requests_per_rate,
-                inference_enqueue_time
+                inference_enqueue_time,
+                time_limit
+            ))
+
+        await inference_queue.join()
+
+        # After inferencing is done, write results to output file
+        await write_results(output_file_path)
+        curr_rate = curr_rate * increase_rate
+
+    worker.cancel()
+    executor.shutdown()
+
+
+# Request generation for seconds_per_rate seconds for each rate
+async def async_main_time(
+    sampled_prompts: list[str],
+    seconds_per_rate: int,
+    start_rate: float,
+    end_rate: float,
+    increase_rate: float,
+    output_file_path: str,
+):
+    executor = ProcessPoolExecutor()
+    worker = asyncio.create_task(inference_worker(executor))
+    curr_rate = start_rate
+
+    while curr_rate <= end_rate:
+        print(f'ASYNC_MAIN_TIME curr_rate: {curr_rate}')
+        sys.stdout.flush()
+
+        lambda_rate = curr_rate / 60
+        expected_arrivals = int(lambda_rate * seconds_per_rate)
+        inter_arrival_times = np.random.exponential(1 / lambda_rate, size=expected_arrivals)
+        arrival_times = np.cumsum(inter_arrival_times)
+
+        initial_arrival_time_offset = arrival_times[0] * 0.8
+        arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
+        print(f'ASYNC_MAIN_TIME arrival_times: {arrival_times}')
+        sys.stdout.flush()
+
+        start_time = time.time()
+        time_limit = start_time + seconds_per_rate
+        sampled_prompts_len = len(sampled_prompts)
+        for i in range(len(arrival_times)):
+            send_time = start_time + arrival_times[i]
+            sampled_prompt = sampled_prompts[i % sampled_prompts_len]
+            await asyncio.sleep(max(0, send_time - time.time()))
+            inference_enqueue_time = time.time()
+            await inference_queue.put((
+                sampled_prompt,
+                curr_rate,
+                seconds_per_rate,
+                inference_enqueue_time,
+                time_limit
             ))
 
         await inference_queue.join()
@@ -173,7 +232,7 @@ async def async_main(
 # General Llama2 prompt formatting given a list of message dicts
 # Prompt interleaving should look like: <human> <gpt> <human> <gpt> ...
 # Adapted from code in https://huggingface.co/TheBloke/Llama-2-13B-chat-GPTQ/discussions/5
-def llama_v2_prompt_general(prompts: list[dict]):
+def llama2_prompt_general(prompts: list[dict]):
     B_INST, E_INST = "[INST]", "[/INST]"
     B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
     DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
@@ -189,6 +248,7 @@ def llama_v2_prompt_general(prompts: list[dict]):
     }] + prompts[2:]
 
     # Ensure that user prompts first, and there is a gpt response for every human query
+    #print(f'PROMPTS: {prompts}\n\n')
     assert (all([prompt['role'] == 'human' for prompt in prompts[::2]]) and
             all([prompt['role'] == 'gpt' for prompt in prompts[1::2]]) and
             len(prompts) % 2 == 0)
@@ -202,8 +262,7 @@ def llama_v2_prompt_general(prompts: list[dict]):
 
 
 # Simple Llama2 prompt formatting given a single human prompt
-def llama_v2_prompt_single(prompt: str):
-    DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+def llama2_prompt_single(prompt: str):
     return f'[INST] <<SYS>>\n{DEFAULT_SYSTEM_PROMPT}\n<</SYS>>\n\n{prompt} [/INST]'
 
 
@@ -228,6 +287,10 @@ def sample_dataset_prompts(
     # Only keep the first two turns of each conversation and use Llama2 dict format
     llama2_dict_dataset = []
     for data in dataset:
+        if (data['conversations'][0]['from'] != 'human' or
+            data['conversations'][1]['from'] != 'gpt'):
+            continue
+
         human_dict = {
             'role': data['conversations'][0]['from'],
             'content': data['conversations'][0]['value']
@@ -266,14 +329,15 @@ def sample_dataset_prompts(
     # Currently only uses human turn
     llama2_prompts = []
     for data in dataset:
-        llama2_conv = llama_v2_prompt_general(data).split(E_INST)
+        llama2_conv = llama2_prompt_general(data).split(E_INST)
         llama2_prompt = llama2_conv[0] + f' {E_INST}'
         llama2_prompts.append(llama2_prompt)
 
+    # Sample the prompts
     if num_requests_sample < 1:
         num_requests_sample = len(llama2_prompts)
-
     sampled_prompts = random.sample(llama2_prompts, num_requests_sample)
+
     return sampled_prompts
 
 
@@ -301,9 +365,15 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--requests-per-rate',
-        required=True,
+        required=False,
         type=int,
         help='The number of requests to send per request rate.'
+    )
+    parser.add_argument(
+        '--seconds-per-rate',
+        required=False,
+        type=int,
+        help='The number of seconds to send per request rate.'
     )
     parser.add_argument(
         '--start-rate',
@@ -334,7 +404,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.prompt:
-        prompt = llama_v2_prompt_single(args.prompt)
+        prompt = llama2_prompt_single(args.prompt)
         print(f'Test request: {prompt}')
         response, num_output_tokens, e2e_inference_latency, raw_inference_latency = int4_llama2_cpu_inference(prompt)
         print(f'response: {response}')
@@ -342,26 +412,40 @@ if __name__ == '__main__':
         print(f'e2e_inference_latency {e2e_inference_latency}')
         print(f'raw_inference_latency {raw_inference_latency}')
     else:
+        if (not args.requests_per_rate and
+            not args.seconds_per_rate):
+            raise ValueError('Need to specify either --requests-per-rate or --seconds-per-rate')
+
         print(f'Sampling dataset {args.dataset_path}...')
-        sampled_dataset = sample_dataset_prompts(
+        sampled_prompts = sample_dataset_prompts(
             args.dataset_path,
             args.num_requests_sample
         )
-        sampled_dataset_len = len(sampled_dataset)
-        print(f'sampled_dataset: {sampled_dataset}')
+        sampled_prompts_len = len(sampled_prompts)
 
         print('Generating requests...')
-        print(f'sampled_dataset_len: {sampled_dataset_len}')
-        print(f'requests_per_rate: {args.requests_per_rate}')
+        print(f'sampled_prompts_len: {sampled_prompts_len}')
         print(f'start_rate: {args.start_rate}')
         print(f'end_rate: {args.end_rate}')
         print(f'increase_rate: {args.increase_rate}')
         print(f'output_file_path: {args.output_file_path}')
-        asyncio.run(async_main(
-            sampled_dataset,
-            args.requests_per_rate,
-            args.start_rate,
-            args.end_rate,
-            args.increase_rate,
-            args.output_file_path
-        ))
+        if args.requests_per_rate:
+            print(f'requests_per_rate: {args.requests_per_rate}')
+            asyncio.run(async_main_requests(
+                sampled_prompts,
+                args.requests_per_rate,
+                args.start_rate,
+                args.end_rate,
+                args.increase_rate,
+                args.output_file_path
+            ))
+        else: # seconds_per_rate
+            print(f'seconds_per_rate: {args.seconds_per_rate}')
+            asyncio.run(async_main_seconds(
+                sampled_prompts,
+                args.seconds_per_rate,
+                args.start_rate,
+                args.end_rate,
+                args.increase_rate,
+                args.output_file_path
+            ))
