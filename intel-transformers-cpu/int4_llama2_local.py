@@ -355,7 +355,7 @@ if __name__ == '__main__':
         '--output-file-path',
         required=True,
         type=str,
-        help='The path to the JSON output file.'
+        help='The path to the output file.'
     )
     parser.add_argument(
         '--num-requests-sample',
