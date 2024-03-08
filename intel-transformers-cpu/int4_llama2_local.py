@@ -86,8 +86,8 @@ async def async_inference(
 
 async def inference_worker(executor: ProcessPoolExecutor):
     while True:
-        prompt, curr_rate, requests_per_rate, inference_enqueue_time, time_limit = await inference_queue.get()
-        print(f'INFERENCE_WORKER prompt: {prompt}, curr_rate: {curr_rate}, requests_per_rate: {requests_per_rate}')
+        prompt, curr_rate, requests_per_rate, seconds_per_rate, inference_enqueue_time, time_limit = await inference_queue.get()
+        print(f'INFERENCE_WORKER prompt: {prompt}, curr_rate: {curr_rate}, requests_per_rate: {requests_per_rate}, seconds_per_rate: {seconds_per_rate}')
         sys.stdout.flush()
 
         if time.time() > time_limit:
@@ -109,7 +109,8 @@ async def inference_worker(executor: ProcessPoolExecutor):
             'raw_inference_latency': raw_inference_latency,
             'e2e_query_time': e2e_query_time,
             'curr_rate': curr_rate,
-            'requests_per_rate': requests_per_rate
+            'requests_per_rate': requests_per_rate,
+            'seconds_per_rate': seconds_per_rate
         }
         print(f'INFERENCE_WORKER response_data: {response_data}')
         sys.stdout.flush()
@@ -159,6 +160,7 @@ async def async_main_requests(
                 sampled_prompts[i],
                 curr_rate,
                 requests_per_rate,
+                -1,
                 inference_enqueue_time,
                 time_limit
             ))
@@ -208,6 +210,7 @@ async def async_main_seconds(
             await inference_queue.put((
                 sampled_prompt,
                 curr_rate,
+                -1,
                 seconds_per_rate,
                 inference_enqueue_time,
                 time_limit
