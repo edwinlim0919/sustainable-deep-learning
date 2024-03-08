@@ -146,9 +146,6 @@ async def async_main_requests(
         lambda_rate = curr_rate / 60
         inter_arrival_times = np.random.exponential(1 / lambda_rate, size=requests_per_rate)
         arrival_times = np.cumsum(inter_arrival_times)
-
-        initial_arrival_time_offset = arrival_times[0] * 0.8
-        arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
         print(f'ASYNC_MAIN_REQUESTS arrival_times: {arrival_times}')
         sys.stdout.flush()
 
@@ -197,9 +194,6 @@ async def async_main_seconds(
         expected_arrivals = int(lambda_rate * seconds_per_rate)
         inter_arrival_times = np.random.exponential(1 / lambda_rate, size=expected_arrivals)
         arrival_times = np.cumsum(inter_arrival_times)
-
-        initial_arrival_time_offset = arrival_times[0] * 0.8
-        arrival_times = [arrival_time - initial_arrival_time_offset for arrival_time in arrival_times]
         print(f'ASYNC_MAIN_TIME arrival_times: {arrival_times}')
         sys.stdout.flush()
 
