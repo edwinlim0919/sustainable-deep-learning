@@ -92,7 +92,7 @@ async def inference_worker(executor: ProcessPoolExecutor):
 
         if time.time() > time_limit:
             inference_queue.task_done()
-            return
+            continue
 
         response, num_output_tokens, e2e_inference_latency, raw_inference_latency = await async_inference(
             prompt,
