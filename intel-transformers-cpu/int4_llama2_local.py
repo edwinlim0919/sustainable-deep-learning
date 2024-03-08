@@ -177,7 +177,7 @@ async def async_main_requests(
 
 
 # Request generation for seconds_per_rate seconds for each rate
-async def async_main_time(
+async def async_main_seconds(
     sampled_prompts: list[str],
     seconds_per_rate: int,
     start_rate: float,
