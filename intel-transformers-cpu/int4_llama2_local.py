@@ -91,6 +91,8 @@ async def inference_worker(executor: ProcessPoolExecutor):
         sys.stdout.flush()
 
         if time.time() > time_limit:
+            print('INFERENCE_WORKER TIME LIMIT EXCEEDED')
+            sys.stdout.flush()
             inference_queue.task_done()
             continue
 
