@@ -37,6 +37,7 @@ model = AutoModelForCausalLM.from_pretrained(
     model_name,
     model_file=model_file
 )
+model.eval()
 
 
 def int4_llama2_cpu_inference(prompt: str):
