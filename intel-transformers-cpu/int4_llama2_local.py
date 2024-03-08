@@ -302,6 +302,28 @@ def sample_dataset_prompts(
         ])
     dataset = llama2_dict_dataset
 
+    # TODO: Test this out before running more throughput tests
+    # Format with Llama2 prompt style
+    llama2_format_dataset = []
+    for data in dataset:
+        llama2_conv = llama2_prompt_general(data).split(E_INST)
+        llama2_human = llama2_conv[0] + f' {E_INST}'
+        llama2_gpt = f'{E_INST} ' + llama2_conv[1]
+
+        human_dict = {
+            'role': data[0]['role'],
+            'content': llama2_human
+        }
+        gpt_dict = {
+            'role': data[1]['role'],
+            'content': llama2_gpt
+        }
+        llama2_format_dataset.append([
+            human_dict,
+            gpt_dict
+        ])
+    dataset = llama2_format_dataset
+
     # Tokenize the prompts and completions
     prompts = [prompt[0]['content'] for prompt in dataset]
     prompt_token_ids = tokenizer(prompts).input_ids
@@ -317,18 +339,24 @@ def sample_dataset_prompts(
         num_completion_tokens = len(completion_token_ids[i])
         if num_prompt_tokens < 4 or num_completion_tokens < 4:
             continue
-        if num_prompt_tokens > 1024 or num_prompt_tokens + num_completion_tokens > 2048:
+        if num_prompt_tokens > 1020 or num_prompt_tokens + num_completion_tokens > 2040:
             continue
         filtered_dataset.append(dataset[i])
     dataset = filtered_dataset
 
     # Augment conversation turns with Llama2 prompt format
     # Currently only uses human turn
+    #llama2_prompts = []
+    #for data in dataset:
+    #    llama2_conv = llama2_prompt_general(data).split(E_INST)
+    #    llama2_prompt = llama2_conv[0] + f' {E_INST}'
+    #    llama2_prompts.append(llama2_prompt)
+
+    # Get human turns
     llama2_prompts = []
     for data in dataset:
-        llama2_conv = llama2_prompt_general(data).split(E_INST)
-        llama2_prompt = llama2_conv[0] + f' {E_INST}'
-        llama2_prompts.append(llama2_prompt)
+        llama2_human = data[0]['content']
+        llama2_prompts.append(llama2_human)
 
     # Sample the prompts
     if num_requests_sample < 1:
