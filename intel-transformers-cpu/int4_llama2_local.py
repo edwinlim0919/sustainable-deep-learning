@@ -13,14 +13,20 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 
 
+# Explicit queuing
 result_file_lock = asyncio.Lock()
 inference_queue = asyncio.Queue()
 result_queue = asyncio.Queue()
 
 
+# Llama model stuff
 model_name = 'TheBloke/Llama-2-7B-Chat-GGUF'
 model_file = 'llama-2-7b-chat.Q4_0.gguf'
 tokenizer_name = 'meta-llama/Llama-2-7b-chat-hf'
+
+B_INST, E_INST = "[INST]", "[/INST]"
+B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
+DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
 
 tokenizer = AutoTokenizer.from_pretrained(
     tokenizer_name,
@@ -31,8 +37,6 @@ model = AutoModelForCausalLM.from_pretrained(
     model_name,
     model_file=model_file
 )
-
-eos_token_id = tokenizer.eos_token_id
 
 
 def int4_llama2_cpu_inference(prompt: str):
@@ -167,11 +171,11 @@ async def async_main(
 
 
 # General Llama2 prompt formatting given a list of message dicts
-# https://huggingface.co/TheBloke/Llama-2-13B-chat-GPTQ/discussions/5
+# Prompt interleaving should look like: <human> <gpt> <human> <gpt> ...
+# Adapted from code in https://huggingface.co/TheBloke/Llama-2-13B-chat-GPTQ/discussions/5
 def llama_v2_prompt_general(prompts: list[dict]):
     B_INST, E_INST = "[INST]", "[/INST]"
     B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
-    BOS, EOS = "<s>", "</s>"
     DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
 
     if prompts[0]["role"] != "system":
@@ -184,11 +188,15 @@ def llama_v2_prompt_general(prompts: list[dict]):
         "content": B_SYS + prompts[0]["content"] + E_SYS + prompts[1]["content"],
     }] + prompts[2:]
 
+    # Ensure that user prompts first, and there is a gpt response for every human query
+    assert (all([prompt['role'] == 'human' for prompt in prompts[::2]]) and
+            all([prompt['role'] == 'gpt' for prompt in prompts[1::2]]) and
+            len(prompts) % 2 == 0)
     prompts_list = [
-        f"{BOS}{B_INST} {(prompt['content']).strip()} {E_INST} {(answer['content']).strip()} {EOS}"
-        for prompt, answer in zip(prompts[::2], prompts[1::2])
+        f'{B_INST} {(human["content"]).strip()} {E_INST} {(gpt["content"]).strip()}'
+        for human, gpt in zip(prompts[::2], prompts[1::2])
     ]
-    prompts_list.append(f"{BOS}{B_INST} {(prompts[-1]['content']).strip()} {E_INST}")
+    prompts_list[-1] = prompts_list[-1] + f' {B_INST}'
 
     return "".join(prompts_list)
 
@@ -234,33 +242,39 @@ def sample_dataset_prompts(
         ])
     dataset = llama2_dict_dataset
 
-    # TODO: Augment conversation turns with Llama2 prompt format
-    llama2_dataset = []
+    # Tokenize the prompts and completions
+    prompts = [prompt[0]['content'] for prompt in dataset]
+    prompt_token_ids = tokenizer(prompts).input_ids
+    completions = [prompt[1]['content'] for prompt in dataset]
+    completion_token_ids = tokenizer(completions).input_ids
+
+    # Filter out too long or too short sequences
+    assert(len(dataset) == len(prompts) and
+           len(dataset) == len(completions))
+    filtered_dataset = []
+    for i in range(len(dataset)):
+        num_prompt_tokens = len(prompt_token_ids[i])
+        num_completion_tokens = len(completion_token_ids[i])
+        if num_prompt_tokens < 4 or num_completion_tokens < 4:
+            continue
+        if num_prompt_tokens > 1024 or num_prompt_tokens + num_completion_tokens > 2048:
+            continue
+        filtered_dataset.append(dataset[i])
+    dataset = filtered_dataset
+
+    # Augment conversation turns with Llama2 prompt format
+    # Currently only uses human turn
+    llama2_prompts = []
     for data in dataset:
-        print(f'data: {data}\n')
-        #llama2_conversation = llama_v2_prompt_general(data)
-        #print(f'llama2_conversation: {llama2_conversation}\n\n')
+        llama2_conv = llama_v2_prompt_general(data).split(E_INST)
+        llama2_prompt = llama2_conv[0] + f' {E_INST}'
+        llama2_prompts.append(llama2_prompt)
 
-    ## Tokenize the prompts and completions.
-    #prompts = [prompt for prompt, _ in dataset]
-    #prompt_token_ids = tokenizer(prompts).input_ids
-    #completions = [completion for _, completion in dataset]
-    #completion_token_ids = tokenizer(completions).input_ids
+    if num_requests_sample < 1:
+        num_requests_sample = len(llama2_prompts)
 
-    ## Only keep human prompts from each conversation.
-    #dataset_human = []
-    #for data in dataset:
-    #    for conv in data['conversations']:
-    #        if conv['from'] == 'human':
-    #            dataset_human.append(conv['value'])
-
-    #if num_requests_sample < 1:
-    #    num_requests_sample = len(dataset_human)
-
-    #sampled_dataset = random.sample(dataset_human, num_requests_sample)
-    #return sampled_dataset
-
-    return []
+    sampled_prompts = random.sample(llama2_prompts, num_requests_sample)
+    return sampled_prompts
 
 
 if __name__ == '__main__':
@@ -334,19 +348,20 @@ if __name__ == '__main__':
             args.num_requests_sample
         )
         sampled_dataset_len = len(sampled_dataset)
+        print(f'sampled_dataset: {sampled_dataset}')
 
-        #print('Generating requests...')
-        #print(f'sampled_dataset_len: {sampled_dataset_len}')
-        #print(f'requests_per_rate: {args.requests_per_rate}')
-        #print(f'start_rate: {args.start_rate}')
-        #print(f'end_rate: {args.end_rate}')
-        #print(f'increase_rate: {args.increase_rate}')
-        #print(f'output_file_path: {args.output_file_path}')
-        #asyncio.run(async_main(
-        #    sampled_dataset,
-        #    args.requests_per_rate,
-        #    args.start_rate,
-        #    args.end_rate,
-        #    args.increase_rate,
-        #    args.output_file_path
-        #))
+        print('Generating requests...')
+        print(f'sampled_dataset_len: {sampled_dataset_len}')
+        print(f'requests_per_rate: {args.requests_per_rate}')
+        print(f'start_rate: {args.start_rate}')
+        print(f'end_rate: {args.end_rate}')
+        print(f'increase_rate: {args.increase_rate}')
+        print(f'output_file_path: {args.output_file_path}')
+        asyncio.run(async_main(
+            sampled_dataset,
+            args.requests_per_rate,
+            args.start_rate,
+            args.end_rate,
+            args.increase_rate,
+            args.output_file_path
+        ))
