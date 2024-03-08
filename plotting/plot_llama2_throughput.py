@@ -4,9 +4,11 @@ import matplotlib.pyplot as plt
 
 
 # Calculates normalized latency/token for each different request rate
-def parse_llama2_throughput(input_file_path: str):
-    with open(input_file_path, 'r') as file:
-        results_str = file.readlines()
+def parse_llama2_throughput(input_file_paths: str):
+    results_str = []
+    for input_file_path in input_file_paths.split():
+        with open(input_file_path, 'r') as file:
+            results_str = results_str + file.readlines()
 
     results_dict = []
     for result_str in results_str:
@@ -19,7 +21,7 @@ def parse_llama2_throughput(input_file_path: str):
         raw_inference_latency = result_dict['raw_inference_latency']
         e2e_query_time = result_dict['e2e_query_time']
         curr_rate = result_dict['curr_rate']
-        print(f'num_output_tokens: {num_output_tokens}, raw_inference_latency: {raw_inference_latency}, e2e_query_time: {e2e_query_time}, curr_rate: {curr_rate}')
+        #print(f'num_output_tokens: {num_output_tokens}, raw_inference_latency: {raw_inference_latency}, e2e_query_time: {e2e_query_time}, curr_rate: {curr_rate}')
 
         latency_per_token_e2e = e2e_query_time / num_output_tokens
         latency_per_token_raw = raw_inference_latency / num_output_tokens
@@ -32,8 +34,8 @@ def parse_llama2_throughput(input_file_path: str):
             rate_to_lpt_list_raw[curr_rate] = []
         rate_to_lpt_list_raw[curr_rate].append(latency_per_token_raw)
 
-    print(f'rate_to_lpt_list_e2e: {rate_to_lpt_list_e2e}\n')
-    print(f'rate_to_lpt_list_raw: {rate_to_lpt_list_raw}\n')
+    #print(f'rate_to_lpt_list_e2e: {rate_to_lpt_list_e2e}\n')
+    #print(f'rate_to_lpt_list_raw: {rate_to_lpt_list_raw}\n')
 
     rate_to_normalized_latency_e2e = {}
     rate_to_normalized_latency_raw = {}
@@ -53,8 +55,8 @@ def parse_llama2_throughput(input_file_path: str):
         normalized_latency = lpt_list_sum / lpt_list_len
         rate_to_normalized_latency_raw[float(rate)] = normalized_latency
 
-    print(f'rate_to_normalized_latency_e2e: {rate_to_normalized_latency_e2e}\n')
-    print(f'rate_to_normalized_latency_raw: {rate_to_normalized_latency_raw}\n')
+    #print(f'rate_to_normalized_latency_e2e: {rate_to_normalized_latency_e2e}\n')
+    #print(f'rate_to_normalized_latency_raw: {rate_to_normalized_latency_raw}\n')
 
     return rate_to_normalized_latency_e2e, rate_to_normalized_latency_raw
 
@@ -66,14 +68,18 @@ def plot_llama2_throughput(
 ):
     sorted_keys_e2e = sorted(rate_to_normalized_latency_e2e.keys())
     sorted_values_e2e = [rate_to_normalized_latency_e2e[key] for key in sorted_keys_e2e]
+    sorted_keys_raw = sorted(rate_to_normalized_latency_raw.keys())
+    sorted_values_raw = [rate_to_normalized_latency_raw[key] for key in sorted_keys_raw]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(sorted_keys_e2e, sorted_values_e2e, marker='o')
+    plt.plot(sorted_keys_e2e, sorted_values_e2e, marker='o', color='blue', label='E2E Normalized Latency')
+    plt.plot(sorted_keys_raw, sorted_values_raw, marker='s', color='red', label='Raw Normalized Latency')
 
     plt.title('Normalized Latency vs. Requests Per Minute')
     plt.xlabel('Requests Per Minute')
     plt.ylabel('Normalized Latency')
     plt.grid(True)
+    plt.legend()
 
     plt.savefig(output_file_path, format='png')
 
@@ -81,10 +87,10 @@ def plot_llama2_throughput(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plotting script for llama2 throughput experiments.')
     parser.add_argument(
-        '--input-file-path',
+        '--input-file-paths',
         required=True,
         type=str,
-        help='The path to the input results file.'
+        help='The path(s) to the input results file(s).'
     )
     parser.add_argument(
         '--output-file-path',
@@ -94,7 +100,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    rate_to_normalized_latency_e2e, rate_to_normalized_latency_raw = parse_llama2_throughput(args.input_file_path)
+    rate_to_normalized_latency_e2e, rate_to_normalized_latency_raw = parse_llama2_throughput(args.input_file_paths)
     plot_llama2_throughput(
         rate_to_normalized_latency_e2e,
         rate_to_normalized_latency_raw,
