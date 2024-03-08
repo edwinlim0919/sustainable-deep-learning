@@ -1,0 +1,1 @@
+python3 plot_llama2_throughput.py --input-file-path long_unfiltered_c6420_1_1000_25_05_10_2.txt --output-file-path testing
