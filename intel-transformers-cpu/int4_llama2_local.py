@@ -46,11 +46,15 @@ def int4_llama2_cpu_inference(prompt: str):
         prompt,
         return_tensors='pt'
     ).input_ids
+    # TODO test this out to see if input_ids length is correctly used
+    num_input_tokens = len(inputs)
+    # Being extra safe to not generate garbage overflow (I believe the max sequence length is 2048)
+    max_new_tokens = 2000 - num_input_tokens
 
     raw_inference_start_time = time.time()
     outputs = model.generate(
         inputs,
-        max_new_tokens=2048,
+        max_new_tokens=max_new_tokens,
         early_stopping=True,
         repetition_penalty=1.1
     )
