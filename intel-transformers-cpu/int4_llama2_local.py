@@ -331,6 +331,7 @@ def sample_dataset_prompts(
     completion_token_ids = tokenizer(completions).input_ids
 
     # Filter out too long or too short sequences
+    # Real limit is 1020 for prompts, but doing 1000 just to make sure
     assert(len(dataset) == len(prompts) and
            len(dataset) == len(completions))
     filtered_dataset = []
@@ -339,7 +340,7 @@ def sample_dataset_prompts(
         num_completion_tokens = len(completion_token_ids[i])
         if num_prompt_tokens < 4 or num_completion_tokens < 4:
             continue
-        if num_prompt_tokens > 1020 or num_prompt_tokens + num_completion_tokens > 2040:
+        if num_prompt_tokens > 1000 or num_prompt_tokens + num_completion_tokens > 2000:
             continue
         filtered_dataset.append(dataset[i])
     dataset = filtered_dataset

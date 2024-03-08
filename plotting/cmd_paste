@@ -1,1 +1,5 @@
 python3 plot_llama2_throughput.py --input-file-path long_unfiltered_c6420_1_1000_25_05_10_2.txt --output-file-path testing.png
+
+python3 plot_llama2_throughput.py --input-file-paths long_unfiltered_c6420_1_1000_25_05_10_2.txt --output-file-path testing_1.png
+
+python3 plot_llama2_throughput.py --input-file-paths "long_unfiltered_c6420_1_1000_25_05_10_2.txt long_unfiltered_c6420_1_1000_25_05_10_2.txt" --output-file-path testing_2.png
