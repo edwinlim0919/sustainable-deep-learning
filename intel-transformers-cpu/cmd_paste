@@ -41,4 +41,7 @@ python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split
 
 python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path time_c6420_1_10000_3600_4_10_2 --num-requests-sample 10000 --seconds-per-rate 3600 --start-rate 4 --end-rate 10 --increase-rate 2
 
+python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path time_c6420_1_10000_3600_02_2_12 --num-requests-sample 10000 --seconds-per-rate 3600 --start-rate 0.2 --end-rate 2 --increase-rate 1.2
+
+
 ps aux | grep int4_llama2_local.py | grep -v grep | awk '{print $2}' | xargs kill
