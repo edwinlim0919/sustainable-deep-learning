@@ -5,3 +5,5 @@ python3 plot_llama2_throughput.py --input-file-paths long_unfiltered_c6420_1_100
 python3 plot_llama2_throughput.py --input-file-paths "long_unfiltered_c6420_1_1000_25_05_10_2.txt random_testing_bs.txt" --output-file-path testing_2.png
 
 python3 plot_llama2_throughput.py --input-file-paths "time_c6420_1_10000_3600_1_10_2 time_c6420_1_10000_3600_4_10_2" --output-file-path c6420_1_10000_3600_1_10_2
+
+python3 plot_llama2_throughput.py --input-file-paths "time_c6420_1_10000_3600_1_10_2 time_c6420_1_10000_3600_4_10_2 time_c6420_1_10000_3600_02_2_12" --output-file-path c6420_1_10000_3600_02_10_2.png
