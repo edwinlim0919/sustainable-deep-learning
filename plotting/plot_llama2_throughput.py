@@ -61,7 +61,7 @@ def parse_llama2_throughput(input_file_paths: str):
     return rate_to_normalized_latency_e2e, rate_to_normalized_latency_raw
 
 
-def plot_llama2_throughput(
+def plot_llama2_normalized_latency_vs_rpm(
     rate_to_normalized_latency_e2e,
     rate_to_normalized_latency_raw,
     output_file_path
@@ -70,6 +70,9 @@ def plot_llama2_throughput(
     sorted_values_e2e = [rate_to_normalized_latency_e2e[key] for key in sorted_keys_e2e]
     sorted_keys_raw = sorted(rate_to_normalized_latency_raw.keys())
     sorted_values_raw = [rate_to_normalized_latency_raw[key] for key in sorted_keys_raw]
+
+    for key, value in zip(sorted_keys_e2e, sorted_values_e2e):
+        print(f'E2E RPM: {key}, E2E normalized latency: {value}')
 
     plt.figure(figsize=(10, 6))
     plt.plot(sorted_keys_e2e, sorted_values_e2e, marker='o', color='blue', label='E2E Normalized Latency')
@@ -101,7 +104,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     rate_to_normalized_latency_e2e, rate_to_normalized_latency_raw = parse_llama2_throughput(args.input_file_paths)
-    plot_llama2_throughput(
+    plot_llama2_normalized_latency_vs_rpm(
         rate_to_normalized_latency_e2e,
         rate_to_normalized_latency_raw,
         args.output_file_path 
