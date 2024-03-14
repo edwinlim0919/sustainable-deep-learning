@@ -8,9 +8,3 @@ rm -rf ~/miniconda3/miniconda.sh
 
 
 sudo apt install docker.io
-
-
-git submodule init neural-speed
-git submodule update neural-speed
-sudo apt install git-lfs
-git lfs install
