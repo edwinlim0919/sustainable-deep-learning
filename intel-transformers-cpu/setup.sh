@@ -4,6 +4,16 @@ git submodule update ../neural-speed
 git submodule init pcm
 git submodule update pcm
 
+CURR_DIR=$(pwd)
+cd pcm/
+git submodule update --init --recursive
+mkdir build
+cd build
+cmake ..
+cmake --build .
+cd "$CURR_DIR"
+sudo apt install pcm
+
 
 conda create --name intel-transformers python=3.11
 conda activate intel-transformers
@@ -19,6 +29,3 @@ pip install -r requirements.txt
 
 pip install -r ../neural-speed/requirements.txt
 pip install ./../neural-speed/
-
-
-

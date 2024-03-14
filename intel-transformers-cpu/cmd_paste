@@ -45,3 +45,31 @@ python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split
 
 
 ps aux | grep int4_llama2_local.py | grep -v grep | awk '{print $2}' | xargs kill
+
+
+
+
+
+
+# PCM power/perf monitoring
+sudo modprobe msr
+sudo pcm
+sudo pcm-memory
+# NOTE: pcm-accel does not work on c6420, likely only 4th generation Sapphire Rapids
+# sudo pcm-accel
+sudo pcm-latency
+# NOTE: don't think PCIe info is particularly important when running inference natively on CPU, since the only thing it may access is SSD
+sudo pcm-pcie
+sudo pcm-iio
+sudo pcm-numa
+sudo pcm-power
+# NOTE: I don't know what transactional synchronization extensions are for, probably not necessary to monitor for our use cases
+# sudo pcm-tsx
+# NOTE: I think pcm-core info might be included in just normal pcm
+# sudo pcm-core
+# NOTE: pmu-query doesn't work on c6420 nodes, maybe on 4th generation Sapphire Rapids
+# sudo pmu-query
+# NOTE: have to specify registers for pcm-raw, don't think this one is necessary
+# pcm-raw
+# NOTE: pcm-bw-histogram seems useful, but doesn't seem to work on c6420 nodes
+# sudo pcm-bw-histogram
