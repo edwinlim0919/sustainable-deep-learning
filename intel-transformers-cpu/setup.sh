@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+git submodule init ../neural-speed
+git submodule update ../neural-speed
+git submodule init pcm
+git submodule update pcm
+
+
 conda create --name intel-transformers python=3.11
 conda activate intel-transformers
 conda install pip
@@ -13,3 +19,6 @@ pip install -r requirements.txt
 
 pip install -r ../neural-speed/requirements.txt
 pip install ./../neural-speed/
+
+
+
