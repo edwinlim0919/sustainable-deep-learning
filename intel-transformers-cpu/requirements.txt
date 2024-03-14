@@ -1,10 +1,5 @@
 intel-extension-for-transformers
 accelerate
-langchain
-xformers
-bitsandbytes
-ray==2.9.2
-ray[serve]==2.9.2
 requests
 datetime
 paramiko
