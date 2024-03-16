@@ -50,5 +50,6 @@ if __name__ == '__main__':
     )
     print(f'Sleeping for {args.sleep_time} seconds...')
     time.sleep(args.sleep_time)
+    local_pcm_monitoring.currently_logging = False
     print('Done.')
     
