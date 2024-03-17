@@ -9,29 +9,32 @@ from threading import Timer
 currently_logging = True
 
 
+def remove_log_file(log_file_name: str):
+    if os.path.exists(log_file_name):
+        try:
+            print(f'deleting {log_file_name}...')
+            subprocess.run(
+                ['sudo', 'rm', log_file_name],
+                check=True
+            )
+            print(f'deleted {log_file_name}')
+        except FileNotFoundError:
+            print(f'file {log_file_name} not found')
+        except PermissionError:
+            print(f'permission denied to delete {log_file_name}')
+        except Exception as e:
+            print(f'error deleting {log_file_name}: {e}')
+    else:
+        print(f'file does not exist: {log_file_name}')
+
+
 def remove_existing_pcm_logs(
     log_file_path: str,
     pcm_cmds: list[str]
 ):
     for pcm_cmd in pcm_cmds:
         log_file_name = log_file_path + f'_{pcm_cmd}'
-        
-        if os.path.exists(log_file_name):
-            try:
-                print(f'deleting {log_file_name}...')
-                subprocess.run(
-                    ['sudo', 'rm', log_file_name],
-                    check=True
-                )
-                print(f'deleted {log_file_name}')
-            except FileNotFoundError:
-                print(f'file {log_file_name} not found')
-            except PermissionError:
-                print(f'permission denied to delete {log_file_name}')
-            except Exception as e:
-                print(f'error deleting {log_file_name}: {e}')
-        else:
-            print(f'file does not exist: {log_file_name}')
+        remove_log_file(log_file_name)
 
 
 def run_pcm_commands(
