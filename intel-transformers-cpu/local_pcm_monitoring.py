@@ -49,7 +49,6 @@ def run_pcm_commands(
 
         with open(log_file_name, 'a') as log_file:
             log_file.write(f'TIMESTAMP: {time.time()}\n')
-            #full_pcm_cmd = f'sudo {pcm_cmd} >> {log_file_name}'
             full_pcm_cmd = f'sudo {pcm_cmd}'
             kill_pcm_cmd = f"pgrep -x '{pcm_cmd}' | grep -v grep | grep -v python | xargs sudo kill"
 
