@@ -74,4 +74,4 @@ sudo pcm-power
 # NOTE: pcm-bw-histogram seems useful, but doesn't seem to work on c6420 nodes
 # sudo pcm-bw-histogram
 
-sudo python3 test_local_pcm_monitoring.py --log-file-path testing_local_pcm_mon --logging-interval 10 --cmd-runtime 5 --pcm-cmds "pcm pcm-memory pcm-latency pcm-numa pcm-power" --sleep-time 120
+sudo python3 test_local_pcm_monitoring.py --log-file-path testing_local_pcm_mon --logging-interval 10 --cmd-runtime 5 --pcm-cmds "pcm pcm-memory pcm-latency pcm-numa pcm-power" --sleep-time 30
