@@ -37,8 +37,14 @@ if __name__ == '__main__':
         help='The amount of time to let the pcm monitoring to run for.'
     )
     args = parser.parse_args()
-
     pcm_cmds = args.pcm_cmds.split()
+
+    print(f'Deleting existing log files with the same name...')
+    local_pcm_monitoring.remove_existing_pcm_logs(
+        args.log_file_path,
+        pcm_cmds
+    )
+
     print(f'Starting local PCM monitoring...')
     print(f'log_file_path: {args.log_file_path}')
     print(f'logging_interval: {args.logging_interval}')

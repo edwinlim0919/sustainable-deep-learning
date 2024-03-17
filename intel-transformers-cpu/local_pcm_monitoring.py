@@ -1,6 +1,7 @@
 import subprocess
 import signal
 import time
+import os 
 
 from threading import Timer
 
@@ -15,18 +16,22 @@ def remove_existing_pcm_logs(
     for pcm_cmd in pcm_cmds:
         log_file_name = log_file_path + f'_{pcm_cmd}'
         
-        try:
-            subprocess.run(
-                ['sudo', 'rm', log_file_name],
-                check=True
-            )
-            print(f'deleted {log_file_name}')
-        except FileNotFoundError:
-            print(f'file {log_file_name} not found')
-        except PermissionError:
-            print(f'permission denied to delete {log_file_name}')
-        except Exception as e:
-            print(f'error deleting {log_file_name}: {e}')
+        if os.path.exists(log_file_name):
+            try:
+                print(f'deleting {log_file_name}...')
+                subprocess.run(
+                    ['sudo', 'rm', log_file_name],
+                    check=True
+                )
+                print(f'deleted {log_file_name}')
+            except FileNotFoundError:
+                print(f'file {log_file_name} not found')
+            except PermissionError:
+                print(f'permission denied to delete {log_file_name}')
+            except Exception as e:
+                print(f'error deleting {log_file_name}: {e}')
+        else:
+            print(f'file does not exist: {log_file_name}')
 
 
 def run_pcm_commands(
@@ -45,6 +50,7 @@ def run_pcm_commands(
         with open(log_file_name, 'a') as log_file:
             log_file.write(f'TIMESTAMP: {time.time()}\n')
             full_pcm_cmd = f'sudo {pcm_cmd} >> {log_file_name}'
+            #full_pcm_cmd = f'sudo {pcm_cmd}'
             kill_pcm_cmd = f"pgrep -x '{pcm_cmd}' | grep -v grep | grep -v python | xargs sudo kill"
 
             try:
