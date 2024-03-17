@@ -130,9 +130,7 @@ async def inference_worker(executor: ProcessPoolExecutor):
 
 async def write_results(output_file_path):
     # Make sure all the tasks are done
-    full_output_file_path = f'{output_file_path}_request_log'
-
-    with open(full_output_file_path, 'a') as file:
+    with open(output_file_path, 'a') as file:
         while not result_queue.empty():
             result = await result_queue.get()
             file.write(str(result) + '\n')
@@ -432,6 +430,26 @@ if __name__ == '__main__':
         help='Request rate multiplicative increase per iteration.'
     )
 
+    # PCM logging arguments
+    parser.add_argument(
+        '--pcm-logging-interval',
+        required=True,
+        type=int,
+        help='The number of seconds in between PCM logging events.'
+    )
+    parser.add_argument(
+        '--pcm-cmd-runtime',
+        required=True,
+        type=float,
+        help='The number of seconds to run each PCM command for.'
+    )
+    parser.add_argument(
+        '--pcm-cmds',
+        required=True,
+        type=str,
+        help='The list of pcm commands to run as root.'
+    )
+
     # Misc. testing arguments
     parser.add_argument(
         '--prompt',
@@ -440,6 +458,7 @@ if __name__ == '__main__':
         help='Provide a specifc prompt to test on the model.'
     )
     args = parser.parse_args()
+    pcm_cmds = args.pcm_cmds.split()
 
     if args.prompt:
         # Single prompt testing
@@ -463,12 +482,34 @@ if __name__ == '__main__':
         )
         sampled_prompts_len = len(sampled_prompts)
 
+        print(f'Deleting existing pcm log files with the same name...')
+        local_pcm_monitoring.remove_existing_pcm_logs(
+            args.log_file_path,
+            pcm_cmds
+        )
+
+        print(f'Deleting existing request log files with the same name...')
+        full_output_file_path = f'{args.output_file_path}_request_log'
+        local_pcm_monitoring.remove_log_file(full_output_file_path)
+
+        print(f'Starting local PCM monitoring...')
+        print(f'pcm_logging_interval: {args.pcm_logging_interval}')
+        print(f'pcm_cmd_runtime: {args.pcm_cmd_runtime}')
+        print(f'pcm_cmds: {pcm_cmds}')
+        print(f'output_file_path_prefix: {args.output_file_path}')
+        local_pcm_monitoring.run_pcm_commands(
+            args.output_file_path,
+            args.pcm_logging_interval,
+            args.pcm_cmd_runtime,
+            pcm_cmds
+        )
+
         print('Generating requests...')
         print(f'sampled_prompts_len: {sampled_prompts_len}')
         print(f'start_rate: {args.start_rate}')
         print(f'end_rate: {args.end_rate}')
         print(f'increase_rate: {args.increase_rate}')
-        print(f'output_file_path: {args.output_file_path}')
+        print(f'output_file_path_prefix: {args.output_file_path}')
         if args.requests_per_rate:
             print(f'requests_per_rate: {args.requests_per_rate}')
             asyncio.run(async_main_requests(
@@ -477,7 +518,7 @@ if __name__ == '__main__':
                 args.start_rate,
                 args.end_rate,
                 args.increase_rate,
-                args.output_file_path
+                full_output_file_path
             ))
         else: # seconds_per_rate
             print(f'seconds_per_rate: {args.seconds_per_rate}')
@@ -487,5 +528,10 @@ if __name__ == '__main__':
                 args.start_rate,
                 args.end_rate,
                 args.increase_rate,
-                args.output_file_path
+                full_output_file_path
             ))
+
+        print('Turning off local PCM monitoring...')
+        local_pcm_monitoring.currently_logging = False
+        time.sleep(args.pcm_logging_interval)
+        print('Done.')
