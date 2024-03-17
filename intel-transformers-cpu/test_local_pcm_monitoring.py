@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--cmd-runtime',
         required=True,
-        type=int,
+        type=float,
         help='The number of seconds to run each PCM command for.'
     )
     parser.add_argument(
