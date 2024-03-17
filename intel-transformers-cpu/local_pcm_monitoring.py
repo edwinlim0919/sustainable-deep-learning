@@ -26,6 +26,7 @@ def run_pcm_commands(
         with open(log_file_name, 'a') as log_file:
             log_file.write(f'TIMESTAMP: {time.time()}\n')
             full_pcm_cmd = f'sudo {pcm_cmd}'
+            kill_pcm_cmd = f"pgrep -x '{pcm_cmd}' | grep -v grep | grep -v python | xargs sudo kill"
 
             try:
                 print(f'run_pcm_commands starting pcm_process: {full_pcm_cmd}')
@@ -38,8 +39,16 @@ def run_pcm_commands(
                 )
                 print(f'run_pcm_commands sleeping {cmd_runtime} seconds...')
                 time.sleep(cmd_runtime)
-                print("Sending SIGINT to pcm_process...")
-                pcm_process.send_signal(signal.SIGINT)
+                #print(f'run_pcm_commands killing pcm_process...')
+                #pcm_process.kill()
+
+                print(f'killing all pcm process with sudo...')
+                subprocess.run(kill_pcm_cmd, shell=True, check=True)
+                #subprocess.run(['sudo', 'pkill', '-f', 'pcm'])
+
+                #subprocess.run(['sudo', 'pkill', '-f', pcm_cmd])
+                #print("Sending SIGINT to pcm_process...")
+                #pcm_process.send_signal(signal.SIGINT)
                 #print(f'run_pcm_commands terminating pcm_process...')
                 #pcm_process.terminate()
                 #print(f'run_pcm_commands communicating pcm_process...')
@@ -48,8 +57,7 @@ def run_pcm_commands(
                 print(f'run_pcm_commands communicating pcm_process...')
                 stdout, stderr = pcm_process.communicate()
                 print(f'run_pcm_commands writing stdout...')
-                log_file.write(stdout.decode('utf-8') + '\n')
-                print('Done.')
+                log_file.write(stdout + '\n')
             except subprocess.CalledProcessError as e:
                 log_file.write(f'Error running {full_pcm_cmd}: {e}\n')
 
