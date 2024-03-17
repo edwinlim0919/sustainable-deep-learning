@@ -37,7 +37,7 @@ def remove_existing_pcm_logs(
 def run_pcm_commands(
     log_file_path: str,
     logging_interval: int,
-    cmd_runtime: int,
+    cmd_runtime: float,
     pcm_cmds: list[str]
 ):
     global currently_logging
@@ -49,8 +49,8 @@ def run_pcm_commands(
 
         with open(log_file_name, 'a') as log_file:
             log_file.write(f'TIMESTAMP: {time.time()}\n')
-            full_pcm_cmd = f'sudo {pcm_cmd} >> {log_file_name}'
-            #full_pcm_cmd = f'sudo {pcm_cmd}'
+            #full_pcm_cmd = f'sudo {pcm_cmd} >> {log_file_name}'
+            full_pcm_cmd = f'sudo {pcm_cmd}'
             kill_pcm_cmd = f"pgrep -x '{pcm_cmd}' | grep -v grep | grep -v python | xargs sudo kill"
 
             try:
@@ -66,12 +66,18 @@ def run_pcm_commands(
                 print(f'run_pcm_commands sleeping {cmd_runtime} seconds...')
                 time.sleep(cmd_runtime)
 
-                print(f'killing all pcm process with sudo...')
+                print(f'run_pcm_commands killing all pcm process with sudo...')
                 subprocess.run(
                     kill_pcm_cmd,
                     shell=True,
                     check=True
                 )
+                print(f'run_pcm_commands waiting for pcm_process to communicate...')
+                stdout, stderr = pcm_process.communicate()
+
+                log_file.write(stdout)
+                if stderr:
+                    log_file.write(f'ERROR: {stderr}\n')
             except subprocess.CalledProcessError as e:
                 log_file.write(f'Error running {full_pcm_cmd}: {e}\n')
 
