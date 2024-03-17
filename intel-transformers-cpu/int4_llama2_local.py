@@ -7,6 +7,8 @@ import json
 import sys
 import numpy as np
 
+import local_pcm_monitoring
+
 from transformers import AutoTokenizer, TextStreamer
 from intel_extension_for_transformers.transformers import AutoModelForCausalLM
 from concurrent.futures import ProcessPoolExecutor
@@ -116,7 +118,8 @@ async def inference_worker(executor: ProcessPoolExecutor):
             'e2e_query_time': e2e_query_time,
             'curr_rate': curr_rate,
             'requests_per_rate': requests_per_rate,
-            'seconds_per_rate': seconds_per_rate
+            'seconds_per_rate': seconds_per_rate,
+            'result_enqueue_time': result_enqueue_time
         }
         print(f'INFERENCE_WORKER response_data: {response_data}')
         sys.stdout.flush()
@@ -127,9 +130,9 @@ async def inference_worker(executor: ProcessPoolExecutor):
 
 async def write_results(output_file_path):
     # Make sure all the tasks are done
-    #await inference_queue.join()
+    full_output_file_path = f'{output_file_path}_request_log'
 
-    with open(output_file_path, 'a') as file:
+    with open(full_output_file_path, 'a') as file:
         while not result_queue.empty():
             result = await result_queue.get()
             file.write(str(result) + '\n')
@@ -439,6 +442,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.prompt:
+        # Single prompt testing
         prompt = llama2_prompt_single(args.prompt)
         print(f'Test request: {prompt}')
         response, num_output_tokens, e2e_inference_latency, raw_inference_latency = int4_llama2_cpu_inference(prompt)
@@ -447,6 +451,7 @@ if __name__ == '__main__':
         print(f'e2e_inference_latency {e2e_inference_latency}')
         print(f'raw_inference_latency {raw_inference_latency}')
     else:
+        # Throughput experiments
         if (not args.requests_per_rate and
             not args.seconds_per_rate):
             raise ValueError('Need to specify either --requests-per-rate or --seconds-per-rate')
