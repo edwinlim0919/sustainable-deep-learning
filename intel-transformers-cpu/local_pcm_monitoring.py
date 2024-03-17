@@ -8,11 +8,33 @@ from threading import Timer
 currently_logging = True
 
 
+def remove_existing_pcm_logs(
+    log_file_path: str,
+    pcm_cmds: list[str]
+):
+    for pcm_cmd in pcm_cmds:
+        log_file_name = log_file_path + f'_{pcm_cmd}'
+        
+        try:
+            #os.remove(log_file_name)
+            subprocess.run(
+                ['sudo', 'rm', log_file_name],
+                check=True
+            )
+            print(f'deleted {log_file_name}')
+        except FileNotFoundError:
+            print(f'file {log_file_name} not found')
+        except PermissionError:
+            print(f'permission denied to delete {log_file_name}')
+        except Exception as e:
+            print(f'error deleting {log_file_name}: {e}')
+
+
 def run_pcm_commands(
-        log_file_path: str,
-        logging_interval: int,
-        cmd_runtime: int,
-        pcm_cmds: list[str]
+    log_file_path: str,
+    logging_interval: int,
+    cmd_runtime: int,
+    pcm_cmds: list[str]
 ):
     global currently_logging
     if not currently_logging:
@@ -20,8 +42,6 @@ def run_pcm_commands(
 
     for pcm_cmd in pcm_cmds:
         log_file_name = log_file_path + f'_{pcm_cmd}'
-        print(f'run_pcm_commands pcm_cmd: {pcm_cmd}')
-        print(f'run_pcm_commands log_file_name: {log_file_name}')
 
         with open(log_file_name, 'a') as log_file:
             log_file.write(f'TIMESTAMP: {time.time()}\n')
@@ -47,11 +67,6 @@ def run_pcm_commands(
                     shell=True,
                     check=True
                 )
-                #print(f'run_pcm_commands communicating pcm_process...')
-                #stdout, stderr = pcm_process.communicate()
-
-                #print(f'run_pcm_commands writing stdout...')
-                #log_file.write(stdout + '\n')
             except subprocess.CalledProcessError as e:
                 log_file.write(f'Error running {full_pcm_cmd}: {e}\n')
 
