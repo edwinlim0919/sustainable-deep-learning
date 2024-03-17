@@ -16,7 +16,6 @@ def remove_existing_pcm_logs(
         log_file_name = log_file_path + f'_{pcm_cmd}'
         
         try:
-            #os.remove(log_file_name)
             subprocess.run(
                 ['sudo', 'rm', log_file_name],
                 check=True
