@@ -503,7 +503,7 @@ if __name__ == '__main__':
 
         print(f'Deleting existing pcm log files with the same name...')
         local_pcm_monitoring.remove_existing_pcm_logs(
-            args.log_file_path,
+            args.output_file_path,
             pcm_cmds
         )
 

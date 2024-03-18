@@ -1,310 +1,72 @@
-TIMESTAMP: 1710712279.9212363
+TIMESTAMP: 1710731241.2080085
 Time elapsed: 999 ms
 Core | IPC  | Instructions | Cycles  |  Local DRAM accesses | Remote DRAM Accesses 
-   0   0.32        803 K     2531 K      2389                3795                
-   1   0.50        182 K      364 K       577                 835                
-   2   0.37         63 K      170 K       348                 100                
-   3   0.51        158 K      312 K       717                 796                
-   4   0.69        382 K      552 K       701                 812                
-   5   0.38         75 K      201 K       455                 179                
-   6   0.42         69 K      164 K       252                 185                
-   7   0.40         75 K      188 K       352                 175                
-   8   0.46         69 K      149 K       239                 122                
-   9   0.44         74 K      170 K       328                 254                
-  10   0.61        164 K      269 K       398                 271                
-  11   0.48         69 K      146 K       258                 159                
-  12   0.45         63 K      140 K       259                  81                
-  13   0.45         69 K      154 K       267                 147                
-  14   0.43         79 K      185 K       505                 263                
-  15   0.48         70 K      146 K       233                  92                
-  16   0.29         34 K      121 K       269                  33                
-  17   0.65        207 K      321 K       377                 482                
-  18   0.35         47 K      135 K       206                  80                
-  19   0.51         87 K      173 K       306                 294                
-  20   0.32         46 K      148 K       371                  51                
-  21   0.31         34 K      109 K       198                  88                
-  22   0.62        158 K      256 K       398                 438                
-  23   0.33         34 K      104 K       162                  77                
-  24   0.31         34 K      112 K       203                  39                
-  25   0.36         34 K       96 K       109                  67                
-  26   0.63        130 K      206 K       376                 285                
-  27   0.39         34 K       88 K        53                  97                
-  28   0.52         63 K      123 K       187                 349                
-  29   0.40         34 K       85 K        42                  69                
-  30   0.15         34 K      225 K       397                  81                
-  31   0.46         70 K      152 K       213                 382                
-  32   0.47        119 K      256 K       754                 562                
-  33   0.55         70 K      128 K        68                 221                
-  34   0.37         34 K       93 K        50                  69                
-  35   0.57         70 K      123 K        49                 185                
-  36   1.42       9795 K     6909 K      6898                6251                
-  37   0.57        223 K      389 K       447                1585                
-  38   0.58         63 K      109 K        65                 171                
-  39   0.40         34 K       85 K        39                  99                
-  40   0.42         33 K       80 K        67                  50                
-  41   0.64         70 K      109 K        65                 232                
-  42   0.40         34 K       85 K        71                  82                
-  43   0.42         34 K       81 K        36                  91                
-  44   0.60         63 K      105 K        96                 193                
-  45   0.42         34 K       81 K        39                  95                
-  46   0.41         34 K       84 K        92                  59                
-  47   0.42         34 K       82 K        44                  96                
-  48   0.56         55 K       98 K        55                 198                
-  49   0.55         55 K      100 K       100                 291                
-  50   0.54         67 K      124 K       120                 133                
-  51   0.73        133 K      184 K       135                 334                
-  52   0.40         34 K       86 K        56                  49                
-  53   0.38         34 K       90 K        58                  93                
-  54   0.71        176 K      248 K       470                 831                
-  55   0.63         68 K      109 K        70                 215                
-  56   0.41         61 K      151 K      1015                 662                
-  57   0.42         34 K       81 K        34                  80                
-  58   0.88       1593 K     1805 K      1553                 436                
-  59   0.56         55 K       99 K        54                 177                
-  60   0.58         55 K       95 K        56                  84                
-  61   0.47         52 K      110 K        99                 170                
-  62   0.20        250 K     1279 K       534                 965                
-  63   0.22        215 K      982 K      1012                1128                
+   0   0.36        807 K     2254 K      1715                4291                
+   1   0.53        298 K      565 K       974                2111                
+   2   0.59        367 K      624 K       663                1818                
+   3   0.38         70 K      185 K       469                 294                
+   4   0.44         79 K      183 K       371                 154                
+   5   0.59        235 K      396 K       649                 886                
+   6   0.47         76 K      161 K       307                  49                
+   7   0.36        110 K      307 K       443                 977                
+   8   0.45         76 K      170 K       345                  83                
+   9   0.60        149 K      248 K       441                 651                
+  10   0.36        100 K      279 K       302                 528                
+  11   0.36        107 K      295 K       420                1067                
+  12   0.49        172 K      353 K       342                 695                
+  13   0.49         69 K      143 K       233                 133                
+  14   0.50        177 K      355 K       618                 905                
+  15   0.28         34 K      123 K       277                  73                
+  16   0.28         34 K      125 K       296                  33                
+  17   0.31         34 K      112 K       216                  72                
+  18   0.29         34 K      117 K       231                  45                
+  19   0.46         87 K      189 K       360                 285                
+  20   0.41         80 K      193 K       420                 129                
+  21   0.39        108 K      279 K       293                 655                
+  22   0.45         78 K      176 K       365                 291                
+  23   0.52         87 K      169 K       224                 255                
+  24   0.44         76 K      171 K       306                 139                
+  25   0.54         82 K      152 K       166                 190                
+  26   0.38        100 K      263 K       313                 964                
+  27   0.47        113 K      243 K       208                1098                
+  28   0.50         76 K      151 K       209                 137                
+  29   0.60         70 K      118 K        60                 163                
+  30   0.25         63 K      254 K       367                 155                
+  31   0.52         70 K      134 K       237                 298                
+  32   0.65        194 K      299 K       604                 441                
+  33   0.35         34 K       97 K        52                 101                
+  34   0.38         34 K       90 K       150                  77                
+  35   0.62         70 K      114 K        74                 316                
+  36   0.66        135 K      206 K       314                 589                
+  37   0.40         34 K       85 K        41                 102                
+  38   0.71        148 K      207 K       345                 459                
+  39   0.63         69 K      109 K        59                 176                
+  40   0.58         64 K      110 K        76                 207                
+  41   0.38         34 K       90 K        52                  88                
+  42   0.60         66 K      110 K        61                  85                
+  43   0.42         34 K       82 K        52                  88                
+  44   0.60         63 K      106 K        62                 140                
+  45   0.64         70 K      110 K       101                 354                
+  46   0.59         63 K      107 K        76                 196                
+  47   0.57         57 K      101 K        69                 148                
+  48   0.53         56 K      105 K        89                 162                
+  49   0.42         34 K       81 K        34                  81                
+  50   0.64        186 K      290 K       308                 665                
+  51   0.67        121 K      180 K       125                 347                
+  52   0.57         55 K       98 K        65                  77                
+  53   0.41         34 K       84 K        50                 101                
+  54   0.42         34 K       82 K        57                  49                
+  55   0.42         34 K       82 K        37                  89                
+  56   0.66        172 K      260 K       202                 307                
+  57   0.42         34 K       81 K        35                  90                
+  58   0.88       1413 K     1611 K      1185                 369                
+  59   0.42         34 K       81 K        34                  78                
+  60   0.42         34 K       81 K        48                  28                
+  61   0.42         35 K       83 K        38                  82                
+  62   0.16        196 K     1229 K       545                1055                
+  63   0.19        197 K     1044 K      1231                1146                
 -------------------------------------------------------------------------------------------------------------------
-   *   0.76         17 M       22 M        26 K                27 K              
-
-ERROR: 
- Processor Counter Monitor: NUMA monitoring utility 
-
-Linux arch_perfmon flag  : yes
-Hybrid processor         : no
-IBRS and IBPB supported  : yes
-STIBP supported          : yes
-Spec arch caps supported : yes
-Number of physical cores: 32
-Number of logical cores: 64
-Number of online logical cores: 64
-Threads (logical cores) per physical core: 2
-Num sockets: 2
-Physical cores per socket: 16
-Last level cache slices per socket: 16
-Core PMU (perfmon) version: 4
-Number of core PMU generic (programmable) counters: 3
-Width of generic (programmable) counters: 48 bits
-Number of core PMU fixed counters: 3
-Width of fixed counters: 48 bits
-Nominal core frequency: 2600000000 Hz
-IBRS enabled in the kernel   : yes
-STIBP enabled in the kernel  : no
-The processor is not susceptible to Rogue Data Cache Load: no
-The processor supports enhanced IBRS                     : no
-Package thermal spec power: 150 Watt; Package minimum power: 71 Watt; Package maximum power: 319 Watt;
-INFO: Linux perf interface to program uncore PMUs is present
-Socket 0: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Socket 1: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Initializing RMIDs
-Trying to use Linux perf events...
-Successfully programmed on-core PMU using Linux perf
-Socket 0
-Max QPI link 0 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 1 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 2 speed: 21.5 GBytes/second (9.6 GT/second)
-Socket 1
-Max QPI link 0 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 1 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 2 speed: 21.5 GBytes/second (9.6 GT/second)
-
-Detected Intel(R) Xeon(R) Gold 6142 CPU @ 2.60GHz "Intel(r) microarchitecture codename Skylake-SP" stepping 4 microcode level 0x2007006
-Update every 1.0 seconds
-DEBUG: caught signal to interrupt (Terminated).
-Cleaning up
- Closed perf event handles
- Zeroed uncore PMU registers
- Freeing up all RMIDs
-
-TIMESTAMP: 1710712297.7297666
-Time elapsed: 999 ms
-Core | IPC  | Instructions | Cycles  |  Local DRAM accesses | Remote DRAM Accesses 
-   0   0.38        642 K     1675 K      2114                3498                
-   1   0.55        300 K      544 K       988                2310                
-   2   0.35         63 K      184 K       445                 263                
-   3   0.56        134 K      240 K       559                 675                
-   4   0.70        359 K      514 K       557                1031                
-   5   0.50         91 K      182 K       350                 160                
-   6   0.41         64 K      158 K       326                 115                
-   7   0.51         69 K      138 K       268                 141                
-   8   0.25         33 K      137 K       402                  36                
-   9   0.48         69 K      145 K       266                 120                
-  10   0.46         89 K      194 K       346                 156                
-  11   0.51         69 K      137 K       225                 252                
-  12   0.29         34 K      118 K       263                  38                
-  13   0.47         69 K      149 K       273                 183                
-  14   0.79        277 K      352 K       824                 772                
-  15   0.51         70 K      139 K       207                 116                
-  16   0.29         34 K      118 K       254                  59                
-  17   0.56        164 K      290 K       391                 311                
-  18   0.31         34 K      110 K       183                  83                
-  19   0.51         69 K      138 K       207                 131                
-  20   0.44         64 K      145 K       327                 263                
-  21   0.46         70 K      151 K       276                 136                
-  22   0.61        134 K      219 K       229                 200                
-  23   0.49         70 K      142 K       209                 270                
-  24   0.49         63 K      129 K       179                 162                
-  25   0.53         70 K      131 K       174                 101                
-  26   0.60         99 K      166 K       275                 252                
-  27   0.57         70 K      123 K       118                 120                
-  28   0.59         63 K      108 K        79                 113                
-  29   0.40         34 K       85 K        50                  72                
-  30   0.40         34 K       86 K       154                  60                
-  31   0.33         69 K      212 K       403                 221                
-  32   0.28         34 K      124 K        97                  54                
-  33   0.36         34 K       95 K        48                  90                
-  34   0.38         34 K       91 K        52                  58                
-  35   0.39         34 K       87 K        42                 131                
-  36   0.39         34 K       87 K        58                  42                
-  37   0.41         34 K       83 K        45                  94                
-  38   0.40         34 K       86 K        58                  76                
-  39   0.42         34 K       82 K        50                 104                
-  40   0.42         34 K       81 K        52                  54                
-  41   0.42         34 K       80 K        39                  94                
-  42   0.42         34 K       82 K        63                  59                
-  43   0.43         34 K       80 K        30                  89                
-  44   0.43         34 K       81 K        49                  70                
-  45   0.42         34 K       82 K        41                  76                
-  46   0.42         34 K       82 K        59                  54                
-  47   0.43         34 K       80 K        33                  71                
-  48   0.43         34 K       80 K        58                  57                
-  49   0.40         34 K       85 K        38                  81                
-  50   0.38         34 K       89 K        62                  50                
-  51   0.39         34 K       87 K        54                  56                
-  52   0.43         36 K       85 K        54                  40                
-  53   0.42         34 K       82 K        43                  78                
-  54   0.63        100 K      158 K       294                 236                
-  55   0.42         34 K       81 K        30                  75                
-  56   0.47         80 K      169 K       850                 672                
-  57   0.42         34 K       81 K        29                  55                
-  58   0.87       1451 K     1661 K      1443                 447                
-  59   0.42         34 K       82 K        27                  81                
-  60   0.41         34 K       84 K        61                  40                
-  61   0.63        168 K      267 K       287                 359                
-  62   0.25        157 K      625 K       354                 483                
-  63   0.17        186 K     1102 K      1047                 919                
--------------------------------------------------------------------------------------------------------------------
-   *   0.49       6635 K       13 M        17 K                17 K              
-
-ERROR: 
- Processor Counter Monitor: NUMA monitoring utility 
-
-Linux arch_perfmon flag  : yes
-Hybrid processor         : no
-IBRS and IBPB supported  : yes
-STIBP supported          : yes
-Spec arch caps supported : yes
-Number of physical cores: 32
-Number of logical cores: 64
-Number of online logical cores: 64
-Threads (logical cores) per physical core: 2
-Num sockets: 2
-Physical cores per socket: 16
-Last level cache slices per socket: 16
-Core PMU (perfmon) version: 4
-Number of core PMU generic (programmable) counters: 3
-Width of generic (programmable) counters: 48 bits
-Number of core PMU fixed counters: 3
-Width of fixed counters: 48 bits
-Nominal core frequency: 2600000000 Hz
-IBRS enabled in the kernel   : yes
-STIBP enabled in the kernel  : no
-The processor is not susceptible to Rogue Data Cache Load: no
-The processor supports enhanced IBRS                     : no
-Package thermal spec power: 150 Watt; Package minimum power: 71 Watt; Package maximum power: 319 Watt;
-INFO: Linux perf interface to program uncore PMUs is present
-Socket 0: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Socket 1: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Initializing RMIDs
-Trying to use Linux perf events...
-Successfully programmed on-core PMU using Linux perf
-Socket 0
-Max QPI link 0 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 1 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 2 speed: 21.5 GBytes/second (9.6 GT/second)
-Socket 1
-Max QPI link 0 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 1 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 2 speed: 21.5 GBytes/second (9.6 GT/second)
-
-Detected Intel(R) Xeon(R) Gold 6142 CPU @ 2.60GHz "Intel(r) microarchitecture codename Skylake-SP" stepping 4 microcode level 0x2007006
-Update every 1.0 seconds
-DEBUG: caught signal to interrupt (Terminated).
-Cleaning up
- Closed perf event handles
- Zeroed uncore PMU registers
- Freeing up all RMIDs
-
-TIMESTAMP: 1710712315.5382674
-Time elapsed: 999 ms
-Core | IPC  | Instructions | Cycles  |  Local DRAM accesses | Remote DRAM Accesses 
-   0   0.36        599 K     1685 K      1612                3200                
-   1   0.56        296 K      527 K       949                1737                
-   2   0.49        134 K      276 K       618                 446                
-   3   0.49        157 K      323 K       881                 714                
-   4   0.45         75 K      166 K       266                 205                
-   5   0.41         80 K      197 K       436                 163                
-   6   0.45         74 K      163 K       247                  88                
-   7   0.53        222 K      422 K       623                1783                
-   8   0.42         74 K      174 K       358                 107                
-   9   0.48         80 K      168 K       306                 128                
-  10   0.45         73 K      162 K       297                 185                
-  11   0.50         78 K      157 K       299                 197                
-  12   0.74        465 K      628 K       897                2069                
-  13   0.47         78 K      166 K       292                 136                
-  14   0.40        224 K      557 K      1745                2506                
-  15   0.50         80 K      159 K       239                 127                
-  16   0.44        113 K      256 K      1516                 210                
-  17   0.62        227 K      367 K       514                 531                
-  18   0.60        311 K      517 K      1114                1440                
-  19   0.50         80 K      161 K       200                 206                
-  20   0.34         45 K      134 K       261                  45                
-  21   0.46         80 K      175 K       293                 134                
-  22   0.62        322 K      518 K      1041                3795                
-  23   0.48         80 K      167 K       275                 275                
-  24   0.38         45 K      118 K       124                  40                
-  25   0.51         80 K      159 K       208                 130                
-  26   0.52        102 K      196 K       555                 321                
-  27   0.54         81 K      149 K       134                 149                
-  28   0.56         74 K      131 K        76                 133                
-  29   0.56         81 K      143 K       112                 152                
-  30   0.40         45 K      114 K       267                  71                
-  31   0.16         45 K      274 K       529                 180                
-  32   0.31         45 K      145 K       168                  66                
-  33   0.55         81 K      146 K        91                 251                
-  34   0.55         74 K      135 K       120                 236                
-  35   0.41         45 K      109 K        68                  84                
-  36   0.58         74 K      129 K        88                 159                
-  37   0.45         45 K      101 K        47                 100                
-  38   0.42         45 K      107 K        86                  89                
-  39   0.62         81 K      131 K        88                 237                
-  40   0.42         45 K      107 K       138                  84                
-  41   0.45         45 K      100 K        67                  84                
-  42   0.59         74 K      126 K       112                 214                
-  43   0.45         45 K       99 K        65                 106                
-  44   0.43         45 K      104 K        89                  81                
-  45   0.46         45 K       98 K        59                  94                
-  46   0.40        159 K      395 K       514                1721                
-  47   0.63         80 K      129 K       104                 368                
-  48   0.79        268 K      340 K       723                1095                
-  49   0.63         80 K      128 K        95                 211                
-  50   0.57         74 K      130 K       118                 183                
-  51   0.64         81 K      127 K        60                 163                
-  52   0.58         75 K      130 K        97                 116                
-  53   0.64         81 K      126 K        56                 192                
-  54   0.56        120 K      213 K       573                 273                
-  55   0.64         81 K      126 K        67                 178                
-  56   0.58        121 K      209 K       615                 740                
-  57   0.65         81 K      125 K        60                 185                
-  58   0.85       1599 K     1873 K      1567                1009                
-  59   0.43         45 K      104 K        36                  76                
-  60   0.45         45 K      100 K        69                  64                
-  61   0.72        146 K      203 K       117                 238                
-  62   0.26        158 K      616 K       353                 495                
-  63   0.18        211 K     1186 K      1077                 987                
--------------------------------------------------------------------------------------------------------------------
-   *   0.51       8922 K       17 M        24 K                31 K              
+   *   0.47       7987 K       17 M        19 K                27 K              
 
 ERROR: 
  Processor Counter Monitor: NUMA monitoring utility 
