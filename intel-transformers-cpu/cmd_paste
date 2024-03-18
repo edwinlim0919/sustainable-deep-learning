@@ -45,6 +45,8 @@ python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split
 
 python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path seconds_pcm_c6420_1_10000_3600_02_3_11 --num-requests-sample 10000 --seconds-per-rate 3600 --start-rate 0.2 --end-rate 3 --increase-rate 1.1 --random-seed 42 --pcm-logging-interval 120 --pcm-cmd-runtime 1.5 --pcm-cmds "pcm pcm-memory pcm-latency pcm-numa pcm-power"
 
+python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json --output-file-path seconds_pcm_c6420_1_10000_3600_02_3_11 --num-requests-sample 10000 --seconds-per-rate 3600 --start-rate 0.5 --end-rate 3 --increase-rate 1.2 --random-seed 42 --pcm-logging-interval 60 --pcm-cmd-runtime 1.5 --pcm-cmds "pcm pcm-memory pcm-latency pcm-numa pcm-power"
+
 ps aux | grep int4_llama2_local.py | grep -v grep | awk '{print $2}' | xargs kill
 
 
