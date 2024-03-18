@@ -13,6 +13,7 @@ from transformers import AutoTokenizer, TextStreamer
 from intel_extension_for_transformers.transformers import AutoModelForCausalLM
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
+from typing import Tuple
 
 
 # Explicit queuing
@@ -41,17 +42,20 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 
-def int4_llama2_cpu_inference(prompt: str):
+def int4_llama2_cpu_inference(prompt: Tuple[str, int, int]):
     e2e_inference_start_time = time.time()
 
     inputs = tokenizer(
-        prompt,
+        prompt[0],
         return_tensors='pt'
     ).input_ids
     # TODO test this out to see if input_ids length is correctly used
-    num_input_tokens = len(inputs)
+    #num_input_tokens = len(inputs)
+    num_input_tokens = prompt[1]
+    num_output_tokens = prompt[2]
     # Being extra safe to not generate garbage overflow (I believe the max sequence length is 2048)
-    max_new_tokens = 2000 - num_input_tokens
+    #max_new_tokens = 2000 - num_input_tokens
+    max_new_tokens = min(2000 - num_input_tokens, num_output_tokens)
 
     raw_inference_start_time = time.time()
     outputs = model.generate(
@@ -76,7 +80,7 @@ def int4_llama2_cpu_inference(prompt: str):
 
 
 async def async_inference(
-    prompt: str,
+    prompt: Tuple[str, int, int],
     executor: ProcessPoolExecutor
 ) -> str:
     loop = asyncio.get_event_loop()
@@ -188,6 +192,7 @@ async def async_main_requests(
 # Request generation for seconds_per_rate seconds for each rate
 async def async_main_seconds(
     sampled_prompts: list[str],
+    sampled_prompts_len: int,
     seconds_per_rate: int,
     start_rate: float,
     end_rate: float,
@@ -211,7 +216,6 @@ async def async_main_seconds(
 
         start_time = time.time()
         time_limit = start_time + seconds_per_rate
-        sampled_prompts_len = len(sampled_prompts)
         for i in range(len(arrival_times)):
             send_time = start_time + arrival_times[i]
             sampled_prompt = sampled_prompts[i % sampled_prompts_len]
@@ -284,20 +288,20 @@ def sample_dataset_prompts(
     # Filter out the conversations with less than 2 turns
     dataset = [data for data in dataset if len(data["conversations"]) >= 2]
 
-    # Only keep conversations that were initiated by a human
+    # Only keep conversations that were initiated by a human and responded by GPT
     human_initiated_dataset = []
     for data in dataset:
-        if data['conversations'][0]['from'] == 'human':
+        if (data['conversations'][0]['from'] == 'human' and
+            data['conversations'][1]['from'] == 'gpt'):
             human_initiated_dataset.append(data)
     dataset = human_initiated_dataset
 
     # Only keep the first two turns of each conversation and use Llama2 dict format
     llama2_dict_dataset = []
     for data in dataset:
-        if (data['conversations'][0]['from'] != 'human' or
-            data['conversations'][1]['from'] != 'gpt'):
-            continue
-
+        #if (data['conversations'][0]['from'] != 'human' or
+        #    data['conversations'][1]['from'] != 'gpt'):
+        #    continue
         human_dict = {
             'role': data['conversations'][0]['from'],
             'content': data['conversations'][0]['value']
@@ -312,14 +316,14 @@ def sample_dataset_prompts(
         ])
     dataset = llama2_dict_dataset
 
-    # TODO: Test this out before running more throughput tests
     # Format with Llama2 prompt style
     llama2_format_dataset = []
     for data in dataset:
         llama2_conv = llama2_prompt_general(data).split(E_INST)
-        llama2_human = llama2_conv[0] + f' {E_INST}'
-        llama2_gpt = f'{E_INST} ' + llama2_conv[1]
-
+        #llama2_human = llama2_conv[0] + f' {E_INST}'
+        llama2_human = f'{llama2_conv[0]} {E_INST}'
+        #llama2_gpt = f'{E_INST} ' + llama2_conv[1]
+        llama2_gpt = f'{E_INST} {llama2_conv[1]}'
         human_dict = {
             'role': data[0]['role'],
             'content': llama2_human
@@ -335,9 +339,9 @@ def sample_dataset_prompts(
     dataset = llama2_format_dataset
 
     # Tokenize the prompts and completions
-    prompts = [prompt[0]['content'] for prompt in dataset]
+    prompts = [data[0]['content'] for data in dataset]
     prompt_token_ids = tokenizer(prompts).input_ids
-    completions = [prompt[1]['content'] for prompt in dataset]
+    completions = [data[1]['content'] for data in dataset]
     completion_token_ids = tokenizer(completions).input_ids
 
     # Filter out too long or too short sequences
@@ -355,19 +359,24 @@ def sample_dataset_prompts(
         filtered_dataset.append(dataset[i])
     dataset = filtered_dataset
 
-    # Augment conversation turns with Llama2 prompt format
-    # Currently only uses human turn
+    # Get human turns
     #llama2_prompts = []
     #for data in dataset:
-    #    llama2_conv = llama2_prompt_general(data).split(E_INST)
-    #    llama2_prompt = llama2_conv[0] + f' {E_INST}'
-    #    llama2_prompts.append(llama2_prompt)
+    #    llama2_human = data[0]['content']
+    #    llama2_prompts.append(llama2_human)
 
-    # Get human turns
+    # Get prompt, prompt tokens, and # output length
     llama2_prompts = []
     for data in dataset:
         llama2_human = data[0]['content']
-        llama2_prompts.append(llama2_human)
+        llama2_gpt = data[1]['content']
+        llama2_human_tokens = tokenizer(llama2_human).input_ids
+        llama2_gpt_tokens = tokenizer(llama2_gpt).input_ids
+        llama2_prompts.append((
+            llama2_human,
+            len(llama2_human_tokens),
+            len(llama2_gpt_tokens)
+        ))
 
     # Sample the prompts
     if num_requests_sample < 1:
@@ -429,6 +438,12 @@ if __name__ == '__main__':
         type=float,
         help='Request rate multiplicative increase per iteration.'
     )
+    parser.add_argument(
+        '--random-seed',
+        required=True,
+        type=int,
+        help='Set a random seed for experiment reproducibility.'
+    )
 
     # PCM logging arguments
     parser.add_argument(
@@ -459,6 +474,10 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     pcm_cmds = args.pcm_cmds.split()
+
+    # Set randomness seeds for reproducibility
+    random.seed(args.random_seed)
+    np.random.seed(args.random_seed)
 
     if args.prompt:
         # Single prompt testing
@@ -510,7 +529,7 @@ if __name__ == '__main__':
         print(f'end_rate: {args.end_rate}')
         print(f'increase_rate: {args.increase_rate}')
         print(f'output_file_path_prefix: {args.output_file_path}')
-        if args.requests_per_rate:
+        if args.requests_per_rate: # requests_per_rate
             print(f'requests_per_rate: {args.requests_per_rate}')
             asyncio.run(async_main_requests(
                 sampled_prompts,
@@ -524,6 +543,7 @@ if __name__ == '__main__':
             print(f'seconds_per_rate: {args.seconds_per_rate}')
             asyncio.run(async_main_seconds(
                 sampled_prompts,
+                sampled_prompts_len,
                 args.seconds_per_rate,
                 args.start_rate,
                 args.end_rate,
