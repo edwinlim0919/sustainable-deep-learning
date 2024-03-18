@@ -1,180 +1,107 @@
-TIMESTAMP: 1710712276.8117476
+TIMESTAMP: 1710731238.094378
 |---------------------------------------||---------------------------------------|
 |--             Socket  0             --||--             Socket  1             --|
 |---------------------------------------||---------------------------------------|
 |--     Memory Channel Monitoring     --||--     Memory Channel Monitoring     --|
 |---------------------------------------||---------------------------------------|
-|-- Mem Ch  0: Reads (MB/s):     0.66 --||-- Mem Ch  0: Reads (MB/s):     0.60 --|
-|--            Writes(MB/s):     0.77 --||--            Writes(MB/s):     0.56 --|
-|-- Mem Ch  1: Reads (MB/s):     0.66 --||-- Mem Ch  1: Reads (MB/s):     0.60 --|
-|--            Writes(MB/s):     0.77 --||--            Writes(MB/s):     0.57 --|
-|-- Mem Ch  2: Reads (MB/s):     0.66 --||-- Mem Ch  2: Reads (MB/s):     0.60 --|
-|--            Writes(MB/s):     0.77 --||--            Writes(MB/s):     0.56 --|
-|-- Mem Ch  3: Reads (MB/s):     0.63 --||-- Mem Ch  3: Reads (MB/s):     0.59 --|
-|--            Writes(MB/s):     0.73 --||--            Writes(MB/s):     0.54 --|
-|-- Mem Ch  4: Reads (MB/s):     0.62 --||-- Mem Ch  4: Reads (MB/s):     0.58 --|
-|--            Writes(MB/s):     0.73 --||--            Writes(MB/s):     0.53 --|
-|-- Mem Ch  5: Reads (MB/s):     0.64 --||-- Mem Ch  5: Reads (MB/s):     0.59 --|
-|--            Writes(MB/s):     0.74 --||--            Writes(MB/s):     0.54 --|
-|-- NODE 0 Mem Read (MB/s) :     3.86 --||-- NODE 1 Mem Read (MB/s) :     3.55 --|
-|-- NODE 0 Mem Write(MB/s) :     4.50 --||-- NODE 1 Mem Write(MB/s) :     3.30 --|
-|-- NODE 0 P. Write (T/s):      37665 --||-- NODE 1 P. Write (T/s):      37678 --|
-|-- NODE 0 Memory (MB/s):        8.36 --||-- NODE 1 Memory (MB/s):        6.85 --|
-|---------------------------------------||---------------------------------------|
-            
-|---------------------------------------||---------------------------------------|
-            
-|--                 System Read Throughput(MB/s):          7.42                --|
-            
-|--                System Write Throughput(MB/s):          7.80                --|
-            
-|--               System Memory Throughput(MB/s):         15.21                --|
-            
-|---------------------------------------||---------------------------------------|
-ERROR: 
- Processor Counter Monitor: Memory Bandwidth Monitoring Utility  (202201-1)
-
- This utility measures memory bandwidth per channel or per DIMM rank in real-time
-
-Linux arch_perfmon flag  : yes
-Hybrid processor         : no
-IBRS and IBPB supported  : yes
-STIBP supported          : yes
-Spec arch caps supported : yes
-Number of physical cores: 32
-Number of logical cores: 64
-Number of online logical cores: 64
-Threads (logical cores) per physical core: 2
-Num sockets: 2
-Physical cores per socket: 16
-Last level cache slices per socket: 16
-Core PMU (perfmon) version: 4
-Number of core PMU generic (programmable) counters: 3
-Width of generic (programmable) counters: 48 bits
-Number of core PMU fixed counters: 3
-Width of fixed counters: 48 bits
-Nominal core frequency: 2600000000 Hz
-IBRS enabled in the kernel   : yes
-STIBP enabled in the kernel  : no
-The processor is not susceptible to Rogue Data Cache Load: no
-The processor supports enhanced IBRS                     : no
-Package thermal spec power: 150 Watt; Package minimum power: 71 Watt; Package maximum power: 319 Watt;
-INFO: Linux perf interface to program uncore PMUs is present
-Socket 0: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Socket 1: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Initializing RMIDs
-
-Detected Intel(R) Xeon(R) Gold 6142 CPU @ 2.60GHz "Intel(r) microarchitecture codename Skylake-SP" stepping 4 microcode level 0x2007006
-Update every 1 seconds
-DEBUG: caught signal to interrupt (Terminated).
-Cleaning up
- Zeroed uncore PMU registers
- Freeing up all RMIDs
-
-TIMESTAMP: 1710712294.6143045
-|---------------------------------------||---------------------------------------|
-|--             Socket  0             --||--             Socket  1             --|
-|---------------------------------------||---------------------------------------|
-|--     Memory Channel Monitoring     --||--     Memory Channel Monitoring     --|
-|---------------------------------------||---------------------------------------|
-|-- Mem Ch  0: Reads (MB/s):     0.64 --||-- Mem Ch  0: Reads (MB/s):     0.56 --|
-|--            Writes(MB/s):     0.74 --||--            Writes(MB/s):     0.52 --|
-|-- Mem Ch  1: Reads (MB/s):     0.64 --||-- Mem Ch  1: Reads (MB/s):     0.56 --|
-|--            Writes(MB/s):     0.74 --||--            Writes(MB/s):     0.51 --|
-|-- Mem Ch  2: Reads (MB/s):     0.63 --||-- Mem Ch  2: Reads (MB/s):     0.56 --|
-|--            Writes(MB/s):     0.73 --||--            Writes(MB/s):     0.51 --|
-|-- Mem Ch  3: Reads (MB/s):     0.61 --||-- Mem Ch  3: Reads (MB/s):     0.57 --|
-|--            Writes(MB/s):     0.72 --||--            Writes(MB/s):     0.51 --|
-|-- Mem Ch  4: Reads (MB/s):     0.61 --||-- Mem Ch  4: Reads (MB/s):     0.56 --|
-|--            Writes(MB/s):     0.71 --||--            Writes(MB/s):     0.51 --|
-|-- Mem Ch  5: Reads (MB/s):     0.61 --||-- Mem Ch  5: Reads (MB/s):     0.57 --|
-|--            Writes(MB/s):     0.71 --||--            Writes(MB/s):     0.51 --|
-|-- NODE 0 Mem Read (MB/s) :     3.74 --||-- NODE 1 Mem Read (MB/s) :     3.37 --|
-|-- NODE 0 Mem Write(MB/s) :     4.35 --||-- NODE 1 Mem Write(MB/s) :     3.08 --|
-|-- NODE 0 P. Write (T/s):      37681 --||-- NODE 1 P. Write (T/s):      37682 --|
-|-- NODE 0 Memory (MB/s):        8.09 --||-- NODE 1 Memory (MB/s):        6.45 --|
-|---------------------------------------||---------------------------------------|
-            
-|---------------------------------------||---------------------------------------|
-            
-|--                 System Read Throughput(MB/s):          7.11                --|
-            
-|--                System Write Throughput(MB/s):          7.43                --|
-            
-|--               System Memory Throughput(MB/s):         14.54                --|
-            
-|---------------------------------------||---------------------------------------|
-ERROR: 
- Processor Counter Monitor: Memory Bandwidth Monitoring Utility  (202201-1)
-
- This utility measures memory bandwidth per channel or per DIMM rank in real-time
-
-Linux arch_perfmon flag  : yes
-Hybrid processor         : no
-IBRS and IBPB supported  : yes
-STIBP supported          : yes
-Spec arch caps supported : yes
-Number of physical cores: 32
-Number of logical cores: 64
-Number of online logical cores: 64
-Threads (logical cores) per physical core: 2
-Num sockets: 2
-Physical cores per socket: 16
-Last level cache slices per socket: 16
-Core PMU (perfmon) version: 4
-Number of core PMU generic (programmable) counters: 3
-Width of generic (programmable) counters: 48 bits
-Number of core PMU fixed counters: 3
-Width of fixed counters: 48 bits
-Nominal core frequency: 2600000000 Hz
-IBRS enabled in the kernel   : yes
-STIBP enabled in the kernel  : no
-The processor is not susceptible to Rogue Data Cache Load: no
-The processor supports enhanced IBRS                     : no
-Package thermal spec power: 150 Watt; Package minimum power: 71 Watt; Package maximum power: 319 Watt;
-INFO: Linux perf interface to program uncore PMUs is present
-Socket 0: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Socket 1: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Initializing RMIDs
-
-Detected Intel(R) Xeon(R) Gold 6142 CPU @ 2.60GHz "Intel(r) microarchitecture codename Skylake-SP" stepping 4 microcode level 0x2007006
-Update every 1 seconds
-DEBUG: caught signal to interrupt (Terminated).
-Cleaning up
- Zeroed uncore PMU registers
- Freeing up all RMIDs
-
-TIMESTAMP: 1710712312.4225245
-|---------------------------------------||---------------------------------------|
-|--             Socket  0             --||--             Socket  1             --|
-|---------------------------------------||---------------------------------------|
-|--     Memory Channel Monitoring     --||--     Memory Channel Monitoring     --|
-|---------------------------------------||---------------------------------------|
-|-- Mem Ch  0: Reads (MB/s):     0.89 --||-- Mem Ch  0: Reads (MB/s):     0.75 --|
-|--            Writes(MB/s):     0.90 --||--            Writes(MB/s):     0.61 --|
-|-- Mem Ch  1: Reads (MB/s):     0.90 --||-- Mem Ch  1: Reads (MB/s):     0.75 --|
-|--            Writes(MB/s):     0.90 --||--            Writes(MB/s):     0.61 --|
-|-- Mem Ch  2: Reads (MB/s):     0.88 --||-- Mem Ch  2: Reads (MB/s):     0.74 --|
-|--            Writes(MB/s):     0.90 --||--            Writes(MB/s):     0.61 --|
-|-- Mem Ch  3: Reads (MB/s):     0.86 --||-- Mem Ch  3: Reads (MB/s):     0.74 --|
-|--            Writes(MB/s):     0.88 --||--            Writes(MB/s):     0.58 --|
-|-- Mem Ch  4: Reads (MB/s):     0.84 --||-- Mem Ch  4: Reads (MB/s):     0.74 --|
-|--            Writes(MB/s):     0.86 --||--            Writes(MB/s):     0.59 --|
-|-- Mem Ch  5: Reads (MB/s):     0.86 --||-- Mem Ch  5: Reads (MB/s):     0.74 --|
-|--            Writes(MB/s):     0.87 --||--            Writes(MB/s):     0.59 --|
-|-- NODE 0 Mem Read (MB/s) :     5.22 --||-- NODE 1 Mem Read (MB/s) :     4.45 --|
-|-- NODE 0 Mem Write(MB/s) :     5.31 --||-- NODE 1 Mem Write(MB/s) :     3.59 --|
+|-- Mem Ch  0: Reads (MB/s):     0.87 --||-- Mem Ch  0: Reads (MB/s):     0.78 --|
+|--            Writes(MB/s):     0.87 --||--            Writes(MB/s):     0.60 --|
+|-- Mem Ch  1: Reads (MB/s):     0.88 --||-- Mem Ch  1: Reads (MB/s):     0.77 --|
+|--            Writes(MB/s):     0.88 --||--            Writes(MB/s):     0.59 --|
+|-- Mem Ch  2: Reads (MB/s):     0.87 --||-- Mem Ch  2: Reads (MB/s):     0.78 --|
+|--            Writes(MB/s):     0.88 --||--            Writes(MB/s):     0.59 --|
+|-- Mem Ch  3: Reads (MB/s):     0.82 --||-- Mem Ch  3: Reads (MB/s):     0.75 --|
+|--            Writes(MB/s):     0.84 --||--            Writes(MB/s):     0.56 --|
+|-- Mem Ch  4: Reads (MB/s):     0.83 --||-- Mem Ch  4: Reads (MB/s):     0.76 --|
+|--            Writes(MB/s):     0.82 --||--            Writes(MB/s):     0.57 --|
+|-- Mem Ch  5: Reads (MB/s):     0.84 --||-- Mem Ch  5: Reads (MB/s):     0.77 --|
+|--            Writes(MB/s):     0.85 --||--            Writes(MB/s):     0.58 --|
+|-- NODE 0 Mem Read (MB/s) :     5.12 --||-- NODE 1 Mem Read (MB/s) :     4.61 --|
+|-- NODE 0 Mem Write(MB/s) :     5.14 --||-- NODE 1 Mem Write(MB/s) :     3.48 --|
 |-- NODE 0 P. Write (T/s):      37681 --||-- NODE 1 P. Write (T/s):      37684 --|
-|-- NODE 0 Memory (MB/s):       10.53 --||-- NODE 1 Memory (MB/s):        8.04 --|
+|-- NODE 0 Memory (MB/s):       10.25 --||-- NODE 1 Memory (MB/s):        8.09 --|
 |---------------------------------------||---------------------------------------|
             
 |---------------------------------------||---------------------------------------|
             
-|--                 System Read Throughput(MB/s):          9.67                --|
+|--                 System Read Throughput(MB/s):          9.72                --|
             
-|--                System Write Throughput(MB/s):          8.90                --|
+|--                System Write Throughput(MB/s):          8.62                --|
             
-|--               System Memory Throughput(MB/s):         18.57                --|
+|--               System Memory Throughput(MB/s):         18.34                --|
+            
+|---------------------------------------||---------------------------------------|
+ERROR: 
+ Processor Counter Monitor: Memory Bandwidth Monitoring Utility  (202201-1)
+
+ This utility measures memory bandwidth per channel or per DIMM rank in real-time
+
+Linux arch_perfmon flag  : yes
+Hybrid processor         : no
+IBRS and IBPB supported  : yes
+STIBP supported          : yes
+Spec arch caps supported : yes
+Number of physical cores: 32
+Number of logical cores: 64
+Number of online logical cores: 64
+Threads (logical cores) per physical core: 2
+Num sockets: 2
+Physical cores per socket: 16
+Last level cache slices per socket: 16
+Core PMU (perfmon) version: 4
+Number of core PMU generic (programmable) counters: 3
+Width of generic (programmable) counters: 48 bits
+Number of core PMU fixed counters: 3
+Width of fixed counters: 48 bits
+Nominal core frequency: 2600000000 Hz
+IBRS enabled in the kernel   : yes
+STIBP enabled in the kernel  : no
+The processor is not susceptible to Rogue Data Cache Load: no
+The processor supports enhanced IBRS                     : no
+Package thermal spec power: 150 Watt; Package minimum power: 71 Watt; Package maximum power: 319 Watt;
+INFO: Linux perf interface to program uncore PMUs is present
+Socket 0: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
+Socket 1: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
+Initializing RMIDs
+
+Detected Intel(R) Xeon(R) Gold 6142 CPU @ 2.60GHz "Intel(r) microarchitecture codename Skylake-SP" stepping 4 microcode level 0x2007006
+Update every 1 seconds
+DEBUG: caught signal to interrupt (Terminated).
+Cleaning up
+ Zeroed uncore PMU registers
+ Freeing up all RMIDs
+
+TIMESTAMP: 1710731255.8990383
+|---------------------------------------||---------------------------------------|
+|--             Socket  0             --||--             Socket  1             --|
+|---------------------------------------||---------------------------------------|
+|--     Memory Channel Monitoring     --||--     Memory Channel Monitoring     --|
+|---------------------------------------||---------------------------------------|
+|-- Mem Ch  0: Reads (MB/s):     0.90 --||-- Mem Ch  0: Reads (MB/s):     0.78 --|
+|--            Writes(MB/s):     0.90 --||--            Writes(MB/s):     0.60 --|
+|-- Mem Ch  1: Reads (MB/s):     0.90 --||-- Mem Ch  1: Reads (MB/s):     0.78 --|
+|--            Writes(MB/s):     0.91 --||--            Writes(MB/s):     0.60 --|
+|-- Mem Ch  2: Reads (MB/s):     0.90 --||-- Mem Ch  2: Reads (MB/s):     0.78 --|
+|--            Writes(MB/s):     0.91 --||--            Writes(MB/s):     0.60 --|
+|-- Mem Ch  3: Reads (MB/s):     0.87 --||-- Mem Ch  3: Reads (MB/s):     0.76 --|
+|--            Writes(MB/s):     0.90 --||--            Writes(MB/s):     0.58 --|
+|-- Mem Ch  4: Reads (MB/s):     0.86 --||-- Mem Ch  4: Reads (MB/s):     0.76 --|
+|--            Writes(MB/s):     0.88 --||--            Writes(MB/s):     0.58 --|
+|-- Mem Ch  5: Reads (MB/s):     0.87 --||-- Mem Ch  5: Reads (MB/s):     0.78 --|
+|--            Writes(MB/s):     0.89 --||--            Writes(MB/s):     0.60 --|
+|-- NODE 0 Mem Read (MB/s) :     5.29 --||-- NODE 1 Mem Read (MB/s) :     4.65 --|
+|-- NODE 0 Mem Write(MB/s) :     5.40 --||-- NODE 1 Mem Write(MB/s) :     3.56 --|
+|-- NODE 0 P. Write (T/s):      37679 --||-- NODE 1 P. Write (T/s):      37680 --|
+|-- NODE 0 Memory (MB/s):       10.70 --||-- NODE 1 Memory (MB/s):        8.21 --|
+|---------------------------------------||---------------------------------------|
+            
+|---------------------------------------||---------------------------------------|
+            
+|--                 System Read Throughput(MB/s):          9.94                --|
+            
+|--                System Write Throughput(MB/s):          8.97                --|
+            
+|--               System Memory Throughput(MB/s):         18.91                --|
             
 |---------------------------------------||---------------------------------------|
 ERROR: 

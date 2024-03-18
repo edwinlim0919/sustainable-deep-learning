@@ -1,4 +1,4 @@
-TIMESTAMP: 1710712278.3589005
+TIMESTAMP: 1710731239.6483989
 
  Processor Counter Monitor  (202201-1)
 
@@ -10,33 +10,33 @@ L1 Cache Miss Latency(ns) [Adding 5 clocks for L1 Miss]
 
 Socket0 Thread0     Socket0 Thread1     Socket1 Thread0     Socket1 Thread1     
 -----------------------------------------------------------------------------
-Core0: 39.25        Core32: 22.78        Core1: 49.97        Core33: 28.04        
-Core2: 24.48        Core34: 25.65        Core3: 46.29        Core35: 27.48        
-Core4: 29.62        Core36: 24.25        Core5: 27.77        Core37: 59.33        
-Core6: 24.51        Core38: 26.29        Core7: 23.26        Core39: 28.27        
-Core8: 23.10        Core40: 61.96        Core9: 23.10        Core41: 65.32        
-Core10: 30.23        Core42: 41.01        Core11: 29.89        Core43: 38.40        
-Core12: 27.26        Core44: 38.51        Core13: 22.82        Core45: 47.56        
-Core14: 24.93        Core46: 26.78        Core15: 22.15        Core47: 41.64        
-Core16: 24.57        Core48: 43.48        Core17: 35.07        Core49: 30.80        
-Core18: 26.28        Core50: 26.13        Core19: 24.36        Core51: 37.31        
-Core20: 22.72        Core52: 34.46        Core21: 22.79        Core53: 27.36        
-Core22: 45.46        Core54: 33.35        Core23: 25.43        Core55: 27.82        
-Core24: 24.70        Core56: 26.75        Core25: 23.98        Core57: 28.72        
-Core26: 47.57        Core58: 20.94        Core27: 25.17        Core59: 32.38        
-Core28: 50.89        Core60: 25.57        Core29: 25.43        Core61: 24.58        
-Core30: 47.35        Core62: 29.37        Core31: 23.86        Core63: 24.53        
+Core0: 36.36        Core32: 22.99        Core1: 65.68        Core33: 23.09        
+Core2: 24.27        Core34: 26.98        Core3: 26.52        Core35: 34.68        
+Core4: 39.64        Core36: 30.96        Core5: 25.38        Core37: 25.45        
+Core6: 46.79        Core38: 30.65        Core7: 23.69        Core39: 33.82        
+Core8: 41.76        Core40: 22.38        Core9: 30.68        Core41: 23.21        
+Core10: 37.35        Core42: 24.14        Core11: 25.44        Core43: 23.81        
+Core12: 31.40        Core44: 28.40        Core13: 24.66        Core45: 21.67        
+Core14: 30.39        Core46: 23.76        Core15: 25.38        Core47: 23.16        
+Core16: 28.06        Core48: 26.10        Core17: 26.36        Core49: 24.19        
+Core18: 36.47        Core50: 35.13        Core19: 27.62        Core51: 27.04        
+Core20: 25.37        Core52: 24.43        Core21: 26.52        Core53: 22.18        
+Core22: 25.70        Core54: 25.55        Core23: 26.28        Core55: 22.72        
+Core24: 24.33        Core56: 28.87        Core25: 26.26        Core57: 22.17        
+Core26: 24.71        Core58: 22.55        Core27: 26.80        Core59: 25.22        
+Core28: 23.65        Core60: 24.97        Core29: 26.10        Core61: 22.83        
+Core30: 29.40        Core62: 27.94        Core31: 25.07        Core63: 27.33        
 
 Average latency per socket
 
 L1 Cache Miss Latency(ns) [Adding 5 clocks for L1 Miss]
 
-Socket0: 33.45
-Socket1: 34.18
+Socket0: 29.01
+Socket1: 28.95
 
 DDR read Latency(ns)
-Socket0: 24.77
-Socket1: 24.06
+Socket0: 24.85
+Socket1: 24.45
 ERROR: Linux arch_perfmon flag  : yes
 Hybrid processor         : no
 IBRS and IBPB supported  : yes
@@ -83,45 +83,12 @@ Cleaning up
  Zeroed uncore PMU registers
  Freeing up all RMIDs
 
-TIMESTAMP: 1710712296.1670108
+TIMESTAMP: 1710731257.4523458
 
  Processor Counter Monitor  (202201-1)
 
  This utility measures Latency information
 
-
-
-L1 Cache Miss Latency(ns) [Adding 5 clocks for L1 Miss]
-
-Socket0 Thread0     Socket0 Thread1     Socket1 Thread0     Socket1 Thread1     
------------------------------------------------------------------------------
-Core0: 36.75        Core32: 34.40        Core1: 40.70        Core33: 19.67        
-Core2: 25.73        Core34: 38.56        Core3: 46.11        Core35: 29.87        
-Core4: 27.08        Core36: 48.11        Core5: 29.90        Core37: 48.87        
-Core6: 27.46        Core38: 19.46        Core7: 62.09        Core39: 25.58        
-Core8: 63.15        Core40: 31.67        Core9: 33.40        Core41: 21.11        
-Core10: 28.72        Core42: 36.05        Core11: 30.28        Core43: 26.32        
-Core12: 36.66        Core44: 24.19        Core13: 28.36        Core45: 26.42        
-Core14: 26.46        Core46: 22.76        Core15: 54.97        Core47: 25.63        
-Core16: 41.92        Core48: 36.23        Core17: 42.80        Core49: 38.86        
-Core18: 24.04        Core50: 33.83        Core19: 25.10        Core51: 22.06        
-Core20: 26.05        Core52: 23.51        Core21: 25.58        Core53: 22.16        
-Core22: 24.07        Core54: 29.90        Core23: 30.57        Core55: 22.18        
-Core24: 25.60        Core56: 22.13        Core25: 24.08        Core57: 20.58        
-Core26: 55.76        Core58: 25.57        Core27: 26.51        Core59: 24.51        
-Core28: 23.92        Core60: 22.74        Core29: 24.34        Core61: 32.57        
-Core30: 28.79        Core62: 27.73        Core31: 19.68        Core63: 23.78        
-
-Average latency per socket
-
-L1 Cache Miss Latency(ns) [Adding 5 clocks for L1 Miss]
-
-Socket0: 26.51
-Socket1: 30.69
-
-DDR read Latency(ns)
-Socket0: 24.49
-Socket1: 24.78
 ERROR: Linux arch_perfmon flag  : yes
 Hybrid processor         : no
 IBRS and IBPB supported  : yes
@@ -151,105 +118,6 @@ Socket 1: 2 memory controllers detected with total number of 6 channels. 3 QPI p
 Initializing RMIDs
  Zeroed PMU registers
 Trying to use Linux perf events...
-Successfully programmed on-core PMU using Linux perf
-Socket 0
-Max QPI link 0 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 1 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 2 speed: 21.5 GBytes/second (9.6 GT/second)
-Socket 1
-Max QPI link 0 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 1 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 2 speed: 21.5 GBytes/second (9.6 GT/second)
-
-Detected Intel(R) Xeon(R) Gold 6142 CPU @ 2.60GHz "Intel(r) microarchitecture codename Skylake-SP" stepping 4 microcode level 0x2007006
-DEBUG: caught signal to interrupt (Terminated).
-Cleaning up
- Closed perf event handles
- Zeroed uncore PMU registers
- Freeing up all RMIDs
-
-TIMESTAMP: 1710712313.9769318
-
- Processor Counter Monitor  (202201-1)
-
- This utility measures Latency information
-
-
-
-L1 Cache Miss Latency(ns) [Adding 5 clocks for L1 Miss]
-
-Socket0 Thread0     Socket0 Thread1     Socket1 Thread0     Socket1 Thread1     
------------------------------------------------------------------------------
-Core0: 30.51        Core32: 25.82        Core1: 40.25        Core33: 22.04        
-Core2: 41.19        Core34: 22.56        Core3: 48.10        Core35: 31.58        
-Core4: 28.24        Core36: 27.96        Core5: 20.92        Core37: 23.89        
-Core6: 27.39        Core38: 25.33        Core7: 62.03        Core39: 25.82        
-Core8: 26.79        Core40: 26.90        Core9: 21.69        Core41: 25.35        
-Core10: 29.82        Core42: 29.44        Core11: 24.21        Core43: 24.47        
-Core12: 33.22        Core44: 26.47        Core13: 22.60        Core45: 23.38        
-Core14: 32.23        Core46: 26.72        Core15: 22.00        Core47: 20.45        
-Core16: 25.55        Core48: 31.85        Core17: 28.87        Core49: 22.76        
-Core18: 26.55        Core50: 23.74        Core19: 24.02        Core51: 24.33        
-Core20: 27.71        Core52: 30.61        Core21: 22.06        Core53: 29.23        
-Core22: 28.71        Core54: 22.43        Core23: 23.26        Core55: 20.98        
-Core24: 28.54        Core56: 63.05        Core25: 22.78        Core57: 22.15        
-Core26: 27.29        Core58: 21.71        Core27: 23.19        Core59: 21.05        
-Core28: 25.70        Core60: 24.16        Core29: 23.04        Core61: 23.34        
-Core30: 28.64        Core62: 27.98        Core31: 17.64        Core63: 23.53        
-
-Average latency per socket
-
-L1 Cache Miss Latency(ns) [Adding 5 clocks for L1 Miss]
-
-Socket0: 29.16
-Socket1: 27.99
-
-DDR read Latency(ns)
-Socket0: 24.36
-Socket1: 24.79
-ERROR: Linux arch_perfmon flag  : yes
-Hybrid processor         : no
-IBRS and IBPB supported  : yes
-STIBP supported          : yes
-Spec arch caps supported : yes
-Number of physical cores: 32
-Number of logical cores: 64
-Number of online logical cores: 64
-Threads (logical cores) per physical core: 2
-Num sockets: 2
-Physical cores per socket: 16
-Last level cache slices per socket: 16
-Core PMU (perfmon) version: 4
-Number of core PMU generic (programmable) counters: 3
-Width of generic (programmable) counters: 48 bits
-Number of core PMU fixed counters: 3
-Width of fixed counters: 48 bits
-Nominal core frequency: 2600000000 Hz
-IBRS enabled in the kernel   : yes
-STIBP enabled in the kernel  : no
-The processor is not susceptible to Rogue Data Cache Load: no
-The processor supports enhanced IBRS                     : no
-Package thermal spec power: 150 Watt; Package minimum power: 71 Watt; Package maximum power: 319 Watt;
-INFO: Linux perf interface to program uncore PMUs is present
-Socket 0: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Socket 1: 2 memory controllers detected with total number of 6 channels. 3 QPI ports detected. 2 M2M (mesh to memory) blocks detected. 0 Home Agents detected. 3 M3UPI blocks detected.
-Initializing RMIDs
- Zeroed PMU registers
-Trying to use Linux perf events...
-Successfully programmed on-core PMU using Linux perf
-Socket 0
-Max QPI link 0 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 1 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 2 speed: 21.5 GBytes/second (9.6 GT/second)
-Socket 1
-Max QPI link 0 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 1 speed: 23.3 GBytes/second (10.4 GT/second)
-Max QPI link 2 speed: 21.5 GBytes/second (9.6 GT/second)
-
-Detected Intel(R) Xeon(R) Gold 6142 CPU @ 2.60GHz "Intel(r) microarchitecture codename Skylake-SP" stepping 4 microcode level 0x2007006
-DEBUG: caught signal to interrupt (Terminated).
-Cleaning up
- Closed perf event handles
- Zeroed uncore PMU registers
- Freeing up all RMIDs
+DEBUG: caught signal to interrupt (Interrupt).
+Terminated
 
