@@ -2,6 +2,7 @@ import subprocess
 import signal
 import time
 import os 
+import asyncio
 
 from threading import Timer
 
@@ -37,15 +38,24 @@ def remove_existing_pcm_logs(
         remove_log_file(log_file_name)
 
 
+async def pcm_logging_task(
+    log_file_path: str,
+    logging_interval: int,
+    cmd_runtime: float,
+    pcm_cmds: list[str]
+):
+
+
 def run_pcm_commands(
     log_file_path: str,
     logging_interval: int,
     cmd_runtime: float,
     pcm_cmds: list[str]
 ):
-    global currently_logging
-    if not currently_logging:
-        return
+    #global currently_logging
+    #if not currently_logging:
+    #    print('run_pcm_logging logging STOP')
+    #    return
 
     for pcm_cmd in pcm_cmds:
         log_file_name = log_file_path + f'_{pcm_cmd}'
@@ -83,13 +93,13 @@ def run_pcm_commands(
             except subprocess.CalledProcessError as e:
                 log_file.write(f'Error running {full_pcm_cmd}: {e}\n')
 
-    Timer(
-        logging_interval,
-        run_pcm_commands,
-        args=(
-            log_file_path,
-            logging_interval,
-            cmd_runtime,
-            pcm_cmds
-        )
-    ).start()
+    #Timer(
+    #    logging_interval,
+    #    run_pcm_commands,
+    #    args=(
+    #        log_file_path,
+    #        logging_interval,
+    #        cmd_runtime,
+    #        pcm_cmds
+    #    )
+    #).start()
