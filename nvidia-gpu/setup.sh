@@ -1,4 +1,12 @@
-conda create --name nvidia-gpu
+#!/usr/bin/env bash
+#
+# Example Usage
+#   sudo ./setup.sh NVIDIA-Linux-x86_64-535.161.08.run
+
+# TODO make sure that NVIDIA driver installer is in this directory
+sudo sh $1
+
+conda create --name nvidia-gpu python=3.11
 conda activate nvidia-gpu
 conda install pip
 export PATH='/users/'"${USER}"'/miniconda3/envs/nvidia-gpu/bin:'"$PATH"
