@@ -1,5 +1,4 @@
 import asyncio
-import aiofiles
 import time
 import argparse
 import random
@@ -9,10 +8,9 @@ import numpy as np
 
 import local_pcm_monitoring
 
-from transformers import AutoTokenizer, TextStreamer
+from transformers import AutoTokenizer
 from intel_extension_for_transformers.transformers import AutoModelForCausalLM
 from concurrent.futures import ProcessPoolExecutor
-from functools import partial
 from typing import Tuple
 
 
@@ -50,11 +48,9 @@ def int4_llama2_cpu_inference(prompt: Tuple[str, int, int]):
         return_tensors='pt'
     ).input_ids
     # TODO test this out to see if input_ids length is correctly used
-    #num_input_tokens = len(inputs)
     num_input_tokens = prompt[1]
     num_output_tokens = prompt[2]
     # Being extra safe to not generate garbage overflow (I believe the max sequence length is 2048)
-    #max_new_tokens = 2000 - num_input_tokens
     max_new_tokens = min(2000 - num_input_tokens, num_output_tokens)
 
     raw_inference_start_time = time.time()
@@ -134,6 +130,7 @@ async def inference_worker(executor: ProcessPoolExecutor):
 
 async def write_results(output_file_path):
     # Make sure all the tasks are done
+    print(f'write_results {output_file_path}')
     with open(output_file_path, 'a') as file:
         while not result_queue.empty():
             result = await result_queue.get()
