@@ -5,10 +5,6 @@
 
 # TODO make sure that NVIDIA driver installer is in this directory
 
-sudo sh $1
-
-sudo apt install nvidia-cuda-toolkit
-
 conda create --name nvidia-gpu python=3.11
 conda activate nvidia-gpu
 conda install pip

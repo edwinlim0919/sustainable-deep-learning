@@ -6,6 +6,7 @@
 
 wget $1
 sudo sh $2
+sudo apt install nvidia-cuda-toolkit
 
 # TODO: not sure if explicit command line reboot works, may have to do reboot from cloudlab
 sudo reboot
