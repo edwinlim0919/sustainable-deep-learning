@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
-# Installation flow
-#   run nvidia-setup.sh to install new driver
+# Arguments
+#   1: link to CUDA installer from https://developer.nvidia.com/cuda-12-1-0-download-archive
+#   2: filename of .run installer
 
-sudo touch /etc/modprobe.d/blacklist-nouveau.conf
-sudo echo "blacklist nouveau" >> /etc/modprobe.d/blacklist-nouveau.conf
-sudo echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist-nouveau.conf
-sudo update-initramfs -u
+wget $1
+sudo sh $2
 
 # TODO: not sure if explicit command line reboot works, may have to do reboot from cloudlab
 sudo reboot
