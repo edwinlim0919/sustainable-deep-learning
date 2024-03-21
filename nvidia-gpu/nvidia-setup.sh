@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Installation flow
-# 
+#   run nvidia-setup.sh to install new driver
 
 sudo touch /etc/modprobe.d/blacklist-nouveau.conf
 sudo echo "blacklist nouveau" >> /etc/modprobe.d/blacklist-nouveau.conf
