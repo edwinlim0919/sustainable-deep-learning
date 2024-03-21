@@ -1,0 +1,10 @@
+:set hlsearch
+:set ttymouse=xterm2
+:set mouse=a
+:filetype indent on
+
+:filetype plugin on
+:autocmd FileType python setlocal expandtab shiftwidth=4 softtabstop=4
+:set tabstop=4
+
+:set number
