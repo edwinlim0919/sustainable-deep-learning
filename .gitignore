@@ -1,0 +1,5 @@
+scripts/get-docker.sh
+scripts/get-pip.py
+*.swp
+__pycache__/
+*.zip
