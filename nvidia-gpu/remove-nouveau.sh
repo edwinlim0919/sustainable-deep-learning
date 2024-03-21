@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 
-# Installation flow (c4130 V100 example)
+# Installation flow (c4130 16GB V100 example)
 #   sudo ./remove-nouveau.sh
 #   sudo ./nvidia-setup.sh https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run cuda_12.1.0_530.30.02_linux.run
+
+# Installation flow (r7525 32 GB V100 example)
+#   sudo ./remove-nouveau.sh
+#   sudo ./nvidia-setup.sh https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run cuda_12.1.0_530.30.02_linux.run
+
 
 sudo touch /etc/modprobe.d/blacklist-nouveau.conf
 sudo echo "blacklist nouveau" >> /etc/modprobe.d/blacklist-nouveau.conf
