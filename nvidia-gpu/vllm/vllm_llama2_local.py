@@ -3,6 +3,8 @@ import argparse
 from typing import Tuple
 from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
+from vllm.engine.arg_utils import AsyncEngineArgs
+from vllm.engine.async_llm_engine import AsyncLLMEngine
 
 
 engine = None
@@ -34,7 +36,15 @@ async def generate(
 
 
 if __name__ == '__main__':
-    # TODO
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--test-prompt',
+        type=str,
+        required=True,
+        help='test prompt for async engine'
+    )
+    parser = AsyncEngineArgs.add_cli_args(parser)
+    args = parser.parse_args()
 
-    engine_args =
+    engine_args = AsyncEngineArgs.from_cli_args(args)
+    engine = AsyncLLMEngine.from_engine_args(engine_args)
