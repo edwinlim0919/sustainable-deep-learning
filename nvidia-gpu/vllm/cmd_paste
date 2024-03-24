@@ -1,0 +1,1 @@
+python3 vllm_llama2_local.py --test-prompt "what is the capitol of the United States?" --model meta-llama/Llama-2-7b-chat-hf --seed 42 --disable-log-requests
