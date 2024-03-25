@@ -30,11 +30,12 @@ sed -i 's/set(USE_DNNL OFF)/set(USE_DNNL ON)/g' build/config.cmake
 
 # TODO: Intel OneDNN already usese OpenMP, so not sure if I should explicitly turn OpenMP on
 # set(USE_OPENMP intel)
-sed -i 's/set(USE_OPENMP none)/set(USE_OPENMP intel)/g' build/config.cmake
+#sed -i 's/set(USE_OPENMP none)/set(USE_OPENMP intel)/g' build/config.cmake
 
 # TODO: For 4th gen Xeon platforms, turn on Intel AMX Instructions
 # set(USE_AMX ON)
 #sed -i 's/set(USE_AMX OFF)/set(USE_AMX ON)/g' build/config.cmake
 
-
 cd build
+cmake ..
+make -j4
