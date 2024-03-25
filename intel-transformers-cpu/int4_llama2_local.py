@@ -15,7 +15,6 @@ from typing import Tuple
 
 
 # Explicit queuing
-result_file_lock = asyncio.Lock()
 inference_queue = asyncio.Queue()
 result_queue = asyncio.Queue()
 
