@@ -46,6 +46,14 @@ async def async_main(
         print(f'ASYNC_MAIN_TIME arrival_times: {arrival_times}')
         sys.stdout.flush()
 
+        curr_rate_start_time = time.time()
+        curr_rate_time_limit = curr_rate_start_time + seconds_per_rate
+        for i in range(len(arrival_times)):
+            send_time = curr_rate_start_time + arrival_times[i]
+            sampled_prompt = sampled_prompts[i % sampled_prompts_len]
+            await asyncio.sleep(max(0, send_time - time.time()))
+            request_start_time = time.time()
+
     #executor = ProcessPoolExecutor()
     #worker = asyncio.create_task(inference_worker(executor))
     #curr_rate = start_rate
@@ -274,7 +282,9 @@ if __name__ == '__main__':
         type=int,
         help='random seed for experiment reproducibility'
     )
+    parser = vllm_llama2_local.add_cli_args_wrapper(parser)
     args = parser.parse_args()
+    vllm_llama2_local.vllm_setup(args)
 
     # Rates should be specified as list or geometric increase
     if not ((args.start_rate and args.end_rate and args.increase_rate) or
@@ -295,11 +305,15 @@ if __name__ == '__main__':
     random.seed(args.seed)
     np.random.seed(args.seed)
 
+    # TODO: Potentially might need other schedulers
+    tokenizer = vllm_llama2_local.tokenizer
+
     # Throughput experiment
     print(f'Sampling dataset {args.dataset_path}...')
     sampled_prompts = sample_dataset_prompts(
         args.dataset_path,
-        args.num_requests_sample
+        args.num_requests_sample,
+        tokenizer
     )
     sampled_prompts_len = len(sampled_prompts)
 
