@@ -6,15 +6,15 @@ sudo apt-get install -y python3 python3-dev python3-setuptools gcc libtinfo-dev 
 sudo apt-get install llvm
 
 # Install Intel OneDNN
-git clone https://github.com/oneapi-src/oneDNN.git
-cd oneDNN
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
+#git clone https://github.com/oneapi-src/oneDNN.git
+#cd oneDNN
+#mkdir build
+#cd build
+#cmake ..
+#make
+#sudo make install
+#cd ../../
 
-cd ../../
 wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/163da6e4-56eb-4948-aba3-debcec61c064/l_BaseKit_p_2024.0.1.46_offline.sh
 sudo sh ./l_BaseKit_p_2024.0.1.46_offline.sh
 
