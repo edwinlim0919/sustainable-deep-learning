@@ -12,8 +12,6 @@ sys.path.append('/dev/shm/sustainable-deep-learning/nvidia-gpu/vllm')
 import vllm_llama2_local
 
 
-tokenizer = AutoTokenizer.from_pretrained('meta-llama/Llama-2-7b-chat-hf')
-
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
 DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
@@ -34,11 +32,20 @@ async def async_main(
     sampled_prompts: list[str],
     sampled_prompts_len: int,
     seconds_per_rate: int,
-    start_rate: float,
-    end_rate: float,
-    increase_rate: float,
+    rate_list: list[float],
     output_file_path: str,
 ):
+    for curr_rate in rate_list:
+        print(f'ASYNC_MAIN_TIME curr_rate: {curr_rate}')
+        sys.stdout.flush()
+
+        lambda_rate = curr_rate / 60
+        expected_arrivals = int(lambda_rate * seconds_per_rate)
+        inter_arrival_times = np.random.exponential(1 / lambda_rate, size=expected_arrivals)
+        arrival_times = np.cumsum(inter_arrival_times)
+        print(f'ASYNC_MAIN_TIME arrival_times: {arrival_times}')
+        sys.stdout.flush()
+
     #executor = ProcessPoolExecutor()
     #worker = asyncio.create_task(inference_worker(executor))
     #curr_rate = start_rate
@@ -99,7 +106,6 @@ def llama2_prompt_general(prompts: list[dict]):
     }] + prompts[2:]
 
     # Ensure that user prompts first, and there is a gpt response for every human query
-    #print(f'PROMPTS: {prompts}\n\n')
     assert (all([prompt['role'] == 'human' for prompt in prompts[::2]]) and
             all([prompt['role'] == 'gpt' for prompt in prompts[1::2]]) and
             len(prompts) % 2 == 0)
@@ -115,7 +121,8 @@ def llama2_prompt_general(prompts: list[dict]):
 # Sampling dataset prompts for throughput experiments
 def sample_dataset_prompts(
     dataset_path: str,
-    num_requests_sample: int
+    num_requests_sample: int,
+    tokenizer: AutoTokenizer
 ):
     with open(dataset_path, 'r', encoding='utf-8') as f:
         dataset = json.load(f)
@@ -262,7 +269,7 @@ if __name__ == '__main__':
         help='a list of request rates for the experiment'
     )
     parser.add_argument(
-        '--random-seed',
+        '--seed',
         required=True,
         type=int,
         help='random seed for experiment reproducibility'
@@ -274,9 +281,19 @@ if __name__ == '__main__':
             args.rate_list):
         raise ValueError('Rates must be specified as a list or a geometric increase')
 
+    # Generate request rate list for geometric increase
+    if not args.rate_list:
+        rate_list = []
+        curr_rate = args.start_rate
+        while curr_rate <= args.end_rate:
+            rate_list.append(curr_rate)
+            curr_rate *= args.increase_rate
+    else:
+        rate_list = args.rate_list
+
     # Set randomness seeds for reproducibility
-    random.seed(args.random_seed)
-    np.random.seed(args.random_seed)
+    random.seed(args.seed)
+    np.random.seed(args.seed)
 
     # Throughput experiment
     print(f'Sampling dataset {args.dataset_path}...')
@@ -297,9 +314,7 @@ if __name__ == '__main__':
         sampled_prompts,
         sampled_prompts_len,
         args.seconds_per_rate,
-        args.start_rate,
-        args.end_rate,
-        args.increase_rate,
+        rate_list,
         full_output_file_path
     ))
     print('Done.')
