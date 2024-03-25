@@ -14,6 +14,10 @@ cmake ..
 make
 sudo make install
 
+cd ../../
+wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/163da6e4-56eb-4948-aba3-debcec61c064/l_BaseKit_p_2024.0.1.46_offline.sh
+sudo sh ./l_BaseKit_p_2024.0.1.46_offline.sh
+
 cd tvm
 mkdir build
 cp cmake/config.cmake build/config.cmake
