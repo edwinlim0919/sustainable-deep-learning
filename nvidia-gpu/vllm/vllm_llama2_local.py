@@ -30,16 +30,13 @@ async def generate(
     num_output_tokens,
     request_id
 ):
-    request_start_time = time.time()
     prompt_token_ids = tokenizer(
         test_prompt,
         return_tensors='pt'
     ).input_ids
     prompt_token_ids_list = prompt_token_ids.tolist()[0]
-    print(f'GENERATE DEBUG type(prompt_token_ids): {type(prompt_token_ids)}')
-    print(f'prompt_token_ids: {prompt_token_ids}')
-    print(f'prompt_token_ids_list: {prompt_token_ids_list}')
-    num_input_tokens = len(prompt_token_ids)
+
+    num_input_tokens = len(prompt_token_ids_list)
     max_tokens = min(2000 - num_input_tokens, num_output_tokens)
     sampling_params = SamplingParams(
         max_tokens=max_tokens
@@ -51,11 +48,7 @@ async def generate(
         request_id,
         prompt_token_ids_list
     )
-
-    final_output = None
     async for request_output in results_generator:
         final_output = request_output
-    request_end_time = time.time()
 
-    request_latency = request_end_time - request_start_time
-    return final_output, request_latency
+    return final_output
