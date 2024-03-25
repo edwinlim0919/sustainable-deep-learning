@@ -18,5 +18,10 @@ yes | source ./env.sh && yes | source ./setup.sh
 # NVIDIA GPU Setup (CUDA 12.1)
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu
 ```bash
+# This will also reboot your node and you will likely need to re-clone this repo in /dev/shm
 sudo ./remove-nouveau.sh
+
+# This script will reboot your node as well (example provided below)
+# Figure out which version of CUDA 12.1 to use for your machine from here: https://developer.nvidia.com/cuda-12-1-0-download-archive
+sudo ./nvidia-setup.sh https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run cuda_12.1.0_530.30.02_linux.run
 ```
