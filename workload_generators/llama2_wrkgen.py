@@ -12,10 +12,6 @@ sys.path.append('/dev/shm/sustainable-deep-learning/nvidia-gpu/vllm')
 import vllm_llama2_local
 
 
-# Queuing for asynchronous request generation
-#request_queue = asyncio.Queue()
-#result_queue = asyncio.Queue()
-
 # Llama2 prompting
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
