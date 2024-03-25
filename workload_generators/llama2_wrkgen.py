@@ -12,6 +12,11 @@ sys.path.append('/dev/shm/sustainable-deep-learning/nvidia-gpu/vllm')
 import vllm_llama2_local
 
 
+# Queuing for asynchronous request generation
+#request_queue = asyncio.Queue()
+#result_queue = asyncio.Queue()
+
+# Llama2 prompting
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
 DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
@@ -34,6 +39,8 @@ async def async_main(
     seconds_per_rate: int,
     rate_list: list[float],
     output_file_path: str,
+    request_queue: Queue,
+    result_queue: Queue
 ):
     for curr_rate in rate_list:
         print(f'ASYNC_MAIN_TIME curr_rate: {curr_rate}')
@@ -54,45 +61,7 @@ async def async_main(
             await asyncio.sleep(max(0, send_time - time.time()))
             request_start_time = time.time()
 
-    #executor = ProcessPoolExecutor()
-    #worker = asyncio.create_task(inference_worker(executor))
-    #curr_rate = start_rate
-
-    #while curr_rate <= end_rate:
-    #    print(f'ASYNC_MAIN_TIME curr_rate: {curr_rate}')
-    #    sys.stdout.flush()
-
-    #    lambda_rate = curr_rate / 60
-    #    expected_arrivals = int(lambda_rate * seconds_per_rate)
-    #    inter_arrival_times = np.random.exponential(1 / lambda_rate, size=expected_arrivals)
-    #    arrival_times = np.cumsum(inter_arrival_times)
-    #    print(f'ASYNC_MAIN_TIME arrival_times: {arrival_times}')
-    #    sys.stdout.flush()
-
-    #    start_time = time.time()
-    #    time_limit = start_time + seconds_per_rate
-    #    for i in range(len(arrival_times)):
-    #        send_time = start_time + arrival_times[i]
-    #        sampled_prompt = sampled_prompts[i % sampled_prompts_len]
-    #        await asyncio.sleep(max(0, send_time - time.time()))
-    #        inference_enqueue_time = time.time()
-    #        await inference_queue.put((
-    #            sampled_prompt,
-    #            curr_rate,
-    #            -1,
-    #            seconds_per_rate,
-    #            inference_enqueue_time,
-    #            time_limit
-    #        ))
-
-    #    await inference_queue.join()
-
-    #    # After inferencing is done, write results to output file
-    #    await write_results(output_file_path)
-    #    curr_rate = curr_rate * increase_rate
-
-    #worker.cancel()
-    #executor.shutdown()
+            await request_queue.put(())
 
 
 # General Llama2 prompt formatting given a list of message dicts
@@ -282,6 +251,8 @@ if __name__ == '__main__':
         type=int,
         help='random seed for experiment reproducibility'
     )
+
+    # TODO Need to change this to incorporate other frameworks
     parser = vllm_llama2_local.add_cli_args_wrapper(parser)
     args = parser.parse_args()
     vllm_llama2_local.vllm_setup(args)
@@ -305,8 +276,10 @@ if __name__ == '__main__':
     random.seed(args.seed)
     np.random.seed(args.seed)
 
-    # TODO: Potentially might need other schedulers
+    # TODO: Need to change this to incorporate other frameworks
     tokenizer = vllm_llama2_local.tokenizer
+    request_queue = vllm_llama2_local.request_queue
+    result_queue = vllm_llama2_local.result_queue
 
     # Throughput experiment
     print(f'Sampling dataset {args.dataset_path}...')
@@ -329,6 +302,8 @@ if __name__ == '__main__':
         sampled_prompts_len,
         args.seconds_per_rate,
         rate_list,
-        full_output_file_path
+        full_output_file_path,
+        request_queue,
+        result_queue
     ))
     print('Done.')
