@@ -12,8 +12,7 @@ sys.path.append('/dev/shm/sustainable-deep-learning/nvidia-gpu/vllm')
 import vllm_llama2_local
 
 
-tokenizer_name = 'meta-llama/Llama-2-7b-chat-hf'
-tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+tokenizer = AutoTokenizer.from_pretrained('meta-llama/Llama-2-7b-chat-hf')
 
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
@@ -31,7 +30,7 @@ DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. 
 
 
 # Request generation for seconds_per_rate seconds for each rate
-async def async_main_seconds(
+async def async_main(
     sampled_prompts: list[str],
     sampled_prompts_len: int,
     seconds_per_rate: int,
@@ -40,45 +39,45 @@ async def async_main_seconds(
     increase_rate: float,
     output_file_path: str,
 ):
-    executor = ProcessPoolExecutor()
-    worker = asyncio.create_task(inference_worker(executor))
-    curr_rate = start_rate
+    #executor = ProcessPoolExecutor()
+    #worker = asyncio.create_task(inference_worker(executor))
+    #curr_rate = start_rate
 
-    while curr_rate <= end_rate:
-        print(f'ASYNC_MAIN_TIME curr_rate: {curr_rate}')
-        sys.stdout.flush()
+    #while curr_rate <= end_rate:
+    #    print(f'ASYNC_MAIN_TIME curr_rate: {curr_rate}')
+    #    sys.stdout.flush()
 
-        lambda_rate = curr_rate / 60
-        expected_arrivals = int(lambda_rate * seconds_per_rate)
-        inter_arrival_times = np.random.exponential(1 / lambda_rate, size=expected_arrivals)
-        arrival_times = np.cumsum(inter_arrival_times)
-        print(f'ASYNC_MAIN_TIME arrival_times: {arrival_times}')
-        sys.stdout.flush()
+    #    lambda_rate = curr_rate / 60
+    #    expected_arrivals = int(lambda_rate * seconds_per_rate)
+    #    inter_arrival_times = np.random.exponential(1 / lambda_rate, size=expected_arrivals)
+    #    arrival_times = np.cumsum(inter_arrival_times)
+    #    print(f'ASYNC_MAIN_TIME arrival_times: {arrival_times}')
+    #    sys.stdout.flush()
 
-        start_time = time.time()
-        time_limit = start_time + seconds_per_rate
-        for i in range(len(arrival_times)):
-            send_time = start_time + arrival_times[i]
-            sampled_prompt = sampled_prompts[i % sampled_prompts_len]
-            await asyncio.sleep(max(0, send_time - time.time()))
-            inference_enqueue_time = time.time()
-            await inference_queue.put((
-                sampled_prompt,
-                curr_rate,
-                -1,
-                seconds_per_rate,
-                inference_enqueue_time,
-                time_limit
-            ))
+    #    start_time = time.time()
+    #    time_limit = start_time + seconds_per_rate
+    #    for i in range(len(arrival_times)):
+    #        send_time = start_time + arrival_times[i]
+    #        sampled_prompt = sampled_prompts[i % sampled_prompts_len]
+    #        await asyncio.sleep(max(0, send_time - time.time()))
+    #        inference_enqueue_time = time.time()
+    #        await inference_queue.put((
+    #            sampled_prompt,
+    #            curr_rate,
+    #            -1,
+    #            seconds_per_rate,
+    #            inference_enqueue_time,
+    #            time_limit
+    #        ))
 
-        await inference_queue.join()
+    #    await inference_queue.join()
 
-        # After inferencing is done, write results to output file
-        await write_results(output_file_path)
-        curr_rate = curr_rate * increase_rate
+    #    # After inferencing is done, write results to output file
+    #    await write_results(output_file_path)
+    #    curr_rate = curr_rate * increase_rate
 
-    worker.cancel()
-    executor.shutdown()
+    #worker.cancel()
+    #executor.shutdown()
 
 
 # General Llama2 prompt formatting given a list of message dicts
@@ -111,11 +110,6 @@ def llama2_prompt_general(prompts: list[dict]):
     prompts_list[-1] = prompts_list[-1] + f' {B_INST}'
 
     return "".join(prompts_list)
-
-
-# Simple Llama2 prompt formatting given a single human prompt
-def llama2_prompt_single(prompt: str):
-    return f'[INST] <<SYS>>\n{DEFAULT_SYSTEM_PROMPT}\n<</SYS>>\n\n{prompt} [/INST]'
 
 
 # Sampling dataset prompts for throughput experiments
@@ -244,21 +238,28 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--start-rate',
-        required=True,
+        required=False,
         type=float,
         help='starting request rate in requests per minute'
     )
     parser.add_argument(
         '--end-rate',
-        required=True,
+        required=False,
         type=float,
         help='ending request rate in requests per minute'
     )
     parser.add_argument(
         '--increase-rate',
-        required=True,
+        required=False,
         type=float,
         help='request rate multiplicative increase per iteration'
+    )
+    parser.add_argument(
+        '--rate-list',
+        required=False,
+        type=float,
+        nargs='+',
+        help='a list of request rates for the experiment'
     )
     parser.add_argument(
         '--random-seed',
@@ -267,6 +268,11 @@ if __name__ == '__main__':
         help='random seed for experiment reproducibility'
     )
     args = parser.parse_args()
+
+    # Rates should be specified as list or geometric increase
+    if not ((args.start_rate and args.end_rate and args.increase_rate) or
+            args.rate_list):
+        raise ValueError('Rates must be specified as a list or a geometric increase')
 
     # Set randomness seeds for reproducibility
     random.seed(args.random_seed)
@@ -287,7 +293,7 @@ if __name__ == '__main__':
     print(f'increase_rate: {args.increase_rate}')
     print(f'output_file_path_prefix: {args.output_file_path}')
     print(f'seconds_per_rate: {args.seconds_per_rate}')
-    asyncio.run(async_main_seconds(
+    asyncio.run(async_main(
         sampled_prompts,
         sampled_prompts_len,
         args.seconds_per_rate,
