@@ -14,3 +14,9 @@ You may need to log out of the node and log back in to see env changes take affe
 ```bash
 yes | source ./env.sh && yes | source ./setup.sh
 ```
+
+# NVIDIA GPU Setup (CUDA 12.1)
+cd /dev/shm/sustainable-deep-learning/nvidia-gpu
+```bash
+sudo ./remove-nouveau.sh
+```
