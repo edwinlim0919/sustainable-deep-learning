@@ -72,6 +72,7 @@ async def inference_loop():
         request_id = random_uuid()
         request_dequeue_time = time.time()
 
+        # Don't run requests that arrive past the time limit
         if request_dequeue_time > time_limit:
             print('INFERENCE_LOOP TIME LIMIT EXCEEDED')
             sys.stdout.flush()
@@ -86,6 +87,7 @@ async def inference_loop():
         )
         result_enqueue_time = time.time()
         request_latency = result_enqueue_time - result_dequeue_time
+
         response_data = {
             'final_output': final_output,
             'request_dequeue_time': request_dequeue_time,
@@ -95,6 +97,8 @@ async def inference_loop():
             'seconds_per_rate': seconds_per_rate,
             'time_limit': time_limit
         }
+        print(f'INFERENCE LOOP response_data: {response_data}')
+        sys.stdout.flush()
 
         await result_queue.put(response_data)
         request_queue.task_done()
