@@ -18,14 +18,18 @@ B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
 DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
 
 
-#async def write_results(output_file_path):
-#    # Make sure all the tasks are done
-#    print(f'write_results {output_file_path}')
-#    with open(output_file_path, 'a') as file:
-#        while not result_queue.empty():
-#            result = await result_queue.get()
-#            file.write(str(result) + '\n')
-#            result_queue.task_done()
+async def write_results(
+    output_file_path,
+    result_queue
+):
+    # Make sure all the tasks are done
+    print(f'write_results {output_file_path}')
+    sys.stdout.flush()
+    with open(output_file_path, 'a') as file:
+        while not result_queue.empty():
+            result = await result_queue.get()
+            file.write(str(result) + '\n')
+            result_queue.task_done()
 
 
 # Request generation for seconds_per_rate seconds for each rate
@@ -57,7 +61,20 @@ async def async_main(
             await asyncio.sleep(max(0, send_time - time.time()))
             request_start_time = time.time()
 
-            await request_queue.put(())
+            await request_queue.put((
+                sampled_prompt,
+                curr_rate,
+                seconds_per_rate,
+                curr_rate_time_limit
+            ))
+
+        await request_queue.join()
+
+        # After inferencing is done, write results to output file
+        await write_results(
+            output_file_path,
+            result_queue
+        )
 
 
 # General Llama2 prompt formatting given a list of message dicts
