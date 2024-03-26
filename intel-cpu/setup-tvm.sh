@@ -25,8 +25,9 @@ cp cmake/config.cmake build/config.cmake
 # set(USE_LLVM ON)
 sed -i 's/set(USE_LLVM OFF)/set(USE_LLVM ON)/g' build/config.cmake
 
+# TODO: Currently errors with using OneDNN, need to look into this
 # set(USE_DNNL ON)
-sed -i 's/set(USE_DNNL OFF)/set(USE_DNNL ON)/g' build/config.cmake
+#sed -i 's/set(USE_DNNL OFF)/set(USE_DNNL ON)/g' build/config.cmake
 
 # TODO: Intel OneDNN already usese OpenMP, so not sure if I should explicitly turn OpenMP on
 # set(USE_OPENMP intel)
