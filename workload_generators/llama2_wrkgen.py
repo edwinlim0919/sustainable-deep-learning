@@ -42,15 +42,17 @@ async def async_main(
     request_queue: Queue,
     result_queue: Queue
 ):
+    inference_worker = asyncio.create_task(vllm_llama2_local.inference_loop())
+
     for curr_rate in rate_list:
-        print(f'ASYNC_MAIN_TIME curr_rate: {curr_rate}')
+        print(f'ASYNC_MAIN curr_rate: {curr_rate}')
         sys.stdout.flush()
 
         lambda_rate = curr_rate / 60
         expected_arrivals = int(lambda_rate * seconds_per_rate)
         inter_arrival_times = np.random.exponential(1 / lambda_rate, size=expected_arrivals)
         arrival_times = np.cumsum(inter_arrival_times)
-        print(f'ASYNC_MAIN_TIME arrival_times: {arrival_times}')
+        print(f'ASYNC_MAIN arrival_times: {arrival_times}')
         sys.stdout.flush()
 
         curr_rate_start_time = time.time()
@@ -59,8 +61,6 @@ async def async_main(
             send_time = curr_rate_start_time + arrival_times[i]
             sampled_prompt = sampled_prompts[i % sampled_prompts_len]
             await asyncio.sleep(max(0, send_time - time.time()))
-            request_start_time = time.time()
-
             await request_queue.put((
                 sampled_prompt,
                 curr_rate,
@@ -69,12 +69,13 @@ async def async_main(
             ))
 
         await request_queue.join()
-
         # After inferencing is done, write results to output file
         await write_results(
             output_file_path,
             result_queue
         )
+
+    inference_worker.cancel()
 
 
 # General Llama2 prompt formatting given a list of message dicts
@@ -258,12 +259,13 @@ if __name__ == '__main__':
         nargs='+',
         help='a list of request rates for the experiment'
     )
-    parser.add_argument(
-        '--seed',
-        required=True,
-        type=int,
-        help='random seed for experiment reproducibility'
-    )
+
+    #parser.add_argument(
+    #    '--wrkgen-seed',
+    #    required=True,
+    #    type=int,
+    #    help='random seed for experiment reproducibility'
+    #)
 
     # TODO Need to change this to incorporate other frameworks
     parser = vllm_llama2_local.add_cli_args_wrapper(parser)
@@ -286,8 +288,8 @@ if __name__ == '__main__':
         rate_list = args.rate_list
 
     # Set randomness seeds for reproducibility
-    random.seed(args.seed)
-    np.random.seed(args.seed)
+    random.seed(args.wrkgen_seed)
+    np.random.seed(args.wrkgen_seed)
 
     # TODO: Need to change this to incorporate other frameworks
     tokenizer = vllm_llama2_local.tokenizer
