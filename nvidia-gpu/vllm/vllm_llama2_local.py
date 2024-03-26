@@ -8,6 +8,7 @@ from vllm.engine.async_llm_engine import AsyncLLMEngine
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.utils import random_uuid
 from transformers import AutoTokenizer
+from concurrent.futures import ProcessPoolExecutor
 
 
 # vLLM engine and Llama2 tokenizer
@@ -65,7 +66,28 @@ async def generate(
     return final_output
 
 
-async def inference_loop():
+async def async_inference(
+    prompt,
+    num_prompt_tokens,
+    num_output_tokens,
+    request_id,
+    executor: ProcessPoolExecutor
+) -> str:
+    loop = asyncio.get_event_loop()
+
+    final_output = await loop.run_in_executor(
+        executor,
+        generate,
+        prompt,
+        num_prompt_tokens,
+        num_output_tokens,
+        request_id
+    )
+
+    return final_output
+
+
+async def inference_loop(executor: ProcessPoolExecutor):
     while True:
         prompt, curr_rate, seconds_per_rate, time_limit = await request_queue.get()
         print(f'INFERENCE_LOOP prompt: {prompt}, curr_rate: {curr_rate}, seconds_per_rate: {seconds_per_rate}, time_limit: {time_limit}')
@@ -80,11 +102,12 @@ async def inference_loop():
             request_queue.task_done()
             continue
 
-        final_output = await generate(
+        final_output = await async_inference(
             prompt[0],
             prompt[1],
             prompt[2],
-            request_id
+            request_id,
+            executor
         )
         result_enqueue_time = time.time()
         request_latency = result_enqueue_time - result_dequeue_time
