@@ -6,7 +6,7 @@ curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dear
   sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
   sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
-sudo sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-toolkit.list
+#sudo sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-toolkit.list
 sudo apt-get update
 sudo apt-get install -y nvidia-container-toolkit
 
@@ -24,3 +24,7 @@ sudo systemctl restart docker
 
 # TensorRT installation
 sudo docker run --rm --runtime=nvidia --gpus all --entrypoint /bin/bash -it nvidia/cuda:12.1.0-devel-ubuntu22.04
+sudo apt-get update
+sudo apt-get -y install python3.10 python3-pip openmpi-bin libopenmpi-dev
+pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com
+
