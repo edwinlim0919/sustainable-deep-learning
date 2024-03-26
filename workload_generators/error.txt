@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/dev/shm/sustainable-deep-learning/workload_generators/llama2_wrkgen.py", line 314, in <module>
+    asyncio.run(async_main(
+  File "/users/edwinlim/miniconda3/envs/vllm-env/lib/python3.9/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/users/edwinlim/miniconda3/envs/vllm-env/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+    return future.result()
+  File "/dev/shm/sustainable-deep-learning/workload_generators/llama2_wrkgen.py", line 71, in async_main
+    await request_queue.join()
+  File "/users/edwinlim/miniconda3/envs/vllm-env/lib/python3.9/asyncio/queues.py", line 223, in join
+    await self._finished.wait()
+  File "/users/edwinlim/miniconda3/envs/vllm-env/lib/python3.9/asyncio/locks.py", line 226, in wait
+    await fut
+RuntimeError: Task <Task pending name=Task-1 coro=<async_main() running at /dev/shm/sustainable-deep-learning/workload_generators/llama2_wrkgen.py:71> cb=[_run_until_complete_cb() at /users/edwinlim/miniconda3/envs/vllm-env/lib/python3.9/asyncio/base_events.py:184]> got Future <Future pending> attached to a different loop
+Task exception was never retrieved
+future: <Task finished name=Task-2 coro=<inference_loop() done, defined at /dev/shm/sustainable-deep-learning/nvidia-gpu/vllm/vllm_llama2_local.py:68> exception=RuntimeError("Task <Task pending name=Task-2 coro=<inference_loop() running at /dev/shm/sustainable-deep-learning/nvidia-gpu/vllm/vllm_llama2_local.py:70>> got Future <Future pending> attached to a different loop")>
+Traceback (most recent call last):
+  File "/dev/shm/sustainable-deep-learning/nvidia-gpu/vllm/vllm_llama2_local.py", line 70, in inference_loop
+    prompt, curr_rate, seconds_per_rate, time_limit = await request_queue.get()
+  File "/users/edwinlim/miniconda3/envs/vllm-env/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+RuntimeError: Task <Task pending name=Task-2 coro=<inference_loop() running at /dev/shm/sustainable-deep-learning/nvidia-gpu/vllm/vllm_llama2_local.py:70>> got Future <Future pending> attached to a different loop

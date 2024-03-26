@@ -7,6 +7,7 @@ import sys
 import numpy as np
 
 from transformers import AutoTokenizer
+from concurrent.futures import ProcessPoolExecutor
 
 sys.path.append('/dev/shm/sustainable-deep-learning/nvidia-gpu/vllm')
 import vllm_llama2_local
@@ -42,7 +43,9 @@ async def async_main(
     request_queue: asyncio.Queue,
     result_queue: asyncio.Queue
 ):
-    inference_worker = asyncio.create_task(vllm_llama2_local.inference_loop())
+    executor = ProcessPoolExecutor()
+    worker = asyncio.create_task(vllm_llama2_local.inference_loop(executor))
+    #worker = asyncio.create_task(vllm_llama2_local.inference_loop())
 
     for curr_rate in rate_list:
         print(f'ASYNC_MAIN curr_rate: {curr_rate}')
@@ -75,7 +78,8 @@ async def async_main(
             result_queue
         )
 
-    inference_worker.cancel()
+    worker.cancel()
+    executor.shutdown()
 
 
 # General Llama2 prompt formatting given a list of message dicts
