@@ -13,10 +13,10 @@ sudo apt-get install -y nvidia-container-toolkit
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 
-#nvidia-ctk runtime configure --runtime=docker --config=$HOME/.config/docker/daemon.json
-#sudo systemctl restart docker
-#sudo nvidia-ctk config --set nvidia-container-cli.no-cgroups --in-place
-#
+nvidia-ctk runtime configure --runtime=docker --config=$HOME/.config/docker/daemon.json
+sudo systemctl restart docker
+sudo nvidia-ctk config --set nvidia-container-cli.no-cgroups --in-place
+
 #sudo nvidia-ctk runtime configure --runtime=containerd
 #sudo systemctl restart containerd
 
