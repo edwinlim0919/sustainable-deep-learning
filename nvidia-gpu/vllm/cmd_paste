@@ -1,3 +1,5 @@
 python3 vllm_llama2_local.py --test-prompt "what is the capitol of the United States?" --model meta-llama/Llama-2-7b-chat-hf --seed 42 --disable-log-requests
 
 python3 test_vllm_llama2_local.py --test-prompt "what is the capitol of the United States?" --test-output "\nWashington, D.C. is the capitol of the United States" --model meta-llama/Llama-2-7b-chat-hf --seed 42 --disable-log-requests
+
+python3 int4_llama2_local.py --dataset-path ShareGPT_V3_unfiltered_cleaned_split_top100.json --output-file-path testing_d8545_1_10_60_2_8_2 --num-requests-sample 10 --seconds-per-rate 60 --start-rate 2 --end-rate 8 --increase-rate 2 --wrkgen-seed 42 --model meta-llama/Llama-2-7b-chat-hf --seed 42 --disable-log-requests
