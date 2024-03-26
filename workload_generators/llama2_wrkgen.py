@@ -39,8 +39,8 @@ async def async_main(
     seconds_per_rate: int,
     rate_list: list[float],
     output_file_path: str,
-    request_queue: Queue,
-    result_queue: Queue
+    request_queue: asyncio.Queue,
+    result_queue: asyncio.Queue
 ):
     inference_worker = asyncio.create_task(vllm_llama2_local.inference_loop())
 
@@ -259,13 +259,12 @@ if __name__ == '__main__':
         nargs='+',
         help='a list of request rates for the experiment'
     )
-
-    #parser.add_argument(
-    #    '--wrkgen-seed',
-    #    required=True,
-    #    type=int,
-    #    help='random seed for experiment reproducibility'
-    #)
+    parser.add_argument(
+        '--wrkgen-seed',
+        required=True,
+        type=int,
+        help='random seed for experiment reproducibility'
+    )
 
     # TODO Need to change this to incorporate other frameworks
     parser = vllm_llama2_local.add_cli_args_wrapper(parser)
@@ -310,14 +309,14 @@ if __name__ == '__main__':
     print(f'start_rate: {args.start_rate}')
     print(f'end_rate: {args.end_rate}')
     print(f'increase_rate: {args.increase_rate}')
-    print(f'output_file_path_prefix: {args.output_file_path}')
+    print(f'output_file_path: {args.output_file_path}')
     print(f'seconds_per_rate: {args.seconds_per_rate}')
     asyncio.run(async_main(
         sampled_prompts,
         sampled_prompts_len,
         args.seconds_per_rate,
         rate_list,
-        full_output_file_path,
+        args.output_file_path,
         request_queue,
         result_queue
     ))

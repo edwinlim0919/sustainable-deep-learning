@@ -1,5 +1,6 @@
 import time
 import sys
+import asyncio
 
 from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
