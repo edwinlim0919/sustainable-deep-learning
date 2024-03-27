@@ -15,6 +15,12 @@ You may need to log out of the node and log back in to see env changes take affe
 yes | source ./env.sh && yes | source ./setup.sh
 ```
 
+# OpenVINO Setup
+```bash
+cd /dev/shm/sustainable-deep-learning/intel-cpu/OpenVINO
+source ./setup-openvino.sh
+```
+
 # NVIDIA GPU Setup (CUDA 12.1)
 ```bash
 # This will also reboot your node and you will likely need to re-clone this repo in /dev/shm
