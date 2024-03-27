@@ -37,3 +37,4 @@ sudo apt-get -y install python3.10 python3-pip openmpi-bin libopenmpi-dev
 pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com
 
 git clone git@github.com:NVIDIA/TensorRT-LLM.git
+#git clone git@github.com:huggingface/transformers.git
