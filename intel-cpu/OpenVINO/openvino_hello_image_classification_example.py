@@ -41,4 +41,29 @@ device = widgets.Dropdown(
 print(device)
 
 
+core = ov.Core()
+model = core.read_model(model=model_xml_path)
+compiled_model = core.compile_model(model=model, device_name=device.value)
+output_layer = compiled_model.output(0)
 
+
+image_filename = download_file(
+    "https://storage.openvinotoolkit.org/repositories/openvino_notebooks/data/data/image/coco.jpg",
+    directory="data"
+)
+image = cv2.cvtColor(cv2.imread(filename=str(image_filename)), code=cv2.COLOR_BGR2RGB)
+input_image = cv2.resize(src=image, dsize=(224, 224))
+input_image = np.expand_dims(input_image, 0)
+
+
+result_infer = compiled_model([input_image])[output_layer]
+result_index = np.argmax(result_infer)
+imagenet_filename = download_file(
+    "https://storage.openvinotoolkit.org/repositories/openvino_notebooks/data/data/datasets/imagenet/imagenet_2012.txt",
+    directory="data"
+)
+imagenet_classes = imagenet_filename.read_text().splitlines()
+
+
+imagenet_classes = ['background'] + imagenet_classes
+print(imagenet_classes[result_index])
