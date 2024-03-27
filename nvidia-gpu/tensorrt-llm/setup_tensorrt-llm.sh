@@ -5,7 +5,6 @@ curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dear
 && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
   sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
   sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-
 #sudo sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-toolkit.list
 sudo apt-get update
 sudo apt-get install -y nvidia-container-toolkit
@@ -13,14 +12,18 @@ sudo apt-get install -y nvidia-container-toolkit
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 
-nvidia-ctk runtime configure --runtime=docker --config=$HOME/.config/docker/daemon.json
-sudo systemctl restart docker
-sudo nvidia-ctk config --set nvidia-container-cli.no-cgroups --in-place
+sudo apt-get update
+sudo apt install openmpi-bin openmpi-common libopenmpi-dev
+#nvidia-ctk runtime configure --runtime=docker --config=$HOME/.config/docker/daemon.json
+#sudo systemctl restart docker
+#sudo nvidia-ctk config --set nvidia-container-cli.no-cgroups --in-place
 
 #sudo nvidia-ctk runtime configure --runtime=containerd
 #sudo systemctl restart containerd
 
-
+conda create --name tensorrt-llm python=3.10
+conda activate tensorrt-llm
+conda install mpi4py
 
 # TensorRT installation
 sudo docker run --rm --runtime=nvidia --gpus all --entrypoint /bin/bash -it nvidia/cuda:12.1.0-devel-ubuntu22.04
