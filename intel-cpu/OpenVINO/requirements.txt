@@ -1,0 +1,9 @@
+openvino==2024.0.0
+opencv-python
+matplotlib
+IPython
+tqdm
+requests
+IProgress
+jupyter
+ipywidgets
