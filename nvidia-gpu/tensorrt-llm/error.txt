@@ -1,0 +1,48 @@
+Collecting torch<=2.3.0a,>=2.2.0a (from tensorrt_llm)
+  Downloading torch-2.2.1-cp312-cp312-manylinux1_x86_64.whl.metadata (26 kB)
+INFO: pip is looking at multiple versions of tensorrt-llm to determine which version is compatible with other requirements. This could take a while.
+Collecting tensorrt_llm
+  Downloading tensorrt_llm-0.9.0.dev2024031900.tar.gz (1.1 kB)
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Preparing metadata (pyproject.toml) ... done
+  Downloading tensorrt-llm-0.9.0.dev2024031200.tar.gz (6.9 kB)
+  Preparing metadata (setup.py) ... error
+  error: subprocess-exited-with-error
+
+  × python setup.py egg_info did not run successfully.
+  │ exit code: 1
+  ╰─> [6 lines of output]
+      Traceback (most recent call last):
+        File "<string>", line 2, in <module>
+        File "<pip-setuptools-caller>", line 34, in <module>
+        File "/tmp/pip-install-emmwgmce/tensorrt-llm_4569e3ca4a854f2d971df5a0ebd06d29/setup.py", line 90, in <module>
+          raise RuntimeError("Bad params")
+      RuntimeError: Bad params
+      [end of output]
+
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+error: metadata-generation-failed
+
+× Encountered error while generating package metadata.
+╰─> See above for output.
+
+note: This is an issue with the package mentioned above, not pip.
+hint: See above for details.
+
+
+
+
+
+
+      collect2: error: ld returned 1 exit status
+      failure.
+      removing: _configtest.c _configtest.o
+      error: Cannot link MPI programs. Check your configuration!!!
+      [end of output]
+
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+  ERROR: Failed building wheel for mpi4py
+Successfully built tensorrt
+Failed to build mpi4py
+ERROR: Could not build wheels for mpi4py, which is required to install pyproject.toml-based project
