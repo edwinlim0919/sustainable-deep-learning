@@ -10,12 +10,13 @@ cd sustainable-deep-learning
 ```
 
 Next, set up some bash environment stuff.
-You may need to log out of the node and log back in to see env changes take affect.
+You may need to log out of the node and log back in to see env changes take effect.
 ```bash
 yes | source ./env.sh && yes | source ./setup.sh
 ```
 
 # OpenVINO Setup
+You may need to answer 'y' to some prompts, and log back in to see env changes take effect.
 ```bash
 cd /dev/shm/sustainable-deep-learning/intel-cpu/OpenVINO
 source ./setup-openvino.sh
