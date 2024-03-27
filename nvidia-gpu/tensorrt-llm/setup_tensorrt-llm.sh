@@ -14,6 +14,11 @@ sudo systemctl restart docker
 
 sudo apt-get update
 sudo apt install openmpi-bin openmpi-common libopenmpi-dev
+
+sudo apt-get update
+sudo apt-get install git-lfs
+git lfs install
+
 #nvidia-ctk runtime configure --runtime=docker --config=$HOME/.config/docker/daemon.json
 #sudo systemctl restart docker
 #sudo nvidia-ctk config --set nvidia-container-cli.no-cgroups --in-place
@@ -31,3 +36,4 @@ sudo apt-get update
 sudo apt-get -y install python3.10 python3-pip openmpi-bin libopenmpi-dev
 pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com
 
+git clone git@github.com:NVIDIA/TensorRT-LLM.git
