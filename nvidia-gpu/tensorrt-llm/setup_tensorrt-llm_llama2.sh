@@ -15,5 +15,7 @@ pip install -r requirements.txt
 
 python3 convert_checkpoint.py --model_dir $MODEL_WEIGHT_DIR --output_dir ./tllm_checkpoint_1gpu_fp16 --dtype float16
 
+trtllm-build --checkpoint_dir ./tllm_checkpoint_1gpu_fp16 --output_dir ./tmp/llama/7B/trt_engines/fp16/1-gpu --gemm_plugin float16
 # To run:
 # python3 ../run.py --max_output_len=50 --tokenizer_dir ../../../meta-llama/Llama-2-7b-chat-hf_tokenizer --engine_dir=./tllm_checkpoint_1gpu_fp16
+#
