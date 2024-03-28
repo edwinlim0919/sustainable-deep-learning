@@ -2,3 +2,4 @@ TensorRT-LLM/
 meta-llama/
 transformers/
 tensorrtllm_backend/
+server/
