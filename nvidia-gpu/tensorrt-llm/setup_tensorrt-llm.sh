@@ -38,3 +38,18 @@ pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com
 
 git clone git@github.com:NVIDIA/TensorRT-LLM.git
 #git clone git@github.com:huggingface/transformers.git
+
+
+# TensorRT-LLM Backend
+#git@github.com:triton-inference-server/tensorrtllm_backend.git
+#BASE_IMAGE=nvcr.io/nvidia/tritonserver:24.01-py3-min
+#TRT_VERSION=9.2.0.5
+#TRT_URL_x86=https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/9.2.0/tensorrt-9.2.0.5.linux.x86_64-gnu.cuda-12.2.tar.gz
+#TRT_URL_ARM=https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/9.2.0/tensorrt-9.2.0.5.Ubuntu-22.04.aarch64-gnu.cuda-12.2.tar.gz
+#
+#sudo docker build -t trtllm_base \
+#--build-arg BASE_IMAGE="${BASE_IMAGE}" \
+#--build-arg TRT_VER="${TRT_VERSION}" \
+#--build-arg RELEASE_URL_TRT_x86="${TRT_URL_x86}" \
+#--build-arg RELEASE_URL_TRT_ARM="${TRT_URL_ARM}" \
+#-f dockerfile/Dockerfile.triton.trt_llm_backend .
