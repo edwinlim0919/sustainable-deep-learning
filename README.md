@@ -40,7 +40,7 @@ sudo ./nvidia-setup.sh https://developer.download.nvidia.com/compute/cuda/12.2.0
 ```
 
 # NVIDIA TensorRT-LLM + Triton Inference backend setup
-First, follow the instructions from the link below to increase the size of your Linux root filesystem partition (100-200 GB recommended).
+First, follow the instructions from the link below to increase the size of your Linux root filesystem partition (~200 GB recommended).
 https://www.privex.io/articles/how-to-resize-partition/
 
 Then, run the following script to setup the TensorRT-LLM backend.
