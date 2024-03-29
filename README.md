@@ -45,7 +45,8 @@ https://www.privex.io/articles/how-to-resize-partition/
 
 Then, run the following script to setup the TensorRT-LLM backend.
 ```bash
-
+cd /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+source ./setup_tensorrtllm_backend.sh
 ```
 
 ## vLLM Setup
