@@ -1,8 +1,8 @@
 # Sustainable Deep Learning
-Scripting for running deep learning sustainability experiments on various hardware platforms
+This repository contains scripts for running deep learning sustainability experiments on various hardware platforms.
 
 # Base Setup
-First, clone the repository
+First, clone the repository.
 ```bash
 cd /dev/shm
 git clone git@github.com:edwinlim0919/sustainable-deep-learning.git
@@ -23,6 +23,7 @@ source ./setup-openvino.sh
 ```
 
 # NVIDIA GPU Setup
+To use NVIDIA GPUs, remove nouveau from Linux and install NVIDIA CUDA drivers.
 ```bash
 # This will also reboot your node and you will likely need to re-clone this repo in /dev/shm
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu
@@ -39,8 +40,13 @@ sudo ./nvidia-setup.sh https://developer.download.nvidia.com/compute/cuda/12.2.0
 ```
 
 # NVIDIA TensorRT-LLM + Triton Inference backend setup
-First, follow the instructions from the link below to increase the size of your Linux root filesystem partition
+First, follow the instructions from the link below to increase the size of your Linux root filesystem partition (100-200 GB recommended).
 https://www.privex.io/articles/how-to-resize-partition/
+
+Then, run the following script to setup the TensorRT-LLM backend.
+```bash
+
+```
 
 ## vLLM Setup
 conda create --name  vllm-env python=3.9

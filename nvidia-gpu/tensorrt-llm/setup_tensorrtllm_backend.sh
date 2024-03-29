@@ -16,6 +16,7 @@ sudo docker build -t trtllm_base \
 	-f dockerfile/Dockerfile.triton.trt_llm_backend .
 
 cd ../
+git clone git@github.com:triton-inference-server/server.git
 conda create --name tensorrtllm_backend python=3.10
 conda activate tensorrtllm_backend
 pip install -r requirements.txt
@@ -36,3 +37,10 @@ sudo $PYPATH -v --no-container-interactive --enable-logging --enable-stats --ena
 	--image=base,${TRTLLM_BASE_IMAGE} \
 	--backend=tensorrtllm:${TENSORRTLLM_BACKEND_REPO_TAG} \
 	--backend=python:${PYTHON_BACKEND_REPO_TAG}
+
+# Initialize TensorRT-LLM submodule
+cd ../tensorrtllm_backend
+sudo apt-get install git-lfs
+git submodule update --init --recursive
+git lfs install
+git lfs pull
