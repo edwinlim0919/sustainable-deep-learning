@@ -28,16 +28,19 @@ source ./setup-openvino.sh
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu
 sudo ./remove-nouveau.sh
 
-# This script will reboot your node as well (example provided below)
+# This script will reboot your node as well (examples provided below)
 # Figure out which version of CUDA 12.1 to use for your machine from here: https://developer.nvidia.com/cuda-12-1-0-download-archive
 # CUDA 12.1
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu
 sudo ./nvidia-setup.sh https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run cuda_12.1.0_530.30.02_linux.run
-
 # CUDA 12.2
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu
 sudo ./nvidia-setup.sh https://developer.download.nvidia.com/compute/cuda/12.2.0/local_installers/cuda_12.2.0_535.54.03_linux.run cuda_12.2.0_535.54.03_linux.run
 ```
+
+# NVIDIA TensorRT-LLM + Triton Inference backend setup
+First, follow the instructions from the link below to increase the size of your Linux root filesystem partition
+https://www.privex.io/articles/how-to-resize-partition/
 
 ## vLLM Setup
 conda create --name  vllm-env python=3.9
