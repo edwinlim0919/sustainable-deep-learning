@@ -30,3 +30,7 @@ sed -i 's|\${tokenizer_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensor
 # Launch Triton server
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend
 sudo docker run --rm -it --net host --shm-size=2g --ulimit memlock=-1 --ulimit stack=67108864 --gpus all -v /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend:/tensorrtllm_backend tritonserver bash
+
+# Inside the container
+cd /tensorrtllm_backend
+python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/tensorrtllm_backend/triton_model_repo
