@@ -17,3 +17,16 @@ python3 ../summarize.py --test_trt_llm --hf_model_dir /dev/shm/sustainable-deep-
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend
 cp -r all_models/inflight_batcher_llm/* triton_model_repo/
 cp tensorrt_llm/examples/llama/tmp/llama/7B/trt_engines/fp16/1-gpu/* triton_model_repo/tensorrt_llm/1
+
+# Modify the model configuration
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend
+sed -i 's|\${tokenizer_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/meta-llama/Llama-2-7b-chat-hf_tokenizer|g' triton_model_repo/preprocessing/config.pbtxt
+sed -i 's|\${batching_strategy}|inflight_fused_batching|g' triton_model_repo/tensorrt_llm/config.pbtxt
+sed -i 's|\${engine_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend/triton_model_repo/tensorrt_llm/1|g' triton_model_repo/tensorrt_llm/config.pbtxt
+sed -i 's|\${batch_scheduler_policy}|max_utilization|g' triton_model_repo/tensorrt_llm/config.pbtxt
+sed -i 's|\${gpu_device_ids}|0|g' triton_model_repo/tensorrt_llm/config.pbtxt
+sed -i 's|\${tokenizer_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/meta-llama/Llama-2-7b-chat-hf_tokenizer|g' triton_model_repo/postprocessing/config.pbtxt
+
+# Launch Triton server
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend
+sudo docker run --rm -it --net host --shm-size=2g --ulimit memlock=-1 --ulimit stack=67108864 --gpus all -v /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend:/tensorrtllm_backend tritonserver bash
