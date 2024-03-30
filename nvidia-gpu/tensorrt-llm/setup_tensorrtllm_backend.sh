@@ -57,7 +57,10 @@ sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 sudo apt-get update
 sudo apt install openmpi-bin openmpi-common libopenmpi-dev
+
+sudo nvidia-persistenced --user root
 sudo docker run --rm --runtime=nvidia --gpus all --entrypoint /bin/bash -it nvidia/cuda:12.2.0-devel-ubuntu22.04
+exit
 sudo apt-get update
 sudo apt-get -y install python3.10 python3-pip openmpi-bin libopenmpi-dev
 pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com

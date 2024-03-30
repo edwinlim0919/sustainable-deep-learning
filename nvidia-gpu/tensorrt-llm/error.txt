@@ -46,3 +46,12 @@ hint: See above for details.
 Successfully built tensorrt
 Failed to build mpi4py
 ERROR: Could not build wheels for mpi4py, which is required to install pyproject.toml-based project
+
+
+
+
+
+
+
+docker: Error response from daemon: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error running hook #0: error running hook: exit status 1, stdout: , stderr: Auto-detected mode as 'legacy'
+nvidia-container-cli: initialization error: driver rpc error: timed out: unknown.
