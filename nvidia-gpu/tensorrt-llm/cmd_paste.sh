@@ -59,3 +59,25 @@ sudo docker run --rm -it --net host --shm-size=2g --ulimit memlock=-1 --ulimit s
 # Inside the container
 cd /tensorrtllm_backend
 python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/tensorrtllm_backend/triton_model_repo
+
+
+
+
+
+# TensorRT-LLM standalone
+
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/TensorRT-LLM
+sudo make -C docker release_run # starts the NVIDIA docker container
+
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker ps # tells you NVIDIA docker container id
+python3 download_hf_weights.py --model-name "meta-llama/Llama-2-7b-chat-hf"
+sudo docker cp meta-llama/ 5742c720375f:/app/tensorrt_llm/examples/llama
+
+# /app/tensorrt_llm/examples/llama
+python convert_checkpoint.py --model_dir meta-llama/Llama-2-7b-chat-hf_model --dtype float16 --output_dir ./llama/7B/trt_ckpt/fp16/1-gpu/
+trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu/
+python ../summarize.py --test_trt_llm --hf_model_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer --data_type fp16 --engine_dir ./llama/7B/trt_engines/fp16/1-gpu/
+
+#sudo docker cp docker_cp_test.txt 5742c720375f:/app/tensorrt_llm/examples/llama
+
