@@ -18,8 +18,12 @@ python3 ../summarize.py --test_trt_llm --hf_model_dir /dev/shm/sustainable-deep-
 cp -r all_models/inflight_batcher_llm/* triton_model_repo/
 cp tensorrt_llm/examples/llama/tmp/llama/7B/trt_engines/fp16/1-gpu/* triton_model_repo/tensorrt_llm/1
 
+# Copy Llama2 tokenizer to inference server model repo
+mkdir tensorrt_llm/examples/llama/llama2/
+cp -r /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/meta-llama/Llama-2-7b-chat-hf_tokenizer/* tensorrt_llm/examples/llama/llama2/
+
 # Modify the model configuration
-# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend <-> /tensorrtllm_backend
 # max_batch_size: 1 (scale this up)
 # postprocessing_instance_count (CPUs): 8 (arbitrary)
 # preprocessing_instance_count (CPUs): 8 (arbitrary)
@@ -28,12 +32,12 @@ cp tensorrt_llm/examples/llama/tmp/llama/7B/trt_engines/fp16/1-gpu/* triton_mode
 # max_queue_delay_microseconds: 3600000000 (1 hour)
 sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/ensemble/config.pbtxt
 
-sed -i 's|\${tokenizer_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/meta-llama/Llama-2-7b-chat-hf_tokenizer|g' triton_model_repo/preprocessing/config.pbtxt
+sed -i 's|\${tokenizer_dir}|/tensorrtllm_backend/tensorrt_llm/examples/llama/llama2|g' triton_model_repo/preprocessing/config.pbtxt
 sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/preprocessing/config.pbtxt
 sed -i 's|\${preprocessing_instance_count}|8|g' triton_model_repo/preprocessing/config.pbtxt
 
 sed -i 's|\${batching_strategy}|inflight_fused_batching|g' triton_model_repo/tensorrt_llm/config.pbtxt
-sed -i 's|\${engine_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend/triton_model_repo/tensorrt_llm/1|g' triton_model_repo/tensorrt_llm/config.pbtxt
+sed -i 's|\${engine_dir}|/tensorrtllm_backend/triton_model_repo/tensorrt_llm/1|g' triton_model_repo/tensorrt_llm/config.pbtxt
 sed -i 's|\${batch_scheduler_policy}|max_utilization|g' triton_model_repo/tensorrt_llm/config.pbtxt
 sed -i 's|\${gpu_device_ids}|0|g' triton_model_repo/tensorrt_llm/config.pbtxt
 sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/tensorrt_llm/config.pbtxt
@@ -44,7 +48,7 @@ sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/tensorrt_llm_bls/conf
 sed -i 's|\${decoupled_mode}|false|g' triton_model_repo/tensorrt_llm_bls/config.pbtxt
 sed -i 's|\${bls_instance_count}|8|g' triton_model_repo/tensorrt_llm_bls/config.pbtxt
 
-sed -i 's|\${tokenizer_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/meta-llama/Llama-2-7b-chat-hf_tokenizer|g' triton_model_repo/postprocessing/config.pbtxt
+sed -i 's|\${tokenizer_dir}|/tensorrtllm_backend/tensorrt_llm/examples/llama/llama2|g' triton_model_repo/postprocessing/config.pbtxt
 sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/postprocessing/config.pbtxt
 sed -i 's|\${postprocessing_instance_count}|8|g' triton_model_repo/postprocessing/config.pbtxt
 
