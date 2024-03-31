@@ -20,12 +20,33 @@ cp tensorrt_llm/examples/llama/tmp/llama/7B/trt_engines/fp16/1-gpu/* triton_mode
 
 # Modify the model configuration
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend
+# max_batch_size: 1 (scale this up)
+# postprocessing_instance_count (CPUs): 8 (arbitrary)
+# preprocessing_instance_count (CPUs): 8 (arbitrary)
+# bls_instance_count (CPUs): 8 (arbitrary)
+# decoupled: false
+# max_queue_delay_microseconds: 3600000000 (1 hour)
+sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/ensemble/config.pbtxt
+
 sed -i 's|\${tokenizer_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/meta-llama/Llama-2-7b-chat-hf_tokenizer|g' triton_model_repo/preprocessing/config.pbtxt
+sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/preprocessing/config.pbtxt
+sed -i 's|\${preprocessing_instance_count}|8|g' triton_model_repo/preprocessing/config.pbtxt
+
 sed -i 's|\${batching_strategy}|inflight_fused_batching|g' triton_model_repo/tensorrt_llm/config.pbtxt
 sed -i 's|\${engine_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend/triton_model_repo/tensorrt_llm/1|g' triton_model_repo/tensorrt_llm/config.pbtxt
 sed -i 's|\${batch_scheduler_policy}|max_utilization|g' triton_model_repo/tensorrt_llm/config.pbtxt
 sed -i 's|\${gpu_device_ids}|0|g' triton_model_repo/tensorrt_llm/config.pbtxt
+sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/tensorrt_llm/config.pbtxt
+sed -i 's|\${decoupled_mode}|false|g' triton_model_repo/tensorrt_llm/config.pbtxt
+sed -i 's|\${max_queue_delay_microseconds}|3600000000|g' triton_model_repo/tensorrt_llm/config.pbtxt
+
+sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/tensorrt_llm_bls/config.pbtxt
+sed -i 's|\${decoupled_mode}|false|g' triton_model_repo/tensorrt_llm_bls/config.pbtxt
+sed -i 's|\${bls_instance_count}|8|g' triton_model_repo/tensorrt_llm_bls/config.pbtxt
+
 sed -i 's|\${tokenizer_dir}|/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/meta-llama/Llama-2-7b-chat-hf_tokenizer|g' triton_model_repo/postprocessing/config.pbtxt
+sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/postprocessing/config.pbtxt
+sed -i 's|\${postprocessing_instance_count}|8|g' triton_model_repo/postprocessing/config.pbtxt
 
 # Launch Triton server
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend
