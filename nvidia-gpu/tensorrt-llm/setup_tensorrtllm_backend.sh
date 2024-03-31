@@ -4,6 +4,7 @@
 git clone git@github.com:triton-inference-server/tensorrtllm_backend.git
 cd tensorrtllm_backend
 
+# 9.3.0.1
 BASE_IMAGE=nvcr.io/nvidia/tritonserver:24.01-py3-min
 TRT_VERSION=9.2.0.5
 TRT_URL_x86=https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/9.2.0/tensorrt-9.2.0.5.linux.x86_64-gnu.cuda-12.2.tar.gz
@@ -28,7 +29,7 @@ PYTHON_BACKEND_REPO_TAG=r24.01
 
 PYPATH=$(which python3)
 cd server/
-sudo $PYPATH -v --no-container-interactive --enable-logging --enable-stats --enable-tracing \
+sudo $PYPATH build.py -v --no-container-interactive --enable-logging --enable-stats --enable-tracing \
 	--enable-metrics --enable-gpu-metrics --enable-cpu-metrics \
 	--filesystem=gcs --filesystem=s3 --filesystem=azure_storage \
 	--endpoint=http --endpoint=grpc --endpoint=sagemaker --endpoint=vertex-ai \
