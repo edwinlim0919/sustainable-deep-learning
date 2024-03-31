@@ -1,2 +1,3 @@
-requests
-chardet
+transformers
+torch
+argparse
