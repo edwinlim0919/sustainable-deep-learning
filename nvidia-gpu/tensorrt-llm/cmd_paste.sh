@@ -84,6 +84,6 @@ sudo docker cp benchmarking/benchmark_trtllm.py 5742c720375f:/app/tensorrt_llm/e
 sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json 5742c720375f:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split.json
 
 # /app/tensorrt_llm/examples/llama
-python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer/ --engine_dir ./llama/7B/trt_engines/fp16/1-gpu/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json
+python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer/ --engine_dir ./llama/7B/trt_engines/fp16/1-gpu/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir ./outputs/llama/7B/fp16/1-gpu 
 
 #sudo docker cp docker_cp_test.txt 5742c720375f:/app/tensorrt_llm/examples/llama
