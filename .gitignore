@@ -4,3 +4,4 @@ scripts/get-pip.py
 __pycache__/
 *.zip
 cuda_*
+ShareGPT_V3_unfiltered_cleaned_split.json
