@@ -20,8 +20,38 @@ from tensorrt_llm.models.qwen.utils import make_context
 from tensorrt_llm.runtime import PYTHON_BINDINGS, ModelRunner
 from tensorrt_llm.tools.ppl import ppl
 
+import benchmark_utils
+
 if PYTHON_BINDINGS:
     from tensorrt_llm.runtime import ModelRunnerCpp
+
+
+def main(args):
+    runtime_rank = tensorrt_llm.mpi_rank()
+    logger.set_level(args.log_level)
+    model_name, model_version = read_model_name(args.engine_dir)
+    logger.info(f'benchmark_trtllm main model_name: {model_name}')
+    logger.info(f'benchmark_trtllm main model_version: {model_version}')
+
+    profiler.start('load tokenizer')
+    tokenizer, pad_id, end_id = load_tokenizer(
+        tokenizer_dir=args.tokenizer_dir,
+        vocab_file=None,
+        model_name=model_name,
+        model_version=model_version
+    )
+    profiler.stop('load tokenizer')
+    logger.info(f'Load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
+
+    sampled_prompts = benchmark_utils.sample_dataset_prompts(
+        args.dataset_path,
+        args.num_requests_sample,
+        tokenizer
+    )
+    sampled_prompts_len = len(sampled_prompts)
+    logger.info(f'benchmark_trtllm main sampled_prompts_len: {sampled_prompts_len}')
+    for sampled_prompt in sampled_prompts:
+        logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
 
 
 if __name__ == '__main__':
@@ -43,6 +73,12 @@ if __name__ == '__main__':
         type=str,
         required=True,
         help='dataset path'
+    )
+    parser.add_argument(
+        '--num_requests_sample',
+        type=int,
+        required=True,
+        help='number of prompts to sample from dataset'
     )
     parser.add_argument(
         '--max_batch_size',
@@ -107,8 +143,8 @@ if __name__ == '__main__':
         action='store_true',
         help='Whether or not to add special tokens'
     )
+    parser.add_argument('--log_level', type=str, default='info')
     args = parser.parse_args()
 
     print('Hello Docker! (fuck you)')
-
-    #main(args)
+    main(args)
