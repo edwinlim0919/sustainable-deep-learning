@@ -79,5 +79,11 @@ python convert_checkpoint.py --model_dir meta-llama/Llama-2-7b-chat-hf_model --d
 trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu/
 python ../summarize.py --test_trt_llm --hf_model_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer --data_type fp16 --engine_dir ./llama/7B/trt_engines/fp16/1-gpu/
 
-#sudo docker cp docker_cp_test.txt 5742c720375f:/app/tensorrt_llm/examples/llama
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp benchmarking/benchmark_trtllm.py 5742c720375f:/app/tensorrt_llm/examples/benchmark_trtllm.py
+sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json 5742c720375f:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split.json
 
+# /app/tensorrt_llm/examples/llama
+python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer/ --engine_dir ./llama/7B/trt_engines/fp16/1-gpu/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json
+
+#sudo docker cp docker_cp_test.txt 5742c720375f:/app/tensorrt_llm/examples/llama

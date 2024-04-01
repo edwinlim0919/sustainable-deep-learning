@@ -1,4 +1,4 @@
-# Adapted from TensorRT-LLM/examples/summarize.py
+# Adapted from TensorRT-LLM/examples/summarize.py for LLM benchmarking
 # TODO: Get rid of unused imports
 
 import argparse
@@ -22,7 +22,6 @@ from tensorrt_llm.tools.ppl import ppl
 
 if PYTHON_BINDINGS:
     from tensorrt_llm.runtime import ModelRunnerCpp
-
 
 
 if __name__ == '__main__':
@@ -100,14 +99,16 @@ if __name__ == '__main__':
         '--debug_mode',
         default=False,
         action='store_true',
-        help="whether or not to turn on the debug mode"
+        help='whether or not to turn on the debug mode'
     )
     parser.add_argument(
         '--add_special_tokens',
         default=False,
         action='store_true',
-        help="Whether or not to add special tokens"
+        help='Whether or not to add special tokens'
     )
     args = parser.parse_args()
+
+    print('Hello Docker! (fuck you)')
 
     #main(args)
