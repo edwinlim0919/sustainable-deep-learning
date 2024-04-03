@@ -15,12 +15,12 @@ B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
 DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
 
 
-def prepare_inputs(batch_input_texts: List[str],
+def prepare_inputs(batch_input_texts: list[str],
                    add_special_tokens: bool,
                    tokenizer: AutoTokenizer,
                    max_input_tokens: int
 ):
-    batch_input_ids = tokenizer.encode(
+    batch_input_ids = tokenizer(
         batch_input_texts,
         return_tensors='pt',
         add_special_tokens=add_special_tokens,
@@ -183,9 +183,9 @@ def sample_dataset_prompts(
 
     # Tokenize the prompts and completions
     prompts = [data[0]['content'] for data in dataset]
-    prompt_token_ids = tokenizer.encode(prompts).input_ids
+    prompt_token_ids = tokenizer(prompts).input_ids
     completions = [data[1]['content'] for data in dataset]
-    completion_token_ids = tokenizer.encode(completions).input_ids
+    completion_token_ids = tokenizer(completions).input_ids
 
     # Filter out too long or too short sequences
     # Real limit is 1020 for prompts, but doing 1000 just to make sure

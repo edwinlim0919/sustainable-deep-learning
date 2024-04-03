@@ -91,7 +91,12 @@ def main(args):
         metric_tensorrt_llm[i].seed = random_seed
     ppls_trt_llm = [[] for _ in range(num_beams)]
 
-    sampled_prompt_tokens = benchmark_utils.prepare_inputs(sampled_prompts_text_only)
+    sampled_prompt_tokens = benchmark_utils.prepare_inputs(
+        sampled_prompts_text_only,
+        args.add_special_tokens,
+        tokenizer,
+        max_input_tokens
+    )
     logger.info(f'sampled_prompt_tokens: {sampled_prompt_tokens}')
 
 
