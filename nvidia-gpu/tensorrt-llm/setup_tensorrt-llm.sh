@@ -20,6 +20,7 @@ git lfs install
 
 conda create --name tensorrt-llm python=3.10
 conda activate tensorrt-llm
+pip install -r requirements.txt
 #conda install mpi4py
 
 git clone https://github.com/NVIDIA/TensorRT-LLM.git

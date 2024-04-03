@@ -33,6 +33,7 @@ def main(args):
     logger.info(f'benchmark_trtllm main model_name: {model_name}')
     logger.info(f'benchmark_trtllm main model_version: {model_version}')
 
+    # Loading tokenizer
     profiler.start('load tokenizer')
     tokenizer, pad_id, end_id = load_tokenizer(
         tokenizer_dir=args.tokenizer_dir,
@@ -43,6 +44,7 @@ def main(args):
     profiler.stop('load tokenizer')
     logger.info(f'Load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
 
+    # Sampling the dataset
     sampled_prompts = benchmark_utils.sample_dataset_prompts(
         args.dataset_path,
         args.num_requests_sample,
@@ -50,8 +52,39 @@ def main(args):
     )
     sampled_prompts_len = len(sampled_prompts)
     logger.info(f'benchmark_trtllm main sampled_prompts_len: {sampled_prompts_len}')
-    for sampled_prompt in sampled_prompts:
-        logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
+    #for sampled_prompt in sampled_prompts:
+    #    logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
+
+    # runtime parameters
+    max_batch_size = args.max_batch_size
+    top_k = args.top_k
+    top_p = args.top_p
+    max_output_tokens = args.max_output_tokens
+    max_input_tokens = args.max_input_tokens
+    max_attention_window_size = args.max_attention_window_size
+    sink_token_length = args.sink_token_length
+
+    random_seed = args.random_seed
+    temperature = args.temperature
+    num_beams = args.num_beams
+    length_penalty = args.length_penalty
+    early_stopping = args.early_stopping
+    repetition_penalty = args.repetition_penalty
+    presence_penalty = args.presence_penalty
+    frequency_penalty = args.frequency_penalty
+
+    logger.info(f'Creating output directory {args.output_dir} w/ file {args.output_file}')
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(exist_ok=True, parents=True)
+    with (output_dir / args.output_file).open('w') as f:
+        f.write(f'Engine path: {args.engine_dir}\n')
+        f.write(f'Tokenizer path: {args.tokenizer_dir}\n')
+
+    # TODO: Add random_seed flag in gptj
+    metric_tensorrt_llm = [evaluate.load("rouge") for _ in range(num_beams)]
+    for i in range(num_beams):
+        metric_tensorrt_llm[i].seed = random_seed
+    ppls_trt_llm = [[] for _ in range(num_beams)]
 
 
 if __name__ == '__main__':
@@ -102,7 +135,19 @@ if __name__ == '__main__':
         '--output_dir',
         type=str,
         required=True,
-        help='directory where to save outputs'
+        help='directory for saving output files'
+    )
+    parser.add_argument(
+        '--output_file',
+        type=str,
+        required=True,
+        help='output file name'
+    )
+    parser.add_argument(
+        '--random_seed',
+        type=int,
+        required=True,
+        help='random seed for reproducibility'
     )
     parser.add_argument(
         '--max_attention_window_size',
