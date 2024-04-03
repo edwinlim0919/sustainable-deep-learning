@@ -9,7 +9,8 @@ import evaluate
 import numpy as np
 import torch
 from transformers import (AutoModel, AutoModelForCausalLM,
-                          AutoModelForSeq2SeqLM, GenerationConfig)
+                          AutoModelForSeq2SeqLM, GenerationConfig,
+                          AutoTokenizer)
 from utils import DEFAULT_HF_MODEL_DIRS, load_tokenizer, read_model_name
 
 import tensorrt_llm
@@ -24,6 +25,88 @@ import benchmark_utils
 
 if PYTHON_BINDINGS:
     from tensorrt_llm.runtime import ModelRunnerCpp
+
+
+def eval_trt_llm(
+    batch_input_prompts: list[str],
+    add_special_tokens: bool,
+    tokenizer: AutoTokenizer,
+    max_input_tokens: int,
+    max_output_tokens: int,
+    max_attention_window_size: int | None,
+    sink_token_length: int | None,
+    end_id: int,
+    pad_id: int,
+    temperature: float,
+    top_k: int,
+    top_p: float,
+    num_beams: int,
+    length_penalty: float,
+    early_stopping: int,
+    repetition_penalty: float,
+    presence_penalty: float,
+    frequency_penalty: float,
+    
+    runner: ModelRunnerCpp
+):
+    batch_size = len(batch_input_prompts)
+    #batch_input_ids = _prepare_inputs(datapoint[dataset_input_key],
+    #                                  eval_task=eval_task,
+    #                                  add_special_tokens=add_special_tokens)
+    batch_input_tokens = benchmark_utils.prepare_inputs(
+        batch_input_prompts,
+        add_special_tokens,
+        tokenizer,
+        max_input_tokens
+    )
+    batch_input_lengths = [x.size(0) for x in batch_input_tokens]
+
+    with torch.no_grad():
+        outputs = runner.generate(
+            batch_input_tokens,
+            max_new_tokens=max_output_tokens,
+            max_attention_window_size=max_attention_window_size,
+            sink_token_length=sink_token_length,
+            end_id=end_id,
+            pad_id=pad_id,
+            temperature=temperature,
+            top_k=top_k,
+            top_p=top_p,
+            num_beams=num_beams,
+            length_penalty=length_penalty,
+            early_stopping=early_stopping,
+            repetition_penalty=repetition_penalty,
+            presence_penalty=presence_penalty,
+            frequency_penalty=frequency_penalty,
+            output_sequence_lengths=True,
+            return_dict=True,
+            medusa_choices=None)
+        # TODO: Need to use C++ benchmark to use in-flight batch manager...
+        torch.cuda.synchronize()
+
+    # Extract a list of tensors of shape beam_width x output_ids.
+    if runtime_rank == 0:
+        output_ids = outputs['output_ids']
+        output_beams_list = [
+            tokenizer.batch_decode(output_ids[batch_idx, :,
+                                              input_lengths[batch_idx]:],
+                                   skip_special_tokens=True)
+            for batch_idx in range(batch_size)
+        ]
+        output_ids_list = [
+            output_ids[batch_idx, :, input_lengths[batch_idx]:]
+            for batch_idx in range(batch_size)
+        ]
+
+        ppls = [[] for _ in range(batch_size)]
+        seq_lengths_array = outputs["sequence_lengths"].cpu().tolist()
+        lengths_info = {
+            'input_lengths': input_lengths,
+            'seq_lengths': seq_lengths_array
+        }
+
+        return output_beams_list, output_ids_list, ppls, lengths_info
+    return [], [], [], {}
 
 
 def main(args):
