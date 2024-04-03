@@ -22,57 +22,17 @@ cp tensorrt_llm/examples/llama/tmp/llama/7B/trt_engines/fp16/1-gpu/* triton_mode
 mkdir tensorrt_llm/examples/llama/llama2/
 cp -r /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/meta-llama/Llama-2-7b-chat-hf_tokenizer/* tensorrt_llm/examples/llama/llama2/
 
-# Modify the model configuration
-# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend <-> /tensorrtllm_backend
-# max_batch_size: 1 (scale this up)
-# postprocessing_instance_count (CPUs): 8 (arbitrary)
-# preprocessing_instance_count (CPUs): 8 (arbitrary)
-# bls_instance_count (CPUs): 8 (arbitrary)
-# decoupled: false
-# max_queue_delay_microseconds: 3600000000 (1 hour)
-sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/ensemble/config.pbtxt
-
-sed -i 's|\${tokenizer_dir}|/tensorrtllm_backend/tensorrt_llm/examples/llama/llama2|g' triton_model_repo/preprocessing/config.pbtxt
-sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/preprocessing/config.pbtxt
-sed -i 's|\${preprocessing_instance_count}|8|g' triton_model_repo/preprocessing/config.pbtxt
-
-sed -i 's|\${batching_strategy}|inflight_fused_batching|g' triton_model_repo/tensorrt_llm/config.pbtxt
-sed -i 's|\${engine_dir}|/tensorrtllm_backend/triton_model_repo/tensorrt_llm/1|g' triton_model_repo/tensorrt_llm/config.pbtxt
-sed -i 's|\${batch_scheduler_policy}|max_utilization|g' triton_model_repo/tensorrt_llm/config.pbtxt
-sed -i 's|\${gpu_device_ids}|0|g' triton_model_repo/tensorrt_llm/config.pbtxt
-sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/tensorrt_llm/config.pbtxt
-sed -i 's|\${decoupled_mode}|false|g' triton_model_repo/tensorrt_llm/config.pbtxt
-sed -i 's|\${max_queue_delay_microseconds}|3600000000|g' triton_model_repo/tensorrt_llm/config.pbtxt
-
-sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/tensorrt_llm_bls/config.pbtxt
-sed -i 's|\${decoupled_mode}|false|g' triton_model_repo/tensorrt_llm_bls/config.pbtxt
-sed -i 's|\${bls_instance_count}|8|g' triton_model_repo/tensorrt_llm_bls/config.pbtxt
-
-sed -i 's|\${tokenizer_dir}|/tensorrtllm_backend/tensorrt_llm/examples/llama/llama2|g' triton_model_repo/postprocessing/config.pbtxt
-sed -i 's|\${triton_max_batch_size}|1|g' triton_model_repo/postprocessing/config.pbtxt
-sed -i 's|\${postprocessing_instance_count}|8|g' triton_model_repo/postprocessing/config.pbtxt
-
-# Launch Triton server
-# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend
-sudo docker run --rm -it --net host --shm-size=2g --ulimit memlock=-1 --ulimit stack=67108864 --gpus all -v /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/tensorrtllm_backend:/tensorrtllm_backend tritonserver bash
-
-# Inside the container
-cd /tensorrtllm_backend
-python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/tensorrtllm_backend/triton_model_repo
-
-
-
 
 
 # TensorRT-LLM standalone
-
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/TensorRT-LLM
 sudo make -C docker release_run # starts the NVIDIA docker container
 
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker ps # tells you NVIDIA docker container id
+sed -i "s/5742c720375f/a5ccc32211aa/g" cmd_paste.sh # replace docker container id in cmd_paste.sh with the current one
 python3 download_hf_weights.py --model-name "meta-llama/Llama-2-7b-chat-hf"
-sudo docker cp meta-llama/ 5742c720375f:/app/tensorrt_llm/examples/llama
+sudo docker cp meta-llama/ a5ccc32211aa:/app/tensorrt_llm/examples/llama
 
 # /app/tensorrt_llm/examples/llama
 python convert_checkpoint.py --model_dir meta-llama/Llama-2-7b-chat-hf_model --dtype float16 --output_dir ./llama/7B/trt_ckpt/fp16/1-gpu/
@@ -80,13 +40,11 @@ trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin floa
 python ../summarize.py --test_trt_llm --hf_model_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer --data_type fp16 --engine_dir ./llama/7B/trt_engines/fp16/1-gpu/
 
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
-sudo docker cp benchmarking/benchmark_trtllm.py 5742c720375f:/app/tensorrt_llm/examples/benchmark_trtllm.py
-sudo docker cp benchmarking/benchmark_utils.py 5742c720375f:/app/tensorrt_llm/examples/benchmark_utils.py
-sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json 5742c720375f:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split.json
-sudo docker cp ShareGPT_V3_unfiltered_cleaned_split_top100.json 5742c720375f:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split_top100.json
+sudo docker cp benchmarking/benchmark_trtllm.py a5ccc32211aa:/app/tensorrt_llm/examples/benchmark_trtllm.py
+sudo docker cp benchmarking/benchmark_utils.py a5ccc32211aa:/app/tensorrt_llm/examples/benchmark_utils.py
+sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json a5ccc32211aa:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split.json
+sudo docker cp ShareGPT_V3_unfiltered_cleaned_split_top100.json a5ccc32211aa:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split_top100.json
 
 # /app/tensorrt_llm/examples/llama
 python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer/ --engine_dir ./llama/7B/trt_engines/fp16/1-gpu/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir ./outputs/llama/7B/fp16/1-gpu 
 python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer/ --engine_dir ./llama/7B/trt_engines/fp16/1-gpu/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split_top100.json --num_requests_sample 1 --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir ./outputs/llama/7B/fp16/1-gpu 
-
-#sudo docker cp docker_cp_test.txt 5742c720375f:/app/tensorrt_llm/examples/llama
