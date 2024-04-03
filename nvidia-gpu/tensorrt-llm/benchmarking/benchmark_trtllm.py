@@ -51,9 +51,14 @@ def main(args):
         tokenizer
     )
     sampled_prompts_len = len(sampled_prompts)
+    sampled_prompts_text_only = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
     logger.info(f'benchmark_trtllm main sampled_prompts_len: {sampled_prompts_len}')
-    #for sampled_prompt in sampled_prompts:
-    #    logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
+
+    # TODO: get rid of this logging
+    for sampled_prompt in sampled_prompts:
+        logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
+    for sampled_prompt in sampled_prompts_text_only:
+        logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
 
     # runtime parameters
     max_batch_size = args.max_batch_size
@@ -85,6 +90,9 @@ def main(args):
     for i in range(num_beams):
         metric_tensorrt_llm[i].seed = random_seed
     ppls_trt_llm = [[] for _ in range(num_beams)]
+
+    sampled_prompt_tokens = benchmark_utils.prepare_inputs(sampled_prompts_text_only)
+    logger.info(f'sampled_prompt_tokens: {sampled_prompt_tokens}')
 
 
 if __name__ == '__main__':

@@ -35,6 +35,8 @@ python3 download_hf_weights.py --model-name "meta-llama/Llama-2-7b-chat-hf"
 sudo docker cp meta-llama/ a5ccc32211aa:/app/tensorrt_llm/examples/llama
 
 # /app/tensorrt_llm/examples/llama
+pip install nltk
+pip install rouge_score
 python convert_checkpoint.py --model_dir meta-llama/Llama-2-7b-chat-hf_model --dtype float16 --output_dir ./llama/7B/trt_ckpt/fp16/1-gpu/
 trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu/
 python ../summarize.py --test_trt_llm --hf_model_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer --data_type fp16 --engine_dir ./llama/7B/trt_engines/fp16/1-gpu/
