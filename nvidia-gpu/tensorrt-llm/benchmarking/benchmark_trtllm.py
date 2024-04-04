@@ -46,13 +46,10 @@ def eval_trt_llm(
     repetition_penalty: float,
     presence_penalty: float,
     frequency_penalty: float,
-    
+    runtime_rank: int,
     runner: ModelRunnerCpp
 ):
     batch_size = len(batch_input_prompts)
-    #batch_input_ids = _prepare_inputs(datapoint[dataset_input_key],
-    #                                  eval_task=eval_task,
-    #                                  add_special_tokens=add_special_tokens)
     batch_input_tokens = benchmark_utils.prepare_inputs(
         batch_input_prompts,
         add_special_tokens,
@@ -61,52 +58,57 @@ def eval_trt_llm(
     )
     batch_input_lengths = [x.size(0) for x in batch_input_tokens]
 
-    with torch.no_grad():
-        outputs = runner.generate(
-            batch_input_tokens,
-            max_new_tokens=max_output_tokens,
-            max_attention_window_size=max_attention_window_size,
-            sink_token_length=sink_token_length,
-            end_id=end_id,
-            pad_id=pad_id,
-            temperature=temperature,
-            top_k=top_k,
-            top_p=top_p,
-            num_beams=num_beams,
-            length_penalty=length_penalty,
-            early_stopping=early_stopping,
-            repetition_penalty=repetition_penalty,
-            presence_penalty=presence_penalty,
-            frequency_penalty=frequency_penalty,
-            output_sequence_lengths=True,
-            return_dict=True,
-            medusa_choices=None)
-        # TODO: Need to use C++ benchmark to use in-flight batch manager...
-        torch.cuda.synchronize()
+    logger.info(f'EVAL_TRT_LLM batch_size: {batch_size}')
+    logger.info(f'EVAL_TRT_LLM batch_input_tokens: {batch_input_tokens}')
+    logger.info(f'EVAL_TRT_LLM batch_input_lengths {batch_input_lengths}')
 
-    # Extract a list of tensors of shape beam_width x output_ids.
-    if runtime_rank == 0:
-        output_ids = outputs['output_ids']
-        output_beams_list = [
-            tokenizer.batch_decode(output_ids[batch_idx, :,
-                                              input_lengths[batch_idx]:],
-                                   skip_special_tokens=True)
-            for batch_idx in range(batch_size)
-        ]
-        output_ids_list = [
-            output_ids[batch_idx, :, input_lengths[batch_idx]:]
-            for batch_idx in range(batch_size)
-        ]
 
-        ppls = [[] for _ in range(batch_size)]
-        seq_lengths_array = outputs["sequence_lengths"].cpu().tolist()
-        lengths_info = {
-            'input_lengths': input_lengths,
-            'seq_lengths': seq_lengths_array
-        }
+    #with torch.no_grad():
+    #    outputs = runner.generate(
+    #        batch_input_tokens,
+    #        max_new_tokens=max_output_tokens,
+    #        max_attention_window_size=max_attention_window_size,
+    #        sink_token_length=sink_token_length,
+    #        end_id=end_id,
+    #        pad_id=pad_id,
+    #        temperature=temperature,
+    #        top_k=top_k,
+    #        top_p=top_p,
+    #        num_beams=num_beams,
+    #        length_penalty=length_penalty,
+    #        early_stopping=early_stopping,
+    #        repetition_penalty=repetition_penalty,
+    #        presence_penalty=presence_penalty,
+    #        frequency_penalty=frequency_penalty,
+    #        output_sequence_lengths=True,
+    #        return_dict=True,
+    #        medusa_choices=None)
+    #    # TODO: Need to use C++ benchmark to use the in-flight batch manager...
+    #    torch.cuda.synchronize()
 
-        return output_beams_list, output_ids_list, ppls, lengths_info
-    return [], [], [], {}
+    ## Extract a list of tensors of shape beam_width x output_ids.
+    #if runtime_rank == 0:
+    #    output_ids = outputs['output_ids']
+    #    output_beams_list = [
+    #        tokenizer.batch_decode(output_ids[batch_idx, :,
+    #                                          input_lengths[batch_idx]:],
+    #                               skip_special_tokens=True)
+    #        for batch_idx in range(batch_size)
+    #    ]
+    #    output_ids_list = [
+    #        output_ids[batch_idx, :, input_lengths[batch_idx]:]
+    #        for batch_idx in range(batch_size)
+    #    ]
+
+    #    ppls = [[] for _ in range(batch_size)]
+    #    seq_lengths_array = outputs["sequence_lengths"].cpu().tolist()
+    #    lengths_info = {
+    #        'input_lengths': input_lengths,
+    #        'seq_lengths': seq_lengths_array
+    #    }
+
+    #    return output_beams_list, output_ids_list, ppls, lengths_info
+    #return [], [], [], {}
 
 
 def main(args):
@@ -115,33 +117,6 @@ def main(args):
     model_name, model_version = read_model_name(args.engine_dir)
     logger.info(f'benchmark_trtllm main model_name: {model_name}')
     logger.info(f'benchmark_trtllm main model_version: {model_version}')
-
-    # Loading tokenizer
-    profiler.start('load tokenizer')
-    tokenizer, pad_id, end_id = load_tokenizer(
-        tokenizer_dir=args.tokenizer_dir,
-        vocab_file=None,
-        model_name=model_name,
-        model_version=model_version
-    )
-    profiler.stop('load tokenizer')
-    logger.info(f'Load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
-
-    # Sampling the dataset
-    sampled_prompts = benchmark_utils.sample_dataset_prompts(
-        args.dataset_path,
-        args.num_requests_sample,
-        tokenizer
-    )
-    sampled_prompts_len = len(sampled_prompts)
-    sampled_prompts_text_only = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
-    logger.info(f'benchmark_trtllm main sampled_prompts_len: {sampled_prompts_len}')
-
-    # TODO: get rid of this logging
-    for sampled_prompt in sampled_prompts:
-        logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
-    for sampled_prompt in sampled_prompts_text_only:
-        logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
 
     # runtime parameters
     max_batch_size = args.max_batch_size
@@ -161,6 +136,40 @@ def main(args):
     presence_penalty = args.presence_penalty
     frequency_penalty = args.frequency_penalty
 
+    # Loading tokenizer
+    profiler.start('load tokenizer')
+    tokenizer, pad_id, end_id = load_tokenizer(
+        tokenizer_dir=args.tokenizer_dir,
+        vocab_file=None,
+        model_name=model_name,
+        model_version=model_version
+    )
+    profiler.stop('load tokenizer')
+    logger.info(f'Load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
+
+    # Sampling the dataset
+    sampled_prompts = benchmark_utils.sample_dataset_prompts(
+        args.dataset_path,
+        args.num_requests_sample,
+        max_output_tokens,
+        max_input_tokens,
+        tokenizer
+    )
+    sampled_prompts_len = len(sampled_prompts)
+    #sampled_prompts_text_only = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
+    batch_input_prompts = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
+    logger.info(f'benchmark_trtllm main sampled_prompts_len: {sampled_prompts_len}')
+
+    # TODO: get rid of this logging
+    #for sampled_prompt in sampled_prompts:
+    #    logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
+    #for sampled_prompt in batch_input_prompts:
+    #    logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
+    #batch_input_prompts = [
+    #    'Hello! I am the first prompt in this batch',
+    #    'Hello! I am the second prompt in this batch'
+    #]
+
     logger.info(f'Creating output directory {args.output_dir} w/ file {args.output_file}')
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
@@ -169,18 +178,131 @@ def main(args):
         f.write(f'Tokenizer path: {args.tokenizer_dir}\n')
 
     # TODO: Add random_seed flag in gptj
-    metric_tensorrt_llm = [evaluate.load("rouge") for _ in range(num_beams)]
-    for i in range(num_beams):
-        metric_tensorrt_llm[i].seed = random_seed
-    ppls_trt_llm = [[] for _ in range(num_beams)]
+    #metric_tensorrt_llm = [evaluate.load("rouge") for _ in range(num_beams)]
+    #for i in range(num_beams):
+    #    metric_tensorrt_llm[i].seed = random_seed
+    #ppls_trt_llm = [[] for _ in range(num_beams)]
 
-    sampled_prompt_tokens = benchmark_utils.prepare_inputs(
-        sampled_prompts_text_only,
+    #sampled_prompt_tokens = benchmark_utils.prepare_inputs(
+    #    sampled_prompts_text_only,
+    #    args.add_special_tokens,
+    #    tokenizer,
+    #    max_input_tokens
+    #)
+    #logger.info(f'sampled_prompt_tokens: {sampled_prompt_tokens}')
+
+    if not PYTHON_BINDINGS:
+        logger.warning(
+            "Python bindings of C++ session is unavailable, fallback to Python session."
+        )
+    runner_cls = ModelRunnerCpp
+    runner_kwargs = dict(engine_dir=args.engine_dir,
+                         rank=runtime_rank,
+                         debug_mode=args.debug_mode)
+    runner_kwargs.update(
+        max_batch_size=max_batch_size,
+        max_input_len=max_input_tokens,
+        max_output_len=max_output_tokens,
+        max_beam_width=num_beams,
+        max_attention_window_size=max_attention_window_size,
+        sink_token_length=sink_token_length)
+    runner = runner_cls.from_dir(**runner_kwargs)
+
+    # TODO: set max_output_tokens to the max output tokens of this batch
+    eval_trt_llm(
+        batch_input_prompts,
         args.add_special_tokens,
         tokenizer,
-        max_input_tokens
+        max_input_tokens,
+        max_output_tokens,
+        max_attention_window_size,
+        sink_token_length,
+        end_id,
+        pad_id,
+        temperature,
+        top_k,
+        top_p,
+        num_beams,
+        length_penalty,
+        early_stopping,
+        repetition_penalty,
+        presence_penalty,
+        frequency_penalty,
+        runtime_rank,
+        runner
     )
-    logger.info(f'sampled_prompt_tokens: {sampled_prompt_tokens}')
+
+    #datapoint = dataset[0:1]
+    #output, *_ = eval_trt_llm(datapoint,
+    #                          eval_task=args.eval_task,
+    #                          eval_ppl=args.eval_ppl,
+    #                          add_special_tokens=args.add_special_tokens)
+    #if runtime_rank == 0:
+    #    logger.info(
+    #        "---------------------------------------------------------")
+    #    logger.info("TensorRT-LLM Generated : ")
+    #    logger.info(f" Input : {datapoint[dataset_input_key]}")
+    #    logger.info(f"\n Reference : {datapoint[dataset_output_key]}")
+    #    logger.info(f"\n Output : {output}")
+    #    logger.info(
+    #        "---------------------------------------------------------")
+
+    #ite_count = 0
+    #data_point_idx = 0
+    #total_output_token_count_trt_llm = 0  # only valid for runtime_rank == 0
+    #while (data_point_idx < len(dataset)) and (ite_count < args.max_ite):
+    #    if runtime_rank == 0:
+    #        logger.debug(
+    #            f"run data_point {data_point_idx} ~ {data_point_idx + max_batch_size}"
+    #        )
+    #    datapoint = dataset[data_point_idx:(data_point_idx +
+    #                                        max_batch_size)]
+
+    #    profiler.start('tensorrt_llm')
+    #    output_tensorrt_llm, output_ids_trt_llm, curr_ppls_trt_llm, lengths_info = eval_trt_llm(
+    #        datapoint,
+    #        eval_task=args.eval_task,
+    #        eval_ppl=args.eval_ppl,
+    #        add_special_tokens=args.add_special_tokens)
+    #    profiler.stop('tensorrt_llm')
+    #    if runtime_rank == 0:
+    #        input_lengths = lengths_info['input_lengths']
+    #        seq_lengths = lengths_info['seq_lengths']
+    #        output_token_count_trt_llm = sum(
+    #            seq_lengths[idx][0] - input_lengths[idx]
+    #            for idx in range(len(input_lengths)))
+    #        total_output_token_count_trt_llm += output_token_count_trt_llm
+
+    #    if runtime_rank == 0:
+    #        for batch_idx in range(len(output_tensorrt_llm)):
+    #            for beam_idx in range(num_beams):
+    #                metric_tensorrt_llm[beam_idx].add_batch(
+    #                    predictions=[
+    #                        output_tensorrt_llm[batch_idx][beam_idx]
+    #                    ],
+    #                    references=[
+    #                        datapoint[dataset_output_key][batch_idx]
+    #                    ])
+    #                if args.eval_ppl:
+    #                    ppls_trt_llm[beam_idx].append(
+    #                        curr_ppls_trt_llm[batch_idx][beam_idx])
+    #        if output_dir is not None:
+    #            for i in range(len(output_tensorrt_llm[0])):
+    #                for beam_idx in range(num_beams):
+    #                    with (output_dir / 'trtllm.out').open('a') as f:
+    #                        f.write(
+    #                            f'[{data_point_idx + i}] [Beam {beam_idx}] {output_tensorrt_llm[beam_idx][i]}\n'
+    #                        )
+
+    #        logger.debug('-' * 100)
+    #        logger.debug(f"Input : {datapoint[dataset_input_key]}")
+    #        logger.debug(f'TensorRT-LLM Output: {output_tensorrt_llm}')
+    #        logger.debug(f"Reference : {datapoint[dataset_output_key]}")
+
+    #    data_point_idx += max_batch_size
+    #    ite_count += 1
+    del runner
+
 
 
 if __name__ == '__main__':

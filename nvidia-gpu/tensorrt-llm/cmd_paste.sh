@@ -44,6 +44,8 @@ python ../summarize.py --test_trt_llm --hf_model_dir ./meta-llama/Llama-2-7b-cha
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp benchmarking/benchmark_trtllm.py a5ccc32211aa:/app/tensorrt_llm/examples/benchmark_trtllm.py
 sudo docker cp benchmarking/benchmark_utils.py a5ccc32211aa:/app/tensorrt_llm/examples/benchmark_utils.py
+sudo docker cp TensorRT-LLM/examples/summarize.py a5ccc32211aa:/app/tensorrt_llm/examples/summarize.py
+
 sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json a5ccc32211aa:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split.json
 sudo docker cp ShareGPT_V3_unfiltered_cleaned_split_top100.json a5ccc32211aa:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split_top100.json
 
