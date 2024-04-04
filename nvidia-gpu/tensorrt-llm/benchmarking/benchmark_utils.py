@@ -128,6 +128,8 @@ def llama2_prompt_general(prompts: list[dict]):
 def sample_dataset_prompts(
     dataset_path: str,
     num_requests_sample: int,
+    max_output_tokens: int,
+    max_input_tokens: int,
     tokenizer: AutoTokenizer
 ):
     with open(dataset_path, 'r', encoding='utf-8') as f:
@@ -197,7 +199,7 @@ def sample_dataset_prompts(
         num_completion_tokens = len(completion_token_ids[i])
         if num_prompt_tokens < 4 or num_completion_tokens < 4:
             continue
-        if num_prompt_tokens > 1000 or num_prompt_tokens + num_completion_tokens > 2000:
+        if num_prompt_tokens > max_input_tokens or num_completion_tokens > max_output_tokens:
             continue
         filtered_dataset.append(dataset[i])
     dataset = filtered_dataset
