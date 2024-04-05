@@ -58,6 +58,7 @@ def eval_trt_llm(
     )
     batch_input_lengths = [x.size(0) for x in batch_input_tokens]
 
+    logger.info(f'EVAL_TRT_LLM batch_input_prompts: {batch_input_prompts}')
     logger.info(f'EVAL_TRT_LLM batch_size: {batch_size}')
     logger.info(f'EVAL_TRT_LLM batch_input_tokens: {batch_input_tokens}')
     logger.info(f'EVAL_TRT_LLM batch_input_lengths {batch_input_lengths}')
@@ -86,8 +87,11 @@ def eval_trt_llm(
         torch.cuda.synchronize()
 
     logger.info(f'EVAL_TRT_LLM outputs: {outputs}')
-    output_ids = outputs['output_ids']
-    output_sequence_lengths = outputs['sequence_lengths']
+    output_ids = outputs['output_ids'][0]
+    output_sequence_lengths = outputs['sequence_lengths'][0]
+    logger.info(f'EVAL_TRT_LLM output_ids: {output_ids}')
+    logger.info(f'EVAL_TRT_LLM output_sequence_lengths: {output_sequence_lengths}')
+
     decoded_outputs = tokenizer.batch_decode(output_ids)
     logger.info(f'EVAL_TRT_LLM decoded_outputs: {decoded_outputs}')
     logger.info(f'EVAL_TRT_LLM output_sequence_lengths: {output_sequence_lengths}')
@@ -144,14 +148,11 @@ def main(args):
 
     # Loading tokenizer
     profiler.start('load tokenizer')
-    tokenizer, pad_id, end_id = load_tokenizer(
-        tokenizer_dir=args.tokenizer_dir,
-        vocab_file=None,
-        model_name=model_name,
-        model_version=model_version
-    )
+    tokenizer, pad_id, end_id = benchmark_utils.load_tokenizer(args.tokenizer_dir)
     profiler.stop('load tokenizer')
     logger.info(f'Load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
+    logger.info(f'MAIN pad_id: {pad_id}')
+    logger.info(f'MAIN end_id: {end_id}')
 
     # Sampling the dataset
     sampled_prompts = benchmark_utils.sample_dataset_prompts(
@@ -162,6 +163,11 @@ def main(args):
         tokenizer
     )
     sampled_prompts_len = len(sampled_prompts)
+    # TODO
+    sampled_prompts = [
+        ('In Java, I want to replace string like "This is a new {object} at {place}" with a Map, {object: "student", "point 3, 4"}, and get a result "This is a new student at point 3, 4". How can I do?', 69, 69)
+    ]
+    # TODO
     batch_input_prompts = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
     logger.info(f'benchmark_trtllm main sampled_prompts_len: {sampled_prompts_len}')
 
