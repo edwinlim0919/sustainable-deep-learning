@@ -150,9 +150,7 @@ def main(args):
     profiler.start('load tokenizer')
     tokenizer, pad_id, end_id = benchmark_utils.load_tokenizer(args.tokenizer_dir)
     profiler.stop('load tokenizer')
-    logger.info(f'Load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
-    logger.info(f'MAIN pad_id: {pad_id}')
-    logger.info(f'MAIN end_id: {end_id}')
+    logger.info(f'load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
 
     # Sampling the dataset
     sampled_prompts = benchmark_utils.sample_dataset_prompts(
@@ -163,13 +161,10 @@ def main(args):
         tokenizer
     )
     sampled_prompts_len = len(sampled_prompts)
-    # TODO
-    sampled_prompts = [
-        ('In Java, I want to replace string like "This is a new {object} at {place}" with a Map, {object: "student", "point 3, 4"}, and get a result "This is a new student at point 3, 4". How can I do?', 69, 69)
-    ]
-    # TODO
+    # TODO change this for the actual batching
     batch_input_prompts = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
-    logger.info(f'benchmark_trtllm main sampled_prompts_len: {sampled_prompts_len}')
+    logger.info(f'MAIN sampled_prompts: {sampled_prompts}')
+    logger.info(f'MAIN benchmark_trtllm main sampled_prompts_len: {sampled_prompts_len}')
 
     logger.info(f'Creating output directory {args.output_dir} w/ file {args.output_file}')
     output_dir = Path(args.output_dir)
@@ -178,60 +173,60 @@ def main(args):
         f.write(f'Engine path: {args.engine_dir}\n')
         f.write(f'Tokenizer path: {args.tokenizer_dir}\n')
 
-    # TODO: Add random_seed flag in gptj
-    #metric_tensorrt_llm = [evaluate.load("rouge") for _ in range(num_beams)]
-    #for i in range(num_beams):
-    #    metric_tensorrt_llm[i].seed = random_seed
-    #ppls_trt_llm = [[] for _ in range(num_beams)]
+    ## TODO: Add random_seed flag in gptj
+    ##metric_tensorrt_llm = [evaluate.load("rouge") for _ in range(num_beams)]
+    ##for i in range(num_beams):
+    ##    metric_tensorrt_llm[i].seed = random_seed
+    ##ppls_trt_llm = [[] for _ in range(num_beams)]
 
-    #sampled_prompt_tokens = benchmark_utils.prepare_inputs(
-    #    sampled_prompts_text_only,
+    ##sampled_prompt_tokens = benchmark_utils.prepare_inputs(
+    ##    sampled_prompts_text_only,
+    ##    args.add_special_tokens,
+    ##    tokenizer,
+    ##    max_input_tokens
+    ##)
+    ##logger.info(f'sampled_prompt_tokens: {sampled_prompt_tokens}')
+
+    #if not PYTHON_BINDINGS:
+    #    logger.warning(
+    #        "Python bindings of C++ session is unavailable, fallback to Python session."
+    #    )
+    #runner_cls = ModelRunnerCpp
+    #runner_kwargs = dict(engine_dir=args.engine_dir,
+    #                     rank=runtime_rank,
+    #                     debug_mode=args.debug_mode)
+    #runner_kwargs.update(
+    #    max_batch_size=max_batch_size,
+    #    max_input_len=max_input_tokens,
+    #    max_output_len=max_output_tokens,
+    #    max_beam_width=num_beams,
+    #    max_attention_window_size=max_attention_window_size,
+    #    sink_token_length=sink_token_length)
+    #runner = runner_cls.from_dir(**runner_kwargs)
+
+    ## TODO: set max_output_tokens to the max output tokens of this batch
+    #eval_trt_llm(
+    #    batch_input_prompts,
     #    args.add_special_tokens,
     #    tokenizer,
-    #    max_input_tokens
+    #    max_input_tokens,
+    #    max_output_tokens,
+    #    max_attention_window_size,
+    #    sink_token_length,
+    #    end_id,
+    #    pad_id,
+    #    temperature,
+    #    top_k,
+    #    top_p,
+    #    num_beams,
+    #    length_penalty,
+    #    early_stopping,
+    #    repetition_penalty,
+    #    presence_penalty,
+    #    frequency_penalty,
+    #    runtime_rank,
+    #    runner
     #)
-    #logger.info(f'sampled_prompt_tokens: {sampled_prompt_tokens}')
-
-    if not PYTHON_BINDINGS:
-        logger.warning(
-            "Python bindings of C++ session is unavailable, fallback to Python session."
-        )
-    runner_cls = ModelRunnerCpp
-    runner_kwargs = dict(engine_dir=args.engine_dir,
-                         rank=runtime_rank,
-                         debug_mode=args.debug_mode)
-    runner_kwargs.update(
-        max_batch_size=max_batch_size,
-        max_input_len=max_input_tokens,
-        max_output_len=max_output_tokens,
-        max_beam_width=num_beams,
-        max_attention_window_size=max_attention_window_size,
-        sink_token_length=sink_token_length)
-    runner = runner_cls.from_dir(**runner_kwargs)
-
-    # TODO: set max_output_tokens to the max output tokens of this batch
-    eval_trt_llm(
-        batch_input_prompts,
-        args.add_special_tokens,
-        tokenizer,
-        max_input_tokens,
-        max_output_tokens,
-        max_attention_window_size,
-        sink_token_length,
-        end_id,
-        pad_id,
-        temperature,
-        top_k,
-        top_p,
-        num_beams,
-        length_penalty,
-        early_stopping,
-        repetition_penalty,
-        presence_penalty,
-        frequency_penalty,
-        runtime_rank,
-        runner
-    )
 
     #datapoint = dataset[0:1]
     #output, *_ = eval_trt_llm(datapoint,
@@ -302,7 +297,7 @@ def main(args):
 
     #    data_point_idx += max_batch_size
     #    ite_count += 1
-    del runner
+    #del runner
 
 
 
