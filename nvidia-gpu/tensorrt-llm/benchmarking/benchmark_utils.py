@@ -9,12 +9,6 @@ import numpy as np
 from transformers import AutoTokenizer
 
 
-# Llama2 prompting
-B_INST, E_INST = "[INST]", "[/INST]"
-B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
-DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
-
-
 def load_tokenizer(
     tokenizer_dir,
 ):
@@ -182,178 +176,31 @@ def sample_dataset_prompts(
         ])
     dataset = llama2_dict_dataset
 
-    # Format with Llama2 prompt style
-    llama2_format_dataset = []
-    for data in dataset:
-        llama2_conv = llama2_prompt_general(data).split(E_INST)
-        llama2_human = f'{llama2_conv[0]} {E_INST}'
-        llama2_gpt = f'{E_INST} {llama2_conv[1]}'
-        human_dict = {
-            'role': data[0]['role'],
-            'content': llama2_human
-        }
-        gpt_dict = {
-            'role': data[1]['role'],
-            'content': llama2_gpt
-        }
-        llama2_format_dataset.append([
-            human_dict,
-            gpt_dict
-        ])
-    dataset = llama2_format_dataset
-
-    # Tokenize the prompts and completions
     prompts = [data[0]['content'] for data in dataset]
     prompt_token_ids = tokenizer(prompts).input_ids
     completions = [data[1]['content'] for data in dataset]
     completion_token_ids = tokenizer(completions).input_ids
 
     # Filter out too long or too short sequences
-    # Real limit is 1020 for prompts, but doing 1000 just to make sure
-    assert(len(dataset) == len(prompts) and
-           len(dataset) == len(completions))
+    assert(len(prompts) == len(completions))
+    assert(len(prompt_token_ids) == len(completion_token_ids))
     filtered_dataset = []
-    for i in range(len(dataset)):
+    for i in range(len(prompts)):
         num_prompt_tokens = len(prompt_token_ids[i])
         num_completion_tokens = len(completion_token_ids[i])
         if num_prompt_tokens < 4 or num_completion_tokens < 4:
             continue
         if num_prompt_tokens > max_input_tokens or num_completion_tokens > max_output_tokens:
             continue
-        filtered_dataset.append(dataset[i])
-    dataset = filtered_dataset
-
-    # Get prompt, prompt tokens, and # output length
-    llama2_prompts = []
-    for data in dataset:
-        llama2_human = data[0]['content']
-        llama2_gpt = data[1]['content']
-        llama2_human_tokens = tokenizer(llama2_human).input_ids
-        llama2_gpt_tokens = tokenizer(llama2_gpt).input_ids
-        llama2_prompts.append((
-            llama2_human,
-            len(llama2_human_tokens),
-            len(llama2_gpt_tokens)
+        filtered_dataset.append((
+            prompts[i],
+            num_prompt_tokens,
+            num_completion_tokens
         ))
 
     # Sample the prompts
     if num_requests_sample < 1:
-        num_requests_sample = len(llama2_prompts)
-    sampled_prompts = random.sample(llama2_prompts, num_requests_sample)
+        num_requests_sample = len(filtered_dataset)
+    sampled_prompts = random.sample(filtered_dataset, num_requests_sample)
 
     return sampled_prompts
-
-
-#if __name__ == '__main__':
-#    parser = argparse.ArgumentParser(description='throughput generation script for LLM inference experiments')
-#    parser.add_argument(
-#        '--dataset-path',
-#        required=True,
-#        type=str,
-#        help='path to the dataset file'
-#    )
-#    parser.add_argument(
-#        '--output-file-path',
-#        required=True,
-#        type=str,
-#        help='path to the output file'
-#    )
-#    parser.add_argument(
-#        '--num-requests-sample',
-#        required=True,
-#        type=int,
-#        help='number of requests to sample. Specify 0 or less to sample the entire dataset'
-#    )
-#    parser.add_argument(
-#        '--seconds-per-rate',
-#        required=True,
-#        type=int,
-#        help='number of seconds to send per request rate'
-#    )
-#    parser.add_argument(
-#        '--start-rate',
-#        required=False,
-#        type=float,
-#        help='starting request rate in requests per minute'
-#    )
-#    parser.add_argument(
-#        '--end-rate',
-#        required=False,
-#        type=float,
-#        help='ending request rate in requests per minute'
-#    )
-#    parser.add_argument(
-#        '--increase-rate',
-#        required=False,
-#        type=float,
-#        help='request rate multiplicative increase per iteration'
-#    )
-#    parser.add_argument(
-#        '--rate-list',
-#        required=False,
-#        type=float,
-#        nargs='+',
-#        help='a list of request rates for the experiment'
-#    )
-#    parser.add_argument(
-#        '--wrkgen-seed',
-#        required=True,
-#        type=int,
-#        help='random seed for experiment reproducibility'
-#    )
-#
-#    # TODO Need to change this to incorporate other frameworks
-#    parser = vllm_llama2_local.add_cli_args_wrapper(parser)
-#    args = parser.parse_args()
-#    vllm_llama2_local.vllm_setup(args)
-#
-#    # Rates should be specified as list or geometric increase
-#    if not ((args.start_rate and args.end_rate and args.increase_rate) or
-#            args.rate_list):
-#        raise ValueError('Rates must be specified as a list or a geometric increase')
-#
-#    # Generate request rate list for geometric increase
-#    if not args.rate_list:
-#        rate_list = []
-#        curr_rate = args.start_rate
-#        while curr_rate <= args.end_rate:
-#            rate_list.append(curr_rate)
-#            curr_rate *= args.increase_rate
-#    else:
-#        rate_list = args.rate_list
-#
-#    # Set randomness seeds for reproducibility
-#    random.seed(args.wrkgen_seed)
-#    np.random.seed(args.wrkgen_seed)
-#
-#    # TODO: Need to change this to incorporate other frameworks
-#    tokenizer = vllm_llama2_local.tokenizer
-#    request_queue = vllm_llama2_local.request_queue
-#    result_queue = vllm_llama2_local.result_queue
-#
-#    # Throughput experiment
-#    print(f'Sampling dataset {args.dataset_path}...')
-#    sampled_prompts = sample_dataset_prompts(
-#        args.dataset_path,
-#        args.num_requests_sample,
-#        tokenizer
-#    )
-#    sampled_prompts_len = len(sampled_prompts)
-#
-#    print('Generating requests...')
-#    print(f'sampled_prompts_len: {sampled_prompts_len}')
-#    print(f'start_rate: {args.start_rate}')
-#    print(f'end_rate: {args.end_rate}')
-#    print(f'increase_rate: {args.increase_rate}')
-#    print(f'output_file_path: {args.output_file_path}')
-#    print(f'seconds_per_rate: {args.seconds_per_rate}')
-#    asyncio.run(async_main(
-#        sampled_prompts,
-#        sampled_prompts_len,
-#        args.seconds_per_rate,
-#        rate_list,
-#        args.output_file_path,
-#        request_queue,
-#        result_queue
-#    ))
-#    print('Done.')
