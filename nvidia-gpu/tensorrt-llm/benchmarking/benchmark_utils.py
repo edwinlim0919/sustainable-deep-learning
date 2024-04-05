@@ -15,6 +15,25 @@ B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
 DEFAULT_SYSTEM_PROMPT = f"""You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
 
 
+def load_tokenizer(
+    tokenizer_dir,
+):
+    if 'llama' in tokenizer_dir:
+        tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer_dir,
+            legacy=False,
+            padding_side='left',
+            truncation_side='left',
+            trust_remote_code=True,
+            use_fast=True
+        )
+        if tokenizer.pad_token_id is None:
+            tokenizer.pad_token_id = tokenizer.eos_token_id
+        pad_id = tokenizer.pad_token_id
+        end_id = tokenizer.eos_token_id
+        return tokenizer, pad_id, end_id
+
+
 def prepare_inputs(batch_input_texts: list[str],
                    add_special_tokens: bool,
                    tokenizer: AutoTokenizer,
