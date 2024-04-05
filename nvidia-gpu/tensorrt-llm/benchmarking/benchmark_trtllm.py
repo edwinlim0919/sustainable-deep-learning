@@ -62,29 +62,35 @@ def eval_trt_llm(
     logger.info(f'EVAL_TRT_LLM batch_input_tokens: {batch_input_tokens}')
     logger.info(f'EVAL_TRT_LLM batch_input_lengths {batch_input_lengths}')
 
+    with torch.no_grad():
+        outputs = runner.generate(
+            batch_input_tokens,
+            max_new_tokens=max_output_tokens,
+            max_attention_window_size=max_attention_window_size,
+            sink_token_length=sink_token_length,
+            end_id=end_id,
+            pad_id=pad_id,
+            temperature=temperature,
+            top_k=top_k,
+            top_p=top_p,
+            num_beams=num_beams,
+            length_penalty=length_penalty,
+            early_stopping=early_stopping,
+            repetition_penalty=repetition_penalty,
+            presence_penalty=presence_penalty,
+            frequency_penalty=frequency_penalty,
+            output_sequence_lengths=True,
+            return_dict=True,
+            medusa_choices=None)
+        # TODO: Need to use C++ benchmark to use the in-flight batch manager...
+        torch.cuda.synchronize()
 
-    #with torch.no_grad():
-    #    outputs = runner.generate(
-    #        batch_input_tokens,
-    #        max_new_tokens=max_output_tokens,
-    #        max_attention_window_size=max_attention_window_size,
-    #        sink_token_length=sink_token_length,
-    #        end_id=end_id,
-    #        pad_id=pad_id,
-    #        temperature=temperature,
-    #        top_k=top_k,
-    #        top_p=top_p,
-    #        num_beams=num_beams,
-    #        length_penalty=length_penalty,
-    #        early_stopping=early_stopping,
-    #        repetition_penalty=repetition_penalty,
-    #        presence_penalty=presence_penalty,
-    #        frequency_penalty=frequency_penalty,
-    #        output_sequence_lengths=True,
-    #        return_dict=True,
-    #        medusa_choices=None)
-    #    # TODO: Need to use C++ benchmark to use the in-flight batch manager...
-    #    torch.cuda.synchronize()
+    logger.info(f'EVAL_TRT_LLM outputs: {outputs}')
+    output_ids = outputs['output_ids']
+    output_sequence_lengths = outputs['sequence_lengths']
+    decoded_outputs = tokenizer.batch_decode(output_ids)
+    logger.info(f'EVAL_TRT_LLM decoded_outputs: {decoded_outputs}')
+    logger.info(f'EVAL_TRT_LLM output_sequence_lengths: {output_sequence_lengths}')
 
     ## Extract a list of tensors of shape beam_width x output_ids.
     #if runtime_rank == 0:
@@ -156,19 +162,8 @@ def main(args):
         tokenizer
     )
     sampled_prompts_len = len(sampled_prompts)
-    #sampled_prompts_text_only = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
     batch_input_prompts = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
     logger.info(f'benchmark_trtllm main sampled_prompts_len: {sampled_prompts_len}')
-
-    # TODO: get rid of this logging
-    #for sampled_prompt in sampled_prompts:
-    #    logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
-    #for sampled_prompt in batch_input_prompts:
-    #    logger.info(f'benchmark_trtllm main sampled_prompt: {sampled_prompt}')
-    #batch_input_prompts = [
-    #    'Hello! I am the first prompt in this batch',
-    #    'Hello! I am the second prompt in this batch'
-    #]
 
     logger.info(f'Creating output directory {args.output_dir} w/ file {args.output_file}')
     output_dir = Path(args.output_dir)
