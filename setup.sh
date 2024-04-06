@@ -17,7 +17,7 @@ rm -rf ~/miniconda3/miniconda.sh
 ~/miniconda3/bin/conda init bash
 
 sudo apt install docker.io
-sudo apt install docker-buildx-plugin
+sudo apt install docker-buildx
 sudo docker buildx install
 #for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
 #sudo apt-get update
