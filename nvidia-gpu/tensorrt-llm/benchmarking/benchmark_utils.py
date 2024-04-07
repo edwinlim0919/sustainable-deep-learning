@@ -57,55 +57,6 @@ def prepare_inputs(batch_input_texts: list[str],
 #            result_queue.task_done()
 
 
-# Request generation for seconds_per_rate seconds for each rate
-#async def async_main(
-#    sampled_prompts: list[str],
-#    sampled_prompts_len: int,
-#    seconds_per_rate: int,
-#    rate_list: list[float],
-#    output_file_path: str,
-#    request_queue: asyncio.Queue,
-#    result_queue: asyncio.Queue
-#):
-#    executor = ProcessPoolExecutor()
-#    worker = asyncio.create_task(vllm_llama2_local.inference_loop(executor))
-#    #worker = asyncio.create_task(vllm_llama2_local.inference_loop())
-#
-#    for curr_rate in rate_list:
-#        print(f'ASYNC_MAIN curr_rate: {curr_rate}')
-#        sys.stdout.flush()
-#
-#        lambda_rate = curr_rate / 60
-#        expected_arrivals = int(lambda_rate * seconds_per_rate)
-#        inter_arrival_times = np.random.exponential(1 / lambda_rate, size=expected_arrivals)
-#        arrival_times = np.cumsum(inter_arrival_times)
-#        print(f'ASYNC_MAIN arrival_times: {arrival_times}')
-#        sys.stdout.flush()
-#
-#        curr_rate_start_time = time.time()
-#        curr_rate_time_limit = curr_rate_start_time + seconds_per_rate
-#        for i in range(len(arrival_times)):
-#            send_time = curr_rate_start_time + arrival_times[i]
-#            sampled_prompt = sampled_prompts[i % sampled_prompts_len]
-#            await asyncio.sleep(max(0, send_time - time.time()))
-#            await request_queue.put((
-#                sampled_prompt,
-#                curr_rate,
-#                seconds_per_rate,
-#                curr_rate_time_limit
-#            ))
-#
-#        await request_queue.join()
-#        # After inferencing is done, write results to output file
-#        await write_results(
-#            output_file_path,
-#            result_queue
-#        )
-#
-#    worker.cancel()
-#    executor.shutdown()
-
-
 # General Llama2 prompt formatting given a list of message dicts
 # Prompt interleaving should look like: <human> <gpt> <human> <gpt> ...
 # Adapted from code in https://huggingface.co/TheBloke/Llama-2-13B-chat-GPTQ/discussions/5
