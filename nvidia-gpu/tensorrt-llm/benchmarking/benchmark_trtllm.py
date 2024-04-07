@@ -2,6 +2,7 @@
 # TODO: Get rid of unused imports
 
 import argparse
+import random
 import ast
 from pathlib import Path
 
@@ -125,8 +126,8 @@ def main(args):
     runtime_rank = tensorrt_llm.mpi_rank()
     logger.set_level(args.log_level)
     model_name, model_version = read_model_name(args.engine_dir)
-    logger.info(f'benchmark_trtllm main model_name: {model_name}')
-    logger.info(f'benchmark_trtllm main model_version: {model_version}')
+    logger.info(f'BENCHMARK_TRTLLM MAIN model_name: {model_name}')
+    logger.info(f'BENCHMARK_TRTLLM MAIN model_version: {model_version}')
 
     # runtime parameters
     max_batch_size = args.max_batch_size
@@ -136,7 +137,6 @@ def main(args):
     max_input_tokens = args.max_input_tokens
     max_attention_window_size = args.max_attention_window_size
     sink_token_length = args.sink_token_length
-
     random_seed = args.random_seed
     temperature = args.temperature
     num_beams = args.num_beams
@@ -145,6 +145,13 @@ def main(args):
     repetition_penalty = args.repetition_penalty
     presence_penalty = args.presence_penalty
     frequency_penalty = args.frequency_penalty
+    num_iterations = args.num_iterations
+
+    # Setting random seeds
+    random.seed(random_seed)
+    np.random.seed(random_seed)
+    torch.manual_seed(random_seed)
+    # TODO: cuda random seeds? might not be necessary
 
     # Loading tokenizer
     profiler.start('load tokenizer')
@@ -189,8 +196,9 @@ def main(args):
     runner = runner_cls.from_dir(**runner_kwargs)
 
     # TODO: set max_output_tokens to the max output tokens of this batch
-    for prompt in sampled_prompts:
-        batch_input_prompts = [prompt[0]]
+    for i in range(num_iterations):
+        batch_inputs = random.sample(sampled_prompts, max_batch_size)
+        batch_input_prompts = [batch_input[0] for batch_input in batch_inputs]
         eval_trt_llm(
             batch_input_prompts,
             args.add_special_tokens,
@@ -213,18 +221,6 @@ def main(args):
             runtime_rank,
             runner
         )
-
-    #repeat_token_string = '</s>'
-    #repeat_token_id = tokenizer(repeat_token_string)
-    #logger.info(f'repeat_token_string: {repeat_token_string}')
-    #logger.info(f'repeat_token_id: {repeat_token_id}')
-    #eos_token_string = tokenizer.decode(end_id)
-    #logger.info(f'eos_token_string: {eos_token_string}')
-    #logger.info(f'eos_id: {end_id}')
-    #pad_token_string = tokenizer.decode(pad_id)
-    #logger.info(f'pad_token_string: {pad_token_string}')
-    #logger.info(f'pad_id: {pad_id}')
-    #logger.info(f'early_stopping: {early_stopping}')
 
     #datapoint = dataset[0:1]
     #output, *_ = eval_trt_llm(datapoint,
@@ -332,6 +328,12 @@ if __name__ == '__main__':
         help='maximum input batch size'
     )
     parser.add_argument(
+        '--num_iterations',
+        type=int,
+        required=True,
+        help='number of batch iterations to run during profiling'
+    )
+    parser.add_argument(
         '--max_input_tokens',
         type=int,
         required=True,
@@ -402,6 +404,4 @@ if __name__ == '__main__':
     )
     parser.add_argument('--log_level', type=str, default='info')
     args = parser.parse_args()
-
-    print('Hello Docker! (fuck you)')
     main(args)
