@@ -29,5 +29,6 @@ git submodule update --init --recursive
 git lfs pull
 sudo make -C docker release_build
 
+sudo nvidia-persistenced --user root
 # Starting the container
 #sudo make -C docker release_run
