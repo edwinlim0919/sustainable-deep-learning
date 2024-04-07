@@ -26,7 +26,17 @@ cp -r /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/meta-llama/Llam
 
 # TensorRT-LLM standalone
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/TensorRT-LLM
+
+sudo nvidia-persistenced --user root
 sudo make -C docker release_run # starts the NVIDIA docker container
+
+# TODO: May be necessary to run this command sequence if version mismatch error occurs
+sudo apt-get --purge remove "*nvidia*"
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+# TODO: Command sequence end
 
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker ps # tells you NVIDIA docker container id
