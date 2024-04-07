@@ -163,16 +163,45 @@ def main(args):
         sink_token_length=sink_token_length)
     runner = runner_cls.from_dir(**runner_kwargs)
 
-    # TODO: set max_output_tokens to the max output tokens of this batch
-    for i in range(num_iterations):
+    # set max_output_tokens and max_input_tokens to reflect current batch results from GPT4
+    # decouple batch sampling with actual runtime
+    batch_dicts = []
+    for iteration in range(num_iterations):
         batch_inputs = random.sample(sampled_prompts, max_batch_size)
-        batch_input_prompts = [batch_input[0] for batch_input in batch_inputs]
+        logger.info(f'batch_inputs: {batch_inputs}')
+
+        curr_max_input_tokens = 0
+        curr_max_output_tokens = 0
+        curr_batch_input_prompts = []
+
+        for batch_input in batch_inputs:
+            if batch_input[1] > curr_max_input_tokens:
+                curr_max_input_tokens = batch_input[1]
+            if batch_input[2] > curr_max_output_tokens:
+                curr_max_output_tokens = batch_input[2]
+            curr_batch_input_prompts.append(batch_input[0])
+
+        batch_dict = {
+            'batch_input_prompts': curr_batch_input_prompts,
+            'max_input_tokens': curr_max_input_tokens,
+            'max_output_tokens': curr_max_output_tokens
+        }
+        batch_dicts.append(batch_dict)
+
+    result_dicts = []
+    for iteration in range(num_iterations):
+        #batch_inputs = random.sample(sampled_prompts, max_batch_size)
+        #batch_input_prompts = [batch_input[0] for batch_input in batch_inputs]
+        batch_dict = batch_dicts[iteration]
         batch_input_lengths, batch_output_lengths, batch_start_time, batch_end_time = eval_trt_llm(
-            batch_input_prompts,
+            #batch_input_prompts,
+            batch_dict['batch_input_prompts'],
             args.add_special_tokens,
             tokenizer,
-            max_input_tokens,
-            max_output_tokens,
+            #max_input_tokens,
+            batch_dict['max_input_tokens'],
+            #max_output_tokens,
+            batch_dict['max_output_tokens'],
             max_attention_window_size,
             sink_token_length,
             end_id,
@@ -190,11 +219,27 @@ def main(args):
             runner
         )
         batch_latency = batch_end_time - batch_start_time
+
+        logger.info(f'MAIN iteration: {iteration} / {num_iterations - 1}')
+        logger.info(f'MAIN max_input_tokens: {batch_dict["max_input_tokens"]}')
+        logger.info(f'MAIN max_output_tokens: {batch_dict["max_output_tokens"]}')
         logger.info(f'MAIN batch_input_lengths: {batch_input_lengths}')
         logger.info(f'MAIN batch_output_lengths: {batch_output_lengths}')
         logger.info(f'MAIN batch_start_time: {batch_start_time}')
         logger.info(f'MAIN batch_end_time: {batch_end_time}')
         logger.info(f'MAIN batch_latency: {batch_latency}\n')
+        result_dict = {
+            'max_batch_size': max_batch_size,
+            'iteration': iteration,
+            'max_input_tokens': batch_dict['max_input_tokens'],
+            'max_output_tokens': batch_dict['max_output_tokens'],
+            'batch_input_lengths': batch_input_lengths,
+            'batch_output_lengths': batch_output_lengths,
+            'batch_start_time': batch_start_time,
+            'batch_end_time': batch_end_time,
+            'batch_latency': batch_latency
+        }
+        result_dicts.append(result_dict)
 
 
 if __name__ == '__main__':

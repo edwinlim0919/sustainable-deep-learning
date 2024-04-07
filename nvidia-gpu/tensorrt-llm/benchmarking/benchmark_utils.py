@@ -57,6 +57,11 @@ def prepare_inputs(batch_input_texts: list[str],
 #            result_queue.task_done()
 
 
+#def write_results(
+#
+#):
+
+
 # General Llama2 prompt formatting given a list of message dicts
 # Prompt interleaving should look like: <human> <gpt> <human> <gpt> ...
 # Adapted from code in https://huggingface.co/TheBloke/Llama-2-13B-chat-GPTQ/discussions/5
