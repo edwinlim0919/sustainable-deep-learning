@@ -59,9 +59,9 @@ def eval_trt_llm(
     )
     batch_input_lengths = [x.size(0) for x in batch_input_tokens]
 
-    logger.info(f'EVAL_TRT_LLM batch_input_prompts: {batch_input_prompts}')
+    #logger.info(f'EVAL_TRT_LLM batch_input_prompts: {batch_input_prompts}')
     logger.info(f'EVAL_TRT_LLM batch_size: {batch_size}')
-    logger.info(f'EVAL_TRT_LLM batch_input_tokens: {batch_input_tokens}')
+    #logger.info(f'EVAL_TRT_LLM batch_input_tokens: {batch_input_tokens}')
     logger.info(f'EVAL_TRT_LLM batch_input_lengths {batch_input_lengths}')
 
     with torch.no_grad():
@@ -87,15 +87,9 @@ def eval_trt_llm(
         # TODO: Need to use C++ benchmark to use the in-flight batch manager...
         torch.cuda.synchronize()
 
-    logger.info(f'EVAL_TRT_LLM outputs: {outputs}')
-    output_ids = outputs['output_ids'][0]
-    output_sequence_lengths = outputs['sequence_lengths'][0]
-    logger.info(f'EVAL_TRT_LLM output_ids: {output_ids}')
-    logger.info(f'EVAL_TRT_LLM output_sequence_lengths: {output_sequence_lengths}')
 
-    decoded_outputs = tokenizer.batch_decode(output_ids)
-    logger.info(f'EVAL_TRT_LLM decoded_outputs: {decoded_outputs}')
-    logger.info(f'EVAL_TRT_LLM output_sequence_lengths: {output_sequence_lengths}')
+    batch_output_sequence_lengths = outputs['sequence_lengths']
+    logger.info(f'EVAL_TRT_LLM batch_output_sequence_lengths: {batch_output_sequence_lengths}')
 
     ## Extract a list of tensors of shape beam_width x output_ids.
     #if runtime_rank == 0:
@@ -126,8 +120,8 @@ def main(args):
     runtime_rank = tensorrt_llm.mpi_rank()
     logger.set_level(args.log_level)
     model_name, model_version = read_model_name(args.engine_dir)
-    logger.info(f'BENCHMARK_TRTLLM MAIN model_name: {model_name}')
-    logger.info(f'BENCHMARK_TRTLLM MAIN model_version: {model_version}')
+    logger.info(f'MAIN model_name: {model_name}')
+    logger.info(f'MAIN model_version: {model_version}')
 
     # runtime parameters
     max_batch_size = args.max_batch_size
@@ -154,10 +148,10 @@ def main(args):
     # TODO: cuda random seeds? might not be necessary
 
     # Loading tokenizer
-    profiler.start('load tokenizer')
+    profiler.start('MAIN load tokenizer')
     tokenizer, pad_id, end_id = benchmark_utils.load_tokenizer(args.tokenizer_dir)
-    profiler.stop('load tokenizer')
-    logger.info(f'load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
+    profiler.stop('MAIN load tokenizer')
+    logger.info(f'MAIN load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
 
     # Sampling the dataset
     sampled_prompts = benchmark_utils.sample_dataset_prompts(
@@ -169,12 +163,12 @@ def main(args):
     )
     sampled_prompts_len = len(sampled_prompts)
 
-    logger.info(f'Creating output directory {args.output_dir} w/ file {args.output_file}')
+    logger.info(f'MAIN creating output directory {args.output_dir} w/ file {args.output_file}')
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
     with (output_dir / args.output_file).open('w') as f:
-        f.write(f'Engine path: {args.engine_dir}\n')
-        f.write(f'Tokenizer path: {args.tokenizer_dir}\n')
+        f.write(f'engine path: {args.engine_dir}\n')
+        f.write(f'tokenizer path: {args.tokenizer_dir}\n')
 
     # TODO change this for the actual batching
     #sampled_prompts_text = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
@@ -292,7 +286,6 @@ def main(args):
     #    data_point_idx += max_batch_size
     #    ite_count += 1
     #del runner
-
 
 
 if __name__ == '__main__':
