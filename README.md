@@ -39,17 +39,12 @@ cd /dev/shm/sustainable-deep-learning/nvidia-gpu
 sudo ./nvidia-setup.sh https://developer.download.nvidia.com/compute/cuda/12.2.0/local_installers/cuda_12.2.0_535.54.03_linux.run cuda_12.2.0_535.54.03_linux.run
 ```
 
-# NVIDIA TensorRT-LLM + Triton Inference backend setup
+# NVIDIA TensorRT-LLM setup
 First, follow the instructions from the link below to increase the size of your Linux root filesystem partition (~200 GB recommended).
 https://www.privex.io/articles/how-to-resize-partition/
 
 Then, run the following script to setup the TensorRT-LLM backend.
 ```bash
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
-source ./setup_tensorrtllm_backend.sh
+sudo source ./setup_tensorrt-llm.sh
 ```
-
-## vLLM Setup
-conda create --name  vllm-env python=3.9
-conda activate vllm-env
-pip install vllm
