@@ -12,6 +12,17 @@ memory_usage_pattern = r"\d+MiB / \d+MiB"
 gpu_utilization_pattern = r"\d+%"
 timestamp_pattern = r"(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d"
 
+nvsmi_loop_running = True
+
+
+def get_nvsmi_loop_running() -> bool:
+    return nvsmi_loop_running
+
+
+def set_nvsmi_loop_running(value: bool):
+    global nvsmi_loop_running
+    nvsmi_loop_running = value
+
 
 async def get_nvsmi_info_V100S_PCIE_32GB():
     output = subprocess.check_output(['nvidia-smi'])
@@ -37,37 +48,37 @@ async def get_nvsmi_info_V100S_PCIE_32GB():
 
 
 async def nvsmi_loop_V100S_PCIE_32GB(filepath: str):
-    while True:
+    while get_nvsmi_loop_running():
         nvsmi_dict = await get_nvsmi_info_V100S_PCIE_32GB()
         async with aiofiles.open(filepath, 'a') as f:
             await f.write(str(nvsmi_dict) + '\n')
         await asyncio.sleep(1)
 
 
-def main(args):
-    # create output dir and file
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(exist_ok=True, parents=True)
-    with (output_dir / args.output_file).open('w') as f:
-        f.write(f'nvsmi profiling: V100S_PCIE_32GB\n')
-
-    filepath = args.output_dir + '/' + args.output_file
-    asyncio.run(nvsmi_loop_V100S_PCIE_32GB(filepath))
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--output_dir',
-        type=str,
-        required=True,
-        help='directory for saving output files'
-    )
-    parser.add_argument(
-        '--output_file',
-        type=str,
-        required=True,
-        help='output file name'
-    )
-    args = parser.parse_args()
-    main(args)
+#def main(args):
+#    # create output dir and file
+#    output_dir = Path(args.output_dir)
+#    output_dir.mkdir(exist_ok=True, parents=True)
+#    with (output_dir / args.output_file).open('w') as f:
+#        f.write(f'nvsmi profiling: V100S_PCIE_32GB\n')
+#
+#    filepath = args.output_dir + '/' + args.output_file
+#    asyncio.run(nvsmi_loop_V100S_PCIE_32GB(filepath))
+#
+#
+#if __name__ == '__main__':
+#    parser = argparse.ArgumentParser()
+#    parser.add_argument(
+#        '--output_dir',
+#        type=str,
+#        required=True,
+#        help='directory for saving output files'
+#    )
+#    parser.add_argument(
+#        '--output_file',
+#        type=str,
+#        required=True,
+#        help='output file name'
+#    )
+#    args = parser.parse_args()
+#    main(args)
