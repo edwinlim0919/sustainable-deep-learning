@@ -5,6 +5,7 @@ import argparse
 import random
 import ast
 import time
+import asyncio
 from pathlib import Path
 
 import evaluate
@@ -24,6 +25,7 @@ from tensorrt_llm.runtime import PYTHON_BINDINGS, ModelRunner
 from tensorrt_llm.tools.ppl import ppl
 
 import benchmark_utils
+import nvsmi_monitor
 
 if PYTHON_BINDINGS:
     from tensorrt_llm.runtime import ModelRunnerCpp
@@ -89,7 +91,7 @@ def eval_trt_llm(
     return batch_input_lengths, batch_output_lengths, batch_start_time, batch_end_time
 
 
-def main(args):
+async def main(args):
     runtime_rank = tensorrt_llm.mpi_rank()
     logger.set_level(args.log_level)
     model_name, model_version = read_model_name(args.engine_dir)
@@ -142,6 +144,16 @@ def main(args):
     with (output_dir / args.output_file).open('w') as f:
         f.write(f'engine path: {args.engine_dir}\n')
         f.write(f'tokenizer path: {args.tokenizer_dir}\n')
+    nvsmi_output_file = 'nvsmi_' + args.output_file
+    nvsmi_filepath = args.output_dir + '/' + nvsmi_output_file
+    with (output_dir / nvsmi_output_file).open('w') as f:
+        f.write(f'nvsmi profiling: V100S_PCIE_32GB\n')
+
+    nvsmi_monitor.set_nvsmi_loop_running(True)
+    nvsmi_loop_task = asyncio.create_task(nvsmi_monitor.nvsmi_loop_V100S_PCIE_32GB(nvsmi_filepath))
+    assert(nvsmi_monitor.get_nvsmi_loop_running() == True)
+    # getting some measurements before benchmarking starts
+    await asyncio.sleep(30)
 
     # TODO change this for the actual batching
     #sampled_prompts_text = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
@@ -236,6 +248,11 @@ def main(args):
         f.write(f'num_iterations: {num_iterations}\n')
         for result_dict in result_dicts:
             f.write(f'{result_dict}\n')
+
+    # getting some measurements after benchmarking ends
+    await asyncio.sleep(30)
+    nvsmi_monitor.set_nvsmi_loop_running(False)
+    await nvsmi_loop_task
 
 
 if __name__ == '__main__':
@@ -347,4 +364,5 @@ if __name__ == '__main__':
     )
     parser.add_argument('--log_level', type=str, default='info')
     args = parser.parse_args()
-    main(args)
+    #main(args)
+    asyncio.run(main())
