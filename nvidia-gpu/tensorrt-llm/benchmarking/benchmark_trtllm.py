@@ -59,8 +59,6 @@ def eval_trt_llm(
         max_input_tokens
     )
     batch_input_lengths = [x.size(0) for x in batch_input_tokens]
-    #logger.info(f'EVAL_TRT_LLM batch_size: {batch_size}')
-    #logger.info(f'EVAL_TRT_LLM batch_input_lengths {batch_input_lengths}')
 
     batch_start_time = time.time()
     with torch.no_grad():
@@ -88,7 +86,6 @@ def eval_trt_llm(
     batch_end_time = time.time()
 
     batch_output_lengths = outputs['sequence_lengths']
-    #logger.info(f'EVAL_TRT_LLM batch_output_lengths: {batch_output_lengths}')
     return batch_input_lengths, batch_output_lengths, batch_start_time, batch_end_time
 
 
