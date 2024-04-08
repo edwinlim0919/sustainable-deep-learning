@@ -1,7 +1,10 @@
 import subprocess
 import argparse
 import re
-import time
+import aiofiles
+import asyncio
+
+from pathlib import Path
 
 
 power_usage_pattern = r"\d+W / \d+W"
@@ -10,7 +13,7 @@ gpu_utilization_pattern = r"\d+%"
 timestamp_pattern = r"(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d"
 
 
-def get_nvsmi_info_V100S_PCIE_32GB():
+async def get_nvsmi_info_V100S_PCIE_32GB():
     output = subprocess.check_output(['nvidia-smi'])
     decoded_output = output.decode('utf-8')
     nvsmi_dict = {}
@@ -30,23 +33,26 @@ def get_nvsmi_info_V100S_PCIE_32GB():
         if gpu_utilization_match:
             nvsmi_dict['gpu_utilization'] = gpu_utilization_match.group()
 
-    #print(nvsmi_dict)
+    return nvsmi_dict
 
-    #timestamp = time.time()
-    #local_time = time.localtime(timestamp)
-    #formatted_time = time.strftime("%H:%M:%S", local_time)
-    #print(timestamp)
-    #print(local_time)
-    #print(formatted_time)
-    #print(output)
+
+async def nvsmi_loop_V100S_PCIE_32GB(filepath: str):
+    while True:
+        nvsmi_dict = await get_nvsmi_info_V100S_PCIE_32GB()
+        async with aiofiles.open(filepath, 'a') as f:
+            await f.write(str(nvsmi_dict) + '\n')
+        await asyncio.sleep(1)
 
 
 def main(args):
     # create output dir and file
-    #with (args.output_dir / args.output_file).open('w') as f:
-    #    f.write(f'engine path: {args.engine_dir}\n')
-    #    f.write(f'tokenizer path: {args.tokenizer_dir}\n')
-    get_nvsmi_info_V100S_PCIE_32GB()
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(exist_ok=True, parents=True)
+    with (output_dir / args.output_file).open('w') as f:
+        f.write(f'nvsmi profiling: V100S_PCIE_32GB\n')
+
+    filepath = args.output_dir + '/' + args.output_file
+    asyncio.run(nvsmi_loop_V100S_PCIE_32GB(filepath))
 
 
 if __name__ == '__main__':
