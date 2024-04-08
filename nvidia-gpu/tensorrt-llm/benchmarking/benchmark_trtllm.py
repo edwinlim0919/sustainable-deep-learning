@@ -168,8 +168,6 @@ def main(args):
     batch_dicts = []
     for iteration in range(num_iterations):
         batch_inputs = random.sample(sampled_prompts, max_batch_size)
-        logger.info(f'batch_inputs: {batch_inputs}')
-
         curr_max_input_tokens = 0
         curr_max_output_tokens = 0
         curr_batch_input_prompts = []
