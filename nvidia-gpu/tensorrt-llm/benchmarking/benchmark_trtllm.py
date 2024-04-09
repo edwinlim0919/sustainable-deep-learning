@@ -194,6 +194,7 @@ async def main(args):
             'max_input_tokens': curr_max_input_tokens,
             'max_output_tokens': curr_max_output_tokens
         }
+        logger.info(f'batch_dict: {batch_dict}\n\n\n')
         batch_dicts.append(batch_dict)
 
     result_dicts = []

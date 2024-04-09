@@ -33,7 +33,7 @@ def prepare_inputs(batch_input_texts: list[str],
                    tokenizer: AutoTokenizer,
                    max_input_tokens: int
 ):
-    print(f'batch_input_texts: {batch_input_texts}')
+    #print(f'batch_input_texts: {batch_input_texts}')
     batch_input_ids = tokenizer(
         batch_input_texts,
         return_tensors='pt',
