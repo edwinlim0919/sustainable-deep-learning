@@ -138,22 +138,23 @@ async def main(args):
     )
     sampled_prompts_len = len(sampled_prompts)
 
-    logger.info(f'MAIN creating output directory {args.output_dir} w/ file {args.output_file}')
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
+    nvsmi_output_file = 'nvsmi_' + args.output_file
+    nvsmi_filepath = args.output_dir + '/' + nvsmi_output_file
+    logger.info(f'MAIN creating output directory {args.output_dir} w/ files {args.output_file} {nvsmi_output_file}')
     with (output_dir / args.output_file).open('w') as f:
         f.write(f'engine path: {args.engine_dir}\n')
         f.write(f'tokenizer path: {args.tokenizer_dir}\n')
-    nvsmi_output_file = 'nvsmi_' + args.output_file
-    nvsmi_filepath = args.output_dir + '/' + nvsmi_output_file
     with (output_dir / nvsmi_output_file).open('w') as f:
         f.write(f'nvsmi profiling: V100S_PCIE_32GB\n')
 
-    nvsmi_monitor.set_nvsmi_loop_running(True)
-    nvsmi_loop_task = asyncio.create_task(nvsmi_monitor.nvsmi_loop_V100S_PCIE_32GB(nvsmi_filepath))
-    assert(nvsmi_monitor.get_nvsmi_loop_running() == True)
-    # getting some measurements before benchmarking starts
-    await asyncio.sleep(30)
+    #nvsmi_monitor.set_nvsmi_loop_running(True)
+    #nvsmi_loop_task = asyncio.create_task(nvsmi_monitor.nvsmi_loop_V100S_PCIE_32GB(nvsmi_filepath))
+    #assert(nvsmi_monitor.get_nvsmi_loop_running() == True)
+    ## getting some measurements before benchmarking starts
+    #logger.info('MAIN started nvsmi monitoring loop, sleeping 30s...')
+    #await asyncio.sleep(30)
 
     # TODO change this for the actual batching
     #sampled_prompts_text = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
@@ -250,9 +251,9 @@ async def main(args):
             f.write(f'{result_dict}\n')
 
     # getting some measurements after benchmarking ends
-    await asyncio.sleep(30)
-    nvsmi_monitor.set_nvsmi_loop_running(False)
-    await nvsmi_loop_task
+    #await asyncio.sleep(30)
+    #nvsmi_monitor.set_nvsmi_loop_running(False)
+    #await nvsmi_loop_task
 
 
 if __name__ == '__main__':
@@ -365,4 +366,4 @@ if __name__ == '__main__':
     parser.add_argument('--log_level', type=str, default='info')
     args = parser.parse_args()
     #main(args)
-    asyncio.run(main())
+    asyncio.run(main(args))

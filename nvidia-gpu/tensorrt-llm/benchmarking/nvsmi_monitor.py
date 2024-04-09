@@ -5,6 +5,7 @@ import aiofiles
 import asyncio
 
 from pathlib import Path
+from datetime import datetime
 
 
 power_usage_pattern = r"\d+W / \d+W"
@@ -36,7 +37,13 @@ async def get_nvsmi_info_V100S_PCIE_32GB():
         timestamp_match = re.search(timestamp_pattern, line)
 
         if timestamp_match:
-            nvsmi_dict['timestamp'] = timestamp_match.group()
+            nvsmi_dict['timestamp_readable'] = timestamp_match.group()
+            time_string = timestamp_match.group()
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            datetime_string = f"{current_date} {time_string}"
+            datetime_object = datetime.strptime(datetime_string, "%Y-%m-%d %H:%M:%S")
+            timestamp = datetime_object.timestamp()
+            nvsmi_dict['timestamp_raw'] = timestamp
         if power_usage_match:
             nvsmi_dict['power_usage'] = power_usage_match.group()
         if memory_usage_match:
@@ -55,30 +62,30 @@ async def nvsmi_loop_V100S_PCIE_32GB(filepath: str):
         await asyncio.sleep(1)
 
 
-#def main(args):
-#    # create output dir and file
-#    output_dir = Path(args.output_dir)
-#    output_dir.mkdir(exist_ok=True, parents=True)
-#    with (output_dir / args.output_file).open('w') as f:
-#        f.write(f'nvsmi profiling: V100S_PCIE_32GB\n')
-#
-#    filepath = args.output_dir + '/' + args.output_file
-#    asyncio.run(nvsmi_loop_V100S_PCIE_32GB(filepath))
-#
-#
-#if __name__ == '__main__':
-#    parser = argparse.ArgumentParser()
-#    parser.add_argument(
-#        '--output_dir',
-#        type=str,
-#        required=True,
-#        help='directory for saving output files'
-#    )
-#    parser.add_argument(
-#        '--output_file',
-#        type=str,
-#        required=True,
-#        help='output file name'
-#    )
-#    args = parser.parse_args()
-#    main(args)
+def main(args):
+    # create output dir and file
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(exist_ok=True, parents=True)
+    with (output_dir / args.output_file).open('w') as f:
+        f.write(f'nvsmi profiling: V100S_PCIE_32GB\n')
+
+    filepath = args.output_dir + '/' + args.output_file
+    asyncio.run(nvsmi_loop_V100S_PCIE_32GB(filepath))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--output_dir',
+        type=str,
+        required=True,
+        help='directory for saving output files'
+    )
+    parser.add_argument(
+        '--output_file',
+        type=str,
+        required=True,
+        help='output file name'
+    )
+    args = parser.parse_args()
+    main(args)
