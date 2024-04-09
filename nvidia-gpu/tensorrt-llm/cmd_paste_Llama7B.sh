@@ -13,7 +13,7 @@ sudo systemctl restart docker
 
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker ps # tells you NVIDIA docker container id
-sed -i "s/5742c720375f/f88488e6d7ff/g" cmd_paste.sh # replace docker container id in cmd_paste.sh with the current one
+sed -i "s/5742c720375f/f88488e6d7ff/g" cmd_paste_Llama7B.sh # replace docker container id in cmd_paste.sh with the current one
 
 huggingface-cli login
 python3 download_hf_weights.py --model-name "meta-llama/Llama-2-7b-chat-hf"
