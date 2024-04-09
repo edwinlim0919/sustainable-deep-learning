@@ -22,27 +22,29 @@ def parse_bmark_output(bmark_output_path):
     current_dict_line = ''
     for line in bmark_output_lines[3:]:
         stripped = line.strip()
-        if line[0] == '{'
+        #print(stripped)
+        if stripped[0] == '{':
+            current_dict_line = stripped
 
+        if stripped[-1] != '}':
+            current_dict_line += stripped
+            continue
+        else:
+            current_dict_line += stripped
+            # this is the full result dict
 
-        print(f'line: {line}')
-        max_batch_size = re.search(max_batch_size_pattern, line).group()
-        iteration = re.search(iteration_pattern, line).group()
-        max_input_tokens = re.search(max_input_tokens_pattern, line).group()
-        max_output_tokens = re.search(max_output_tokens_pattern, line).group()
-        batch_input_lengths = re.search(batch_input_lengths_pattern, line).group()
+            max_batch_size = re.search(max_batch_size_pattern, current_dict_line).group()
+            iteration = re.search(iteration_pattern, current_dict_line).group()
+            max_input_tokens = re.search(max_input_tokens_pattern, current_dict_line).group()
+            max_output_tokens = re.search(max_output_tokens_pattern, current_dict_line).group()
+            batch_input_lengths = re.search(batch_input_lengths_pattern, current_dict_line).group()
 
-        print(f'max_batch_size: {max_batch_size}')
-        print(f'iteration: {iteration}')
-        print(f'max_input_tokens: {max_input_tokens}')
-        print(f'max_output_tokens: {max_output_tokens}')
-        print(f'batch_input_lengths: {batch_input_lengths}')
-        print()
-        #dict_line = line.strip()
-        #print(dict_line)
-
-        #dict_obj = ast.literal_eval(dict_line)
-        #print(f'dict_obj: {dict_obj}')
+            print(f'max_batch_size: {max_batch_size}')
+            print(f'iteration: {iteration}')
+            print(f'max_input_tokens: {max_input_tokens}')
+            print(f'max_output_tokens: {max_output_tokens}')
+            print(f'batch_input_lengths: {batch_input_lengths}')
+            print()
 
     print(bmark_output_lines[-1])
 
@@ -57,8 +59,8 @@ def main(args):
         nvsmi_output_path = nvsmi_output_paths[i]
         print(f'PATHS: {bmark_output_path} {nvsmi_output_path}')
 
-    print(bmark_output_paths[1])
-    parse_bmark_output(bmark_output_paths[1])
+    #print(bmark_output_paths[1])
+    #parse_bmark_output(bmark_output_paths[0])
 
 
 if __name__ == '__main__':
