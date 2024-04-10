@@ -175,11 +175,11 @@ async def main(args):
         batch_input_lengths = [x.size(0) for x in batch_input_tokens]
 
         batch_dict = {
+            'max_input_tokens': curr_max_input_tokens,
+            'max_output_tokens': curr_max_output_tokens,
             'batch_input_prompts': batch_input_prompts,
             'batch_input_tokens': batch_input_tokens,
-            'batch_input_lengths': batch_input_lengths,
-            'max_input_tokens': curr_max_input_tokens,
-            'max_output_tokens': curr_max_output_tokens
+            'batch_input_lengths': batch_input_lengths
         }
         batch_dicts.append(batch_dict)
 
@@ -214,7 +214,10 @@ async def main(args):
     # writing results
     for batch_dict in batch_dicts:
         #logger.info(f'MAIN batch_dict: {batch_dict}\n\n\n')
-        parse_batch_dict(batch_dict)
+        benchmark_utils.parse_batch_dict(
+            batch_dict,
+            tokenizer
+        )
     #with (output_dir / args.output_file).open('a') as f:
     #    f.write(f'num_iterations: {num_iterations}\n')
     #    for result_dict in result_dicts:
