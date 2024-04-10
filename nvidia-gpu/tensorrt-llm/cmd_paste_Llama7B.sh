@@ -44,7 +44,6 @@ python ../summarize.py --test_trt_llm --hf_model_dir ./meta-llama/Llama-2-7b-cha
 sudo docker cp benchmarking/benchmark_trtllm.py f88488e6d7ff:/app/tensorrt_llm/examples/benchmark_trtllm.py
 sudo docker cp benchmarking/benchmark_utils.py f88488e6d7ff:/app/tensorrt_llm/examples/benchmark_utils.py
 sudo docker cp benchmarking/nvsmi_monitor.py f88488e6d7ff:/app/tensorrt_llm/examples/nvsmi_monitor.py
-
 sudo docker cp TensorRT-LLM/examples/summarize.py f88488e6d7ff:/app/tensorrt_llm/examples/summarize.py
 
 sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json f88488e6d7ff:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split.json

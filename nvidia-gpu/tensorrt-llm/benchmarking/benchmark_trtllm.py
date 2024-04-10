@@ -25,7 +25,7 @@ from tensorrt_llm.runtime import PYTHON_BINDINGS, ModelRunner
 from tensorrt_llm.tools.ppl import ppl
 
 import benchmark_utils
-import nvsmi_monitor
+#import nvsmi_monitor
 
 if PYTHON_BINDINGS:
     from tensorrt_llm.runtime import ModelRunnerCpp
@@ -86,6 +86,8 @@ def eval_trt_llm(
         # TODO: Need to use C++ benchmark to use the in-flight batch manager...
         torch.cuda.synchronize()
     batch_end_time = time.time()
+
+    #logger.info(f'eval_trt_llm outputs: {outputs}\n\n\n')
 
     batch_output_lengths = outputs['sequence_lengths']
     return batch_input_lengths, batch_output_lengths, batch_start_time, batch_end_time
