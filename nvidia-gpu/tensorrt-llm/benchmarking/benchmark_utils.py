@@ -45,18 +45,9 @@ def prepare_inputs(batch_input_texts: list[str],
     return batch_input_ids
 
 
-#async def write_results(
-#    output_file_path,
-#    result_queue
-#):
-#    # Make sure all the tasks are done
-#    print(f'write_results {output_file_path}')
-#    sys.stdout.flush()
-#    with open(output_file_path, 'a') as file:
-#        while not result_queue.empty():
-#            result = await result_queue.get()
-#            file.write(str(result) + '\n')
-#            result_queue.task_done()
+def parse_batch_dict(batch_dict: dict):
+    for key, value in batch_dict.items():
+        print(f'parse_batch_dict key: {key}, value: {value}')
 
 
 #def write_results(
@@ -67,6 +58,7 @@ def prepare_inputs(batch_input_texts: list[str],
 # General Llama2 prompt formatting given a list of message dicts
 # Prompt interleaving should look like: <human> <gpt> <human> <gpt> ...
 # Adapted from code in https://huggingface.co/TheBloke/Llama-2-13B-chat-GPTQ/discussions/5
+# TODO: Prompting like this seems to over-moralize the model...
 def llama2_prompt_general(prompts: list[dict]):
     B_INST, E_INST = "[INST]", "[/INST]"
     B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
