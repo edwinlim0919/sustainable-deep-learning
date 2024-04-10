@@ -117,14 +117,22 @@ async def main(args):
     logger.info(f'MAIN load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
 
     # Sampling the dataset
-    sampled_prompts = benchmark_utils.sample_dataset_prompts_no_formatting(
-        args.dataset_path,
-        args.num_requests_sample,
-        max_output_tokens,
-        max_input_tokens,
-        tokenizer
-    )
-    sampled_prompts_len = len(sampled_prompts)
+    if args.use_prompt_formatting:
+        sampled_prompts = benchmark_utils.sample_dataset_prompts_with_formatting(
+            args.dataset_path,
+            args.num_requests_sample,
+            max_output_tokens,
+            max_input_tokens,
+            tokenizer
+        )
+    else:
+        sampled_prompts = benchmark_utils.sample_dataset_prompts_no_formatting(
+            args.dataset_path,
+            args.num_requests_sample,
+            max_output_tokens,
+            max_input_tokens,
+            tokenizer
+        )
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
@@ -213,11 +221,14 @@ async def main(args):
 
     # writing results
     for batch_dict in batch_dicts:
-        #logger.info(f'MAIN batch_dict: {batch_dict}\n\n\n')
         benchmark_utils.parse_batch_dict(
             batch_dict,
             tokenizer
         )
+        print()
+        for key, value in batch_dict.items():
+            print(f'parse_batch_dict key: {key}, value: {value}')
+
     #with (output_dir / args.output_file).open('a') as f:
     #    f.write(f'num_iterations: {num_iterations}\n')
     #    for result_dict in result_dicts:
@@ -330,6 +341,12 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
         help='Whether or not to add special tokens'
+    )
+    parser.add_argument(
+        '--use_prompt_formatting',
+        default=False,
+        action='store_true',
+        help='Whether or not to use prompt formatting for better generation.'
     )
     parser.add_argument('--log_level', type=str, default='info')
     args = parser.parse_args()
