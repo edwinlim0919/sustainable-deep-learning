@@ -7,6 +7,7 @@ import sys
 import numpy as np
 
 from transformers import AutoTokenizer
+from typing import IO
 
 
 def load_tokenizer(
@@ -72,6 +73,21 @@ def parse_batch_dict(
     #    print(f'parse_batch_dict key: {key}, value: {value}')
     #print()
     #return batch_dict
+
+
+def write_batch_dict(
+    batch_dict: dict,
+    file: IO
+):
+    #for key, _ in batch_dict.items():
+    #    print(key)
+    assert((len(batch_dict['batch_input_prompts']) == len(batch_dict['batch_input_tokens'])) and
+           (len(batch_dict['batch_input_tokens']) == len(batch_dict['batch_input_lengths'])) and
+           (len(batch_dict['batch_input_lengths']) == len(batch_dict['batch_output_completions'])) and
+           (len(batch_dict['batch_output_completions']) == len(batch_dict['batch_output_tokens'])) and
+           (len(batch_dict['batch_output_tokens']) == len(batch_dict['batch_output_lengths'])))
+    batch_size = len(batch_dict['batch_input_prompts'])
+
 
 
 #def write_results(

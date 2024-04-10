@@ -219,15 +219,19 @@ async def main(args):
         batch_dict['batch_start_time'] = batch_start_time
         batch_dict['batch_end_time'] = batch_end_time
 
-    # writing results
-    for batch_dict in batch_dicts:
-        benchmark_utils.parse_batch_dict(
-            batch_dict,
-            tokenizer
-        )
-        print()
-        for key, value in batch_dict.items():
-            print(f'parse_batch_dict key: {key}, value: {value}')
+    # parsing and writing results
+    with (output_dir / args.output_file).open('a') as file:
+        for batch_dict in batch_dicts:
+            benchmark_utils.parse_batch_dict(
+                batch_dict,
+                tokenizer
+            )
+            print('OOGLY BOOGLY')
+            print(type(file))
+            benchmark_utils.write_batch_dict(
+                batch_dict,
+                file
+            )
 
     #with (output_dir / args.output_file).open('a') as f:
     #    f.write(f'num_iterations: {num_iterations}\n')
