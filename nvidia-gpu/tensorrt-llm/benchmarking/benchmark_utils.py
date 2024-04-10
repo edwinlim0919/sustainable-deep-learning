@@ -33,7 +33,6 @@ def prepare_inputs(batch_input_texts: list[str],
                    tokenizer: AutoTokenizer,
                    max_input_tokens: int
 ):
-    #print(f'batch_input_texts: {batch_input_texts}')
     batch_input_ids = tokenizer(
         batch_input_texts,
         return_tensors='pt',
@@ -45,9 +44,32 @@ def prepare_inputs(batch_input_texts: list[str],
     return batch_input_ids
 
 
-def parse_batch_dict(batch_dict: dict):
+def parse_batch_dict(
+    batch_dict: dict,
+    tokenizer: AutoTokenizer
+):
+    batch_outputs = batch_dict['batch_outputs']
+    del batch_dict['batch_outputs']
+
+    batch_output_ids = batch_outputs['output_ids']
+    batch_sequence_lengths = batch_outputs['sequence_lengths']
+    device = batch_output_ids.device
+    dtype = batch_output_ids.dtype
+    batch_output_tokens = []
+    for t in batch_output_ids:
+        batch_output_tokens.append(t.squeeze().tolist())
+    batch_output_completions = tokenizer.batch_decode(batch_output_tokens)
+
+    batch_dict['batch_output_completions'] = batch_output_completions
+    batch_dict['batch_input_tokens'] = batch_dict['batch_input_tokens'].tolist()
+    batch_dict['batch_output_tokens'] = batch_output_tokens
+    batch_dict['batch_output_lengths'] = batch_sequence_lengths.tolist()
+    batch_dict['device'] = device
+    batch_dict['dtype'] = dtype
+
     for key, value in batch_dict.items():
         print(f'parse_batch_dict key: {key}, value: {value}')
+    print()
 
 
 #def write_results(
