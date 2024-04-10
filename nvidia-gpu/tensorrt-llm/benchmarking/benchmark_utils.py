@@ -110,7 +110,7 @@ def llama2_prompt_general(prompts: list[dict]):
 
 
 # Sampling dataset prompts for throughput experiments
-def sample_dataset_prompts(
+def sample_dataset_prompts_no_formatting(
     dataset_path: str,
     num_requests_sample: int,
     max_output_tokens: int,

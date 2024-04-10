@@ -117,7 +117,7 @@ async def main(args):
     logger.info(f'MAIN load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
 
     # Sampling the dataset
-    sampled_prompts = benchmark_utils.sample_dataset_prompts(
+    sampled_prompts = benchmark_utils.sample_dataset_prompts_no_formatting(
         args.dataset_path,
         args.num_requests_sample,
         max_output_tokens,
