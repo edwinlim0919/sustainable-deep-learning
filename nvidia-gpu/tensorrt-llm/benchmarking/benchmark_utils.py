@@ -69,30 +69,36 @@ def parse_batch_dict(
     batch_dict['device'] = device
     batch_dict['dtype'] = dtype
 
-    #for key, value in batch_dict.items():
-    #    print(f'parse_batch_dict key: {key}, value: {value}')
-    #print()
-    #return batch_dict
-
 
 def write_batch_dict(
     batch_dict: dict,
     file: IO
 ):
-    #for key, _ in batch_dict.items():
-    #    print(key)
+    batch_size = batch_dict['batch_size']
     assert((len(batch_dict['batch_input_prompts']) == len(batch_dict['batch_input_tokens'])) and
            (len(batch_dict['batch_input_tokens']) == len(batch_dict['batch_input_lengths'])) and
            (len(batch_dict['batch_input_lengths']) == len(batch_dict['batch_output_completions'])) and
            (len(batch_dict['batch_output_completions']) == len(batch_dict['batch_output_tokens'])) and
-           (len(batch_dict['batch_output_tokens']) == len(batch_dict['batch_output_lengths'])))
-    batch_size = len(batch_dict['batch_input_prompts'])
+           (len(batch_dict['batch_output_tokens']) == len(batch_dict['batch_output_lengths'])) and
+           (len(batch_dict['batch_output_lengths']) == batch_size))
+    print(f'write_batch_dict batch_dict: {batch_dict}')
 
-
-
-#def write_results(
-#
-#):
+    file.write(f'\niteration: {batch_dict["iteration"]}\n')
+    file.write(f'device: {batch_dict["device"]}\n')
+    file.write(f'dtype: {batch_dict["dtype"]}\n')
+    file.write(f'batch_size: {batch_size}\n')
+    file.write(f'max_input_tokens: {batch_dict["max_input_tokens"]}\n')
+    file.write(f'max_output_tokens: {batch_dict["max_output_tokens"]}\n')
+    file.write(f'batch_start_time: {batch_dict["batch_start_time"]}\n')
+    file.write(f'batch_end_time: {batch_dict["batch_end_time"]}\n')
+    for i in range(batch_size):
+        file.write(f'batch_input_tokens[{i}]: {batch_dict["batch_input_tokens"][i]}\n')
+    for i in range(batch_size):
+        file.write(f'batch_input_lengths[{i}]: {batch_dict["batch_input_lengths"][i]}\n')
+    for i in range(batch_size):
+        file.write(f'batch_output_tokens[{i}]: {batch_dict["batch_output_tokens"][i]}\n')
+    for i in range(batch_size):
+        file.write(f'batch_output_lengths[{i}]: {batch_dict["batch_output_lengths"][i]}\n')
 
 
 # General Llama2 prompt formatting given a list of message dicts

@@ -183,6 +183,8 @@ async def main(args):
         batch_input_lengths = [x.size(0) for x in batch_input_tokens]
 
         batch_dict = {
+            'iteration': iteration,
+            'batch_size': max_batch_size,
             'max_input_tokens': curr_max_input_tokens,
             'max_output_tokens': curr_max_output_tokens,
             'batch_input_prompts': batch_input_prompts,
@@ -191,7 +193,6 @@ async def main(args):
         }
         batch_dicts.append(batch_dict)
 
-    #result_dicts = []
     for iteration in range(num_iterations):
         logger.info(f'MAIN iteration: {iteration} / {num_iterations - 1}')
         batch_dict = batch_dicts[iteration]
@@ -221,22 +222,17 @@ async def main(args):
 
     # parsing and writing results
     with (output_dir / args.output_file).open('a') as file:
+        file.write(f'num_iterations: {num_iterations}\n')
         for batch_dict in batch_dicts:
+            #logger.info(f'\n\nbatch_dict: {batch_dict}\n\n')
             benchmark_utils.parse_batch_dict(
                 batch_dict,
                 tokenizer
             )
-            print('OOGLY BOOGLY')
-            print(type(file))
             benchmark_utils.write_batch_dict(
                 batch_dict,
                 file
             )
-
-    #with (output_dir / args.output_file).open('a') as f:
-    #    f.write(f'num_iterations: {num_iterations}\n')
-    #    for result_dict in result_dicts:
-    #        f.write(f'{result_dict}\n')
 
 
 if __name__ == '__main__':
