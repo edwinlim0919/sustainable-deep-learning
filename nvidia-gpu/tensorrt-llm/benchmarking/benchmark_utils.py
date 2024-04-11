@@ -32,8 +32,8 @@ def load_tokenizer(
         pad_id = tokenizer.pad_token_id
         end_id = tokenizer.eos_token_id
 
-        print(f'LOAD_TOKENIZER PAD_ID: {pad_id}')
-        print(f'LOAD_TOKENIZER END_ID: {end_id}')
+        #print(f'LOAD_TOKENIZER PAD_ID: {pad_id}')
+        #print(f'LOAD_TOKENIZER END_ID: {end_id}')
 
         return tokenizer, pad_id, end_id
 
