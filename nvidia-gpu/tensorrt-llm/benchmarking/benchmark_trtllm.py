@@ -112,7 +112,10 @@ async def main(args):
 
     # Loading tokenizer
     profiler.start('MAIN load tokenizer')
-    tokenizer, pad_id, end_id = benchmark_utils.load_tokenizer(args.tokenizer_dir)
+    tokenizer, pad_id, end_id = benchmark_utils.load_tokenizer(
+        args.tokenizer_dir,
+        args.add_special_tokens
+    )
     profiler.stop('MAIN load tokenizer')
     logger.info(f'MAIN load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
 
