@@ -11,7 +11,8 @@ from typing import IO
 
 
 def load_tokenizer(
-    tokenizer_dir,
+    tokenizer_dir: str,
+    add_special_tokens: bool
 ):
     if 'llama' in tokenizer_dir:
         tokenizer = AutoTokenizer.from_pretrained(
@@ -22,10 +23,18 @@ def load_tokenizer(
             trust_remote_code=True,
             use_fast=True
         )
+
+        if add_special_tokens:
+            tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+
         if tokenizer.pad_token_id is None:
             tokenizer.pad_token_id = tokenizer.eos_token_id
         pad_id = tokenizer.pad_token_id
         end_id = tokenizer.eos_token_id
+
+        print(f'LOAD_TOKENIZER PAD_ID: {pad_id}')
+        print(f'LOAD_TOKENIZER END_ID: {end_id}')
+
         return tokenizer, pad_id, end_id
 
 
@@ -81,7 +90,7 @@ def write_batch_dict(
            (len(batch_dict['batch_output_completions']) == len(batch_dict['batch_output_tokens'])) and
            (len(batch_dict['batch_output_tokens']) == len(batch_dict['batch_output_lengths'])) and
            (len(batch_dict['batch_output_lengths']) == batch_size))
-    print(f'write_batch_dict batch_dict: {batch_dict}')
+    #print(f'write_batch_dict batch_dict: {batch_dict}')
 
     file.write(f'\niteration: {batch_dict["iteration"]}\n')
     file.write(f'device: {batch_dict["device"]}\n')
