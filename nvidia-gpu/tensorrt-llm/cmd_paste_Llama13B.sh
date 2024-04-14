@@ -103,6 +103,7 @@ python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-13b-chat-hf_t
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp f88488e6d7ff:/app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16/1-gpu-6-batch/bmark_numreqsample0_iter100_max500.out outputs/llama/13B/fp16/1-gpu-6-batch/bmark_numreqsample0_iter100_max500.out
 
+# TODO: OOM
 # 1 gpu 8 batch 500 max
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/13B/fp16/1-gpu-8-batch --output_file nvsmi_numreqsample0_iter100_max500.out
