@@ -9,16 +9,16 @@ git clone git@github.com:edwinlim0919/sustainable-deep-learning.git
 cd sustainable-deep-learning
 ```
 
-Next, set up some basic dependencies for the project.
-```bash
-yes | source ./setup.sh
-```
-
 Finally, set up some bash environment stuff.
 Feel free to skip this step if you have your own bash preferences.
 You may need to log out of the node and log back in to see env changes take effect.
 ```bash
 yes | source ./env.sh
+```
+
+Next, set up some basic dependencies for the project.
+```bash
+yes | source ./setup.sh
 ```
 
 # NVIDIA GPU Setup
