@@ -25,16 +25,13 @@ from tensorrt_llm.runtime import PYTHON_BINDINGS, ModelRunner
 from tensorrt_llm.tools.ppl import ppl
 
 import benchmark_utils
-#import nvsmi_monitor
 
 if PYTHON_BINDINGS:
     from tensorrt_llm.runtime import ModelRunnerCpp
 
 
 def eval_trt_llm(
-    batch_input_prompts: list[str],
-    add_special_tokens: bool,
-    tokenizer: AutoTokenizer,
+    batch_input_tokens: torch.Tensor,
     max_input_tokens: int,
     max_output_tokens: int,
     max_attention_window_size: int | None,
@@ -53,18 +50,9 @@ def eval_trt_llm(
     runtime_rank: int,
     runner: ModelRunnerCpp
 ):
-    batch_size = len(batch_input_prompts)
-    batch_input_tokens = benchmark_utils.prepare_inputs(
-        batch_input_prompts,
-        add_special_tokens,
-        tokenizer,
-        max_input_tokens
-    )
-    batch_input_lengths = [x.size(0) for x in batch_input_tokens]
-
     batch_start_time = time.time()
     with torch.no_grad():
-        outputs = runner.generate(
+        batch_outputs = runner.generate(
             batch_input_tokens,
             max_new_tokens=max_output_tokens,
             max_attention_window_size=max_attention_window_size,
@@ -87,10 +75,8 @@ def eval_trt_llm(
         torch.cuda.synchronize()
     batch_end_time = time.time()
 
-    #logger.info(f'eval_trt_llm outputs: {outputs}\n\n\n')
+    return batch_outputs, batch_start_time, batch_end_time
 
-    batch_output_lengths = outputs['sequence_lengths']
-    return batch_input_lengths, batch_output_lengths, batch_start_time, batch_end_time
 
 
 async def main(args):
@@ -126,37 +112,37 @@ async def main(args):
 
     # Loading tokenizer
     profiler.start('MAIN load tokenizer')
-    tokenizer, pad_id, end_id = benchmark_utils.load_tokenizer(args.tokenizer_dir)
+    tokenizer, pad_id, end_id = benchmark_utils.load_tokenizer(
+        args.tokenizer_dir,
+        args.add_special_tokens
+    )
     profiler.stop('MAIN load tokenizer')
     logger.info(f'MAIN load tokenizer takes: {profiler.elapsed_time_in_sec("load tokenizer")} sec')
 
     # Sampling the dataset
-    sampled_prompts = benchmark_utils.sample_dataset_prompts(
-        args.dataset_path,
-        args.num_requests_sample,
-        max_output_tokens,
-        max_input_tokens,
-        tokenizer
-    )
-    sampled_prompts_len = len(sampled_prompts)
+    if args.use_prompt_formatting:
+        sampled_prompts = benchmark_utils.sample_dataset_prompts_with_formatting(
+            args.dataset_path,
+            args.num_requests_sample,
+            max_output_tokens,
+            max_input_tokens,
+            tokenizer
+        )
+    else:
+        sampled_prompts = benchmark_utils.sample_dataset_prompts_no_formatting(
+            args.dataset_path,
+            args.num_requests_sample,
+            max_output_tokens,
+            max_input_tokens,
+            tokenizer
+        )
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
-    nvsmi_output_file = 'nvsmi_' + args.output_file
-    nvsmi_filepath = args.output_dir + '/' + nvsmi_output_file
-    logger.info(f'MAIN creating output directory {args.output_dir} w/ files {args.output_file} {nvsmi_output_file}')
+    logger.info(f'MAIN creating output directory {args.output_dir} w/ files {args.output_file}')
     with (output_dir / args.output_file).open('w') as f:
         f.write(f'engine path: {args.engine_dir}\n')
         f.write(f'tokenizer path: {args.tokenizer_dir}\n')
-    with (output_dir / nvsmi_output_file).open('w') as f:
-        f.write(f'nvsmi profiling: V100S_PCIE_32GB\n')
-
-    #nvsmi_monitor.set_nvsmi_loop_running(True)
-    #nvsmi_loop_task = asyncio.create_task(nvsmi_monitor.nvsmi_loop_V100S_PCIE_32GB(nvsmi_filepath))
-    #assert(nvsmi_monitor.get_nvsmi_loop_running() == True)
-    ## getting some measurements before benchmarking starts
-    #logger.info('MAIN started nvsmi monitoring loop, sleeping 30s...')
-    #await asyncio.sleep(30)
 
     # TODO change this for the actual batching
     #sampled_prompts_text = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
@@ -182,30 +168,39 @@ async def main(args):
         batch_inputs = random.sample(sampled_prompts, max_batch_size)
         curr_max_input_tokens = 0
         curr_max_output_tokens = 0
-        curr_batch_input_prompts = []
+        batch_input_prompts = []
 
         for batch_input in batch_inputs:
             if batch_input[1] > curr_max_input_tokens:
                 curr_max_input_tokens = batch_input[1]
             if batch_input[2] > curr_max_output_tokens:
                 curr_max_output_tokens = batch_input[2]
-            curr_batch_input_prompts.append(batch_input[0])
+            batch_input_prompts.append(batch_input[0])
 
-        batch_dict = {
-            'batch_input_prompts': curr_batch_input_prompts,
-            'max_input_tokens': curr_max_input_tokens,
-            'max_output_tokens': curr_max_output_tokens
-        }
-        logger.info(f'batch_dict: {batch_dict}\n\n\n')
-        batch_dicts.append(batch_dict)
-
-    result_dicts = []
-    for iteration in range(num_iterations):
-        batch_dict = batch_dicts[iteration]
-        batch_input_lengths, batch_output_lengths, batch_start_time, batch_end_time = eval_trt_llm(
-            batch_dict['batch_input_prompts'],
+        batch_input_tokens = benchmark_utils.prepare_inputs(
+            batch_input_prompts,
             args.add_special_tokens,
             tokenizer,
+            curr_max_input_tokens
+        )
+        batch_input_lengths = [x.size(0) for x in batch_input_tokens]
+
+        batch_dict = {
+            'iteration': iteration,
+            'batch_size': max_batch_size,
+            'max_input_tokens': curr_max_input_tokens,
+            'max_output_tokens': curr_max_output_tokens,
+            'batch_input_prompts': batch_input_prompts,
+            'batch_input_tokens': batch_input_tokens,
+            'batch_input_lengths': batch_input_lengths
+        }
+        batch_dicts.append(batch_dict)
+
+    for iteration in range(num_iterations):
+        logger.info(f'MAIN iteration: {iteration} / {num_iterations - 1}')
+        batch_dict = batch_dicts[iteration]
+        batch_outputs, batch_start_time, batch_end_time = eval_trt_llm(
+            batch_dict['batch_input_tokens'],
             batch_dict['max_input_tokens'],
             batch_dict['max_output_tokens'],
             max_attention_window_size,
@@ -224,39 +219,23 @@ async def main(args):
             runtime_rank,
             runner
         )
-        batch_latency = batch_end_time - batch_start_time
+        batch_dict['batch_outputs'] = batch_outputs
+        batch_dict['batch_start_time'] = batch_start_time
+        batch_dict['batch_end_time'] = batch_end_time
 
-        logger.info(f'MAIN iteration: {iteration} / {num_iterations - 1}')
-        #logger.info(f'MAIN max_input_tokens: {batch_dict["max_input_tokens"]}')
-        #logger.info(f'MAIN max_output_tokens: {batch_dict["max_output_tokens"]}')
-        #logger.info(f'MAIN batch_input_lengths: {batch_input_lengths}')
-        #logger.info(f'MAIN batch_output_lengths: {batch_output_lengths}')
-        #logger.info(f'MAIN batch_start_time: {batch_start_time}')
-        #logger.info(f'MAIN batch_end_time: {batch_end_time}')
-        #logger.info(f'MAIN batch_latency: {batch_latency}\n')
-        result_dict = {
-            'max_batch_size': max_batch_size,
-            'iteration': iteration,
-            'max_input_tokens': batch_dict['max_input_tokens'],
-            'max_output_tokens': batch_dict['max_output_tokens'],
-            'batch_input_lengths': batch_input_lengths,
-            'batch_output_lengths': batch_output_lengths,
-            'batch_start_time': batch_start_time,
-            'batch_end_time': batch_end_time,
-            'batch_latency': batch_latency
-        }
-        result_dicts.append(result_dict)
-
-    # writing results
-    with (output_dir / args.output_file).open('a') as f:
-        f.write(f'num_iterations: {num_iterations}\n')
-        for result_dict in result_dicts:
-            f.write(f'{result_dict}\n')
-
-    # getting some measurements after benchmarking ends
-    #await asyncio.sleep(30)
-    #nvsmi_monitor.set_nvsmi_loop_running(False)
-    #await nvsmi_loop_task
+    # parsing and writing results
+    with (output_dir / args.output_file).open('a') as file:
+        file.write(f'num_iterations: {num_iterations}\n')
+        for batch_dict in batch_dicts:
+            #logger.info(f'\n\nbatch_dict: {batch_dict}\n\n')
+            benchmark_utils.parse_batch_dict(
+                batch_dict,
+                tokenizer
+            )
+            benchmark_utils.write_batch_dict(
+                batch_dict,
+                file
+            )
 
 
 if __name__ == '__main__':
@@ -366,7 +345,12 @@ if __name__ == '__main__':
         action='store_true',
         help='Whether or not to add special tokens'
     )
+    parser.add_argument(
+        '--use_prompt_formatting',
+        default=False,
+        action='store_true',
+        help='Whether or not to use prompt formatting for better generation.'
+    )
     parser.add_argument('--log_level', type=str, default='info')
     args = parser.parse_args()
-    #main(args)
     asyncio.run(main(args))
