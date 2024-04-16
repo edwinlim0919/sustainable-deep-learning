@@ -118,11 +118,21 @@ def parse_bmark_output(bmark_output_path):
 
     #for i in range(num_iterations):
         
+def parse_nvsmi_output(nvsmi_output_path):
+    with open(nvsmi_output_path, 'r') as f:
+        nvsmi_output_lines = f.readlines()
+
+    hardware_platform_line = nvsmi_output_lines[0] # TODO: currently unused
+    print(hardware_platform_line)
+
+    for line in nvsmi_output_lines[1:]:
+        nvsmi_dict = ast.literal_eval(line)
+        print(nvsmi_dict)
 
 
 def main(args):
-    bmark_output_paths = args.bmark_output_paths#.split()
-    nvsmi_output_paths = args.nvsmi_output_paths#.split()
+    bmark_output_paths = args.bmark_output_paths
+    nvsmi_output_paths = args.nvsmi_output_paths
     bmark_info = args.bmark_info
     assert(len(bmark_output_paths) == len(nvsmi_output_paths) and 
            len(nvsmi_output_paths) == len(bmark_info))
@@ -132,12 +142,12 @@ def main(args):
         #nvsmi_output_path = nvsmi_output_paths[i]
         #print(f'BMARK: {bmark_output_path}')
         #print(f'NVSMI: {nvsmi_output_path}')
-        bmark_info_split = bmark_info.split()
-        model_size_GB = int(bmark_info_split[0])
-        batch_size = int(bmark_info_split[1])
-        max_sequence_length = int(bmark_info_split[2])
+        curr_bmark_info = bmark_info[i].split()
+        model_size_GB = int(curr_bmark_info[0])
+        batch_size = int(curr_bmark_info[1])
+        max_sequence_length = int(curr_bmark_info[2])
 
-
+    parse_nvsmi_output(nvsmi_output_paths[2])
     #parse_bmark_output(bmark_output_paths[2])
     #print(bmark_output_paths[2])
 
@@ -159,7 +169,7 @@ if __name__ == '__main__':
         help='paths to nvsmi output files'
     )
     parser.add_argument(
-        'bmark_info',
+        '--bmark_info',
         type=str,
         nargs='+',
         required=True,
