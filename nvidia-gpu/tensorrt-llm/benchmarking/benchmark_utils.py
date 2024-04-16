@@ -107,7 +107,7 @@ def write_batch_dict(
     for i in range(batch_size):
         file.write(f'batch_output_tokens[{i}]: {batch_dict["batch_output_tokens"][i]}\n')
     for i in range(batch_size):
-        file.write(f'batch_output_lengths[{i}]: {batch_dict["batch_output_lengths"][i]}\n')
+        file.write(f'batch_output_lengths[{i}]: {batch_dict["batch_output_lengths"][i][0]}\n') # TODO: check if this works [0]
 
 
 # General Llama2 prompt formatting given a list of message dicts
