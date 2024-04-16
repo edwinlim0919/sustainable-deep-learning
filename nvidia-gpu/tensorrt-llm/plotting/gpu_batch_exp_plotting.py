@@ -49,15 +49,17 @@ from pathlib import Path
 #    print(bmark_output_lines[-1])
 
 
-batch_input_tokens_pattern = 'batch_input_tokens\[(\d+)\]'
-batch_output_tokens_pattern = 'batch_output_tokens\[(\d+)\]'
+batch_input_tokens_pattern = r'batch_input_tokens\[(\d+)\]: \[(.*?)\]'
+batch_output_tokens_pattern = r'batch_output_tokens\[(\d+)\]: \[(.*?)\]'
+
+batch_input_lengths_pattern = r'batch_input_lengths\[(\d+)\]'
+batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]'
+#token_list_pattern = r'\[.*?\]'
 
 
 def parse_bmark_output(bmark_output_path):
     with open(bmark_output_path, 'r') as f:
         bmark_output_lines = f.readlines()
-
-    #print(bmark_output_lines)
 
     engine_path_line = bmark_output_lines[0]
     tokenizer_path_line = bmark_output_lines[1]
@@ -70,10 +72,11 @@ def parse_bmark_output(bmark_output_path):
     for line in bmark_output_lines[3:]:
         if 'iteration' in line:
             curr_iteration = int(line.strip().split()[-1])
-            #print(line.strip())
-            #print(curr_iteration)
             bmark_info[curr_iteration] = {}
-            bmark_info[curr_iteration]['batch_input_tokens'] = {}           
+            bmark_info[curr_iteration]['batch_input_tokens'] = {}
+            bmark_info[curr_iteration]['batch_input_lengths'] = {}
+            bmark_info[curr_iteration]['batch_output_tokens'] = {}
+            bmark_info[curr_iteration]['batch_output_lengths'] = {}
         if 'batch_size' in line:
             bmark_info[curr_iteration]['batch_size'] = int(line.strip().split()[-1])
         if 'max_input_tokens' in line:
@@ -83,12 +86,31 @@ def parse_bmark_output(bmark_output_path):
         if 'batch_start_time' in line:
             bmark_info[curr_iteration]['batch_start_time'] = float(line.strip().split()[-1])
         if 'batch_end_time' in line:
-            bmark_info[curr_tieration]['batch_end_time'] = float(line.strip().split()[-1])
+            bmark_info[curr_iteration]['batch_end_time'] = float(line.strip().split()[-1])
         if 'batch_input_tokens' in line:
             batch_input_tokens_match = re.search(batch_input_tokens_pattern, line)
-            index_number = match.group(1)
+            batch_input_tokens_index = int(batch_input_tokens_match.group(1))
+            token_list_str = batch_input_tokens_match.group(2)
+            batch_input_tokens_list = ast.literal_eval(f'[{token_list_str}]')
+            bmark_info[curr_iteration]['batch_input_tokens'][batch_input_tokens_index] = batch_input_tokens_list
+        if 'batch_input_lengths' in line:
+            batch_input_lengths_match = re.search(batch_input_lengths_pattern, line)
+            batch_input_lengths_index = int(batch_input_lengths_match.group(1))
+            batch_input_lengths = int(line.strip().split()[-1])
+            bmark_info[curr_iteration]['batch_input_lengths'][batch_input_lengths_index] = batch_input_lengths
+        if 'batch_output_tokens' in line:
+            batch_output_tokens_match = re.search(batch_output_tokens_pattern, line)
+            batch_output_tokens_index = int(batch_output_tokens_match.group(1))
+            token_list_str = batch_output_tokens_match.group(2)
+            batch_output_tokens_list = ast.literal_eval(f'[{token_list_str}]')
+            bmark_info[curr_iteration]['batch_output_tokens'][batch_output_tokens_index] = batch_output_tokens_list
+        if 'batch_output_lengths' in line:
+            batch_output_lengths_match = re.search(batch_output_lengths_pattern, line)
+            batch_output_tokens_index = int()
 
-
+    #print(bmark_info[0])
+    for key, value in bmark_info[0].items():
+        print(f'{key}: {value}')
 
     #for i in range(num_iterations):
         
@@ -106,7 +128,7 @@ def main(args):
         print(f'NVSMI: {nvsmi_output_path}')
 
     parse_bmark_output(bmark_output_paths[2])
-    print(bmark_output_paths[2])
+    #print(bmark_output_paths[2])
 
 
 if __name__ == '__main__':
