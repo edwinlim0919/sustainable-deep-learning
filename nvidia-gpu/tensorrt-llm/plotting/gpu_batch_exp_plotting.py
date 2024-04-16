@@ -53,8 +53,8 @@ batch_input_tokens_pattern = r'batch_input_tokens\[(\d+)\]: \[(.*?)\]'
 batch_output_tokens_pattern = r'batch_output_tokens\[(\d+)\]: \[(.*?)\]'
 
 batch_input_lengths_pattern = r'batch_input_lengths\[(\d+)\]'
-batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]'
-#token_list_pattern = r'\[.*?\]'
+#batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]'
+batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]: \[(.*?)\]'
 
 
 def parse_bmark_output(bmark_output_path):
@@ -64,9 +64,7 @@ def parse_bmark_output(bmark_output_path):
     engine_path_line = bmark_output_lines[0]
     tokenizer_path_line = bmark_output_lines[1]
     num_iterations_line = bmark_output_lines[2]
-
     num_iterations = int(num_iterations_line.split()[-1])
-    print(f'num_iterations: {num_iterations}')
     bmark_info = {}
 
     for line in bmark_output_lines[3:]:
@@ -106,11 +104,17 @@ def parse_bmark_output(bmark_output_path):
             bmark_info[curr_iteration]['batch_output_tokens'][batch_output_tokens_index] = batch_output_tokens_list
         if 'batch_output_lengths' in line:
             batch_output_lengths_match = re.search(batch_output_lengths_pattern, line)
-            batch_output_tokens_index = int()
+            batch_output_lengths_index = int(batch_output_lengths_match.group(1))
+            #batch_output_lengths = int(line.strip().split()[-1]) # TODO: Make experiment write just the int without the list wrapper
+            length_list_str = batch_output_lengths_match.group(2)
+            batch_output_lengths = int(ast.literal_eval(f'[{length_list_str}]')[0])
+            bmark_info[curr_iteration]['batch_output_lengths'][batch_output_lengths_index] = batch_output_lengths
+
+    return bmark_info
 
     #print(bmark_info[0])
-    for key, value in bmark_info[0].items():
-        print(f'{key}: {value}')
+    #for key, value in bmark_info[99].items():
+    #    print(f'{key}: {value}')
 
     #for i in range(num_iterations):
         
@@ -119,15 +123,22 @@ def parse_bmark_output(bmark_output_path):
 def main(args):
     bmark_output_paths = args.bmark_output_paths#.split()
     nvsmi_output_paths = args.nvsmi_output_paths#.split()
-    assert(len(bmark_output_paths) == len(nvsmi_output_paths))
+    bmark_info = args.bmark_info
+    assert(len(bmark_output_paths) == len(nvsmi_output_paths) and 
+           len(nvsmi_output_paths) == len(bmark_info))
 
     for i in range(len(bmark_output_paths)):
-        bmark_output_path = bmark_output_paths[i]
-        nvsmi_output_path = nvsmi_output_paths[i]
-        print(f'BMARK: {bmark_output_path}')
-        print(f'NVSMI: {nvsmi_output_path}')
+        #bmark_output_path = bmark_output_paths[i]
+        #nvsmi_output_path = nvsmi_output_paths[i]
+        #print(f'BMARK: {bmark_output_path}')
+        #print(f'NVSMI: {nvsmi_output_path}')
+        bmark_info_split = bmark_info.split()
+        model_size_GB = int(bmark_info_split[0])
+        batch_size = int(bmark_info_split[1])
+        max_sequence_length = int(bmark_info_split[2])
 
-    parse_bmark_output(bmark_output_paths[2])
+
+    #parse_bmark_output(bmark_output_paths[2])
     #print(bmark_output_paths[2])
 
 
@@ -146,6 +157,13 @@ if __name__ == '__main__':
         nargs='+',
         required=True,
         help='paths to nvsmi output files'
+    )
+    parser.add_argument(
+        'bmark_info',
+        type=str,
+        nargs='+',
+        required=True,
+        help='[model size] [batch size] [max sequence length]'
     )
     args = parser.parse_args()
     main(args)
