@@ -113,6 +113,33 @@ def parse_nvsmi_output(nvsmi_output_path):
     return nvsmi_info
 
 
+def plot_power_over_time(
+    bmark_entries,
+    plot_filename
+):
+    for bmark_entry in bmark_entries:
+        model_size_GB = bmark_entry['model_size_GB']
+        batch_size = bmark_entry['batch_size']
+        max_sequence_length = bmark_entry['max_sequence_length']
+        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
+
+    testing = bmark_entries[0]
+    for key, value in testing.items():
+        print(f'testing: {key}')
+
+    bmark_info = testing['bmark_info']
+    #print(bmark_info[0])
+    # Extract timestamps from bmark_info
+    for batch_iteration, batch_dict in bmark_info.items():
+        print(f'{batch_iteration}: {batch_dict}')
+        #batch_start_time = batch_dict['batch_start_time']
+        #batch_end_time = batch_dict['batch_end_time']
+        #print(batch_start_time)
+        #print(batch_end_time)
+
+        #bmark_info = testing['bmark_info']
+        #for key, value in bmark_info.items():
+        #    print(f'bmark_info: {key}')
 
 
 def main(args):
@@ -142,6 +169,9 @@ def main(args):
     num_bmark_entries = len(bmark_entries)
     print(f'main num_bmark_entries: {num_bmark_entries}')
 
+    if args.plot_power_over_time: # TODO: Only one plot can be generated at a time
+        plot_power_over_time(bmark_entries, args.plot_filename)
+
     #print(bmark_entries[0])
 
 
@@ -167,6 +197,18 @@ if __name__ == '__main__':
         nargs='+',
         required=True,
         help='[model size] [batch size] [max sequence length]'
+    )
+    parser.add_argument(
+        '--plot_power_over_time',
+        default=False,
+        action='store_true',
+        help='specify this arg to plot power over time'
+    )
+    parser.add_argument(
+        '--plot_filename',
+        type=str,
+        required=True,
+        help='filename for specified plot'
     )
     args = parser.parse_args()
     main(args)

@@ -20,4 +20,6 @@ python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep
 													  "13 2 500" \
 													  "13 4 1000" \
 													  "13 4 500" \
-													  "13 6 500"
+													  "13 6 500" \
+								 --plot_power_over_time \
+								 --plot_filename "testing_plot.png"
