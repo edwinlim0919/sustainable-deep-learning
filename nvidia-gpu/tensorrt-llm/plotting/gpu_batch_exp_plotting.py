@@ -128,12 +128,33 @@ def plot_power_over_time(
         print(f'testing: {key}')
 
     bmark_info = testing['bmark_info']
-    #print(bmark_info[0])
     # Extract timestamps from bmark_info
+    curr_max_time = 0.0
+    # each entry is (batch_start_time, batch_end_time)
+    bmark_tuples = []
     for batch_iteration, batch_dict in bmark_info.items():
-        print(f'{batch_iteration}: {batch_dict}')
-        #batch_start_time = batch_dict['batch_start_time']
-        #batch_end_time = batch_dict['batch_end_time']
+        #print(f'{batch_iteration}: {batch_dict}')
+        batch_start_time = batch_dict['batch_start_time']
+        batch_end_time = batch_dict['batch_end_time']
+
+        # make sure timestamps are strictly increasing
+        assert(batch_start_time > curr_max_time and
+               batch_end_time > batch_start_time)
+        curr_max_time = batch_end_time
+        bmark_tuples.append((batch_start_time, batch_end_time))
+
+    nvsmi_info = testing['nvsmi_info']
+    # Extract timestamps and power usage from nvsmi_info
+    #print(nvsmi_info[0])
+    # each entry is (timestamp_raw, curr_power_usage, max_power_usage)
+    nvsmi_tuples = []
+    for nvsmi_dict in nvsmi_info:
+        timestamp_raw = nvsmi_dict['timestamp_raw']
+        curr_power_usage = nvsmi_dict['curr_power_usage']
+        max_power_usage = nvsmi_dict['max_power_usage']
+        #print(f'nvsmi_tuple: {timestamp_raw} {curr_power_usage} {max_power_usage}')
+        nvsmi_tuples.append((timestamp_raw, curr_power_usage, max_power_usage))
+
         #print(batch_start_time)
         #print(batch_end_time)
 
