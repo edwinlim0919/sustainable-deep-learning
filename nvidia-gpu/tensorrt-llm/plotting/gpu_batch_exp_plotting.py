@@ -114,9 +114,9 @@ def parse_nvsmi_output(nvsmi_output_path):
 def main(args):
     bmark_output_paths = args.bmark_output_paths
     nvsmi_output_paths = args.nvsmi_output_paths
-    bmark_info = args.bmark_info
+    bmark_params = args.bmark_params
     assert(len(bmark_output_paths) == len(nvsmi_output_paths) and 
-           len(nvsmi_output_paths) == len(bmark_info))
+           len(nvsmi_output_paths) == len(bmark_params))
 
     bmark_entries = []
     for i in range(len(bmark_output_paths)):
@@ -125,15 +125,24 @@ def main(args):
         #print(f'BMARK: {bmark_output_path}')
         #print(f'NVSMI: {nvsmi_output_path}')
         bmark_entry = {}
-        curr_bmark_info = bmark_info[i].split()
-        model_size_GB = int(curr_bmark_info[0])
-        batch_size = int(curr_bmark_info[1])
-        max_sequence_length = int(curr_bmark_info[2])
+        curr_bmark_params = bmark_params[i].split()
+        model_size_GB = int(curr_bmark_params[0])
+        batch_size = int(curr_bmark_params[1])
+        max_sequence_length = int(curr_bmark_params[2])
+        bmark_info = parse_bmark_output(bmark_output_paths[i])
+        nvsmi_info = parse_nvsmi_output(nvsmi_output_paths[i])
 
         bmark_entry['model_size_GB'] = model_size_GB
-        bmark_entry['']
+        bmark_entry['batch_size'] = batch_size
+        bmark_entry['max_sequence_length'] = max_sequence_length
+        bmark_entry['bmark_info'] = bmark_info
+        bmark_entry['nvsmi_info'] = nvsmi_info
+        bmark_entries.append(bmark_entry)
+        #print(bmark_entry)
 
-    parse_nvsmi_output(nvsmi_output_paths[2])
+    print(bmark_entries[0])
+
+    #parse_nvsmi_output(nvsmi_output_paths[2])
     #parse_bmark_output(bmark_output_paths[2])
     #print(bmark_output_paths[2])
 
@@ -155,7 +164,7 @@ if __name__ == '__main__':
         help='paths to nvsmi output files'
     )
     parser.add_argument(
-        '--bmark_info',
+        '--bmark_params',
         type=str,
         nargs='+',
         required=True,
