@@ -117,7 +117,8 @@ def parse_nvsmi_output(nvsmi_output_path):
 def plot_power_over_time(
     bmark_entries,
     plot_filename,
-    plot_sequence_length
+    plot_sequence_lengths,
+    plot_batch_sizes
 ):
     plt.figure(figsize=(10, 5))
     min_bmark_nvsmi_time_start_diff = float('inf')
@@ -131,7 +132,9 @@ def plot_power_over_time(
         model_size_GB = bmark_entry['model_size_GB']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
-        if max_sequence_length != plot_sequence_length:
+        if max_sequence_length not in plot_sequence_lengths:
+            continue
+        if batch_size not in plot_batch_sizes:
             continue
         print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
 
@@ -209,7 +212,7 @@ def plot_power_over_time(
     plt.axhline(y=max_powers[0], color='r', linestyle='--', label='Peak GPU Power Usage')
     plt.xlabel('Time (seconds)')
     plt.ylabel('Power Usage (W)')
-    plt.title(f'GPU Power Usage Llama{model_size_GB}B Max Seq. Len {plot_sequence_length}')
+    plt.title(f'GPU Power Usage Llama{model_size_GB}B Max Seq. Len(s) {plot_sequence_lengths}')
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
@@ -219,7 +222,7 @@ def plot_power_over_time(
 def plot_batch_latency(
     bmark_entries,
     plot_filename,
-    plot_sequence_length
+    plot_sequence_lengths
 ):
     for bmark_entry in bmark_entries:
         model_size_GB = bmark_entry['model_size_GB']
@@ -252,10 +255,15 @@ def main(args):
         bmark_entries.append(bmark_entry)
 
     if args.plot_power_over_time: # TODO: Only one plot can be generated at a time
+        if not args.plot_sequence_lengths:
+            raise ValueError('supply plot_sequence_lengths argument for plot_power_over_time')
+        if not args.plot_batch_sizes:
+            raise ValueError('supply plot_batch_sizes argument for plot_power_over_time')
         plot_power_over_time(
             bmark_entries,
             args.plot_filename,
-            args.plot_sequence_length
+            args.plot_sequence_lengths,
+            args.plot_batch_sizes
         )
 
 
@@ -295,9 +303,16 @@ if __name__ == '__main__':
         help='filename for specified plot'
     )
     parser.add_argument(
-        '--plot_sequence_length',
+        '--plot_sequence_lengths',
         type=int,
-        help='specify which sequence length to generate plot for'
+        nargs='+',
+        help='specify which sequence length to generate the plot for'
+    )
+    parser.add_argument(
+        '--plot_batch_sizes',
+        type=int,
+        nargs='+',
+        help='specify which batch sizes to generate the plot for'
     )
     args = parser.parse_args()
     main(args)
