@@ -16,6 +16,8 @@ def parse_bmark_output(bmark_output_path):
     with open(bmark_output_path, 'r') as f:
         bmark_output_lines = f.readlines()
 
+    print(bmark_output_path)
+
     engine_path_line = bmark_output_lines[0]
     tokenizer_path_line = bmark_output_lines[1]
     num_iterations_line = bmark_output_lines[2]
