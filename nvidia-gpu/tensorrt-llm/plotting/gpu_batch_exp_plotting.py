@@ -125,6 +125,7 @@ def plot_power_over_time(
     curr_powers_list = []
     max_powers_list = []
     bmark_tuples_list = []
+    bmark_entry_list = []
 
     for bmark_entry in bmark_entries:
         model_size_GB = bmark_entry['model_size_GB']
@@ -173,13 +174,14 @@ def plot_power_over_time(
         curr_powers_list.append(curr_powers)
         max_powers_list.append(max_powers)
         bmark_tuples_list.append(bmark_tuples)
+        bmark_entry_list.append(bmark_entry)
 
     # making all the plots start execution at the same time point
     assert(len(timestamps_list) == len(curr_powers_list) and
            len(curr_powers_list) == len(max_powers_list) and
            len(max_powers_list) == len(bmark_tuples_list))
     for i in range(len(timestamps_list)):
-        bmark_entry = bmark_entries[i]
+        bmark_entry = bmark_entry_list[i]
         batch_size = bmark_entry['batch_size']
 
         timestamps = timestamps_list[i]
