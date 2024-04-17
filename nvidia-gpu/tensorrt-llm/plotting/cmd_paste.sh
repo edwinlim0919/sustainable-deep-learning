@@ -49,3 +49,6 @@ python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep
 								 --plot_power_over_time \
 								 --plot_filename "Llama13B_maxlen500.png" \ 
 								 --plot_sequence_length 500
+
+# TODO: Finish OOM experiments for Llama7B max500
+python gpu_batch_exp_plotting.py --bmark_output_paths ""

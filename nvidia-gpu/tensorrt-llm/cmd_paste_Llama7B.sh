@@ -39,6 +39,7 @@ trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin floa
 trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu-20-batch/ --max_batch_size 20
 trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu-22-batch/ --max_batch_size 22
 trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu-24-batch/ --max_batch_size 24
+trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu-26-batch/ --max_batch_size 26
 
 trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu-32-batch/ --max_batch_size 32
 trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu-64-batch/ --max_batch_size 64
@@ -269,6 +270,7 @@ python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_to
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp f88488e6d7ff:/app/tensorrt_llm/examples/llama/outputs/llama/7B/fp16/1-gpu-14-batch/bmark_numreqsample0_iter100_max500.out outputs/llama/7B/fp16/1-gpu-14-batch/bmark_numreqsample0_iter100_max500.out
 
+# TODO: OOM
 # 1 gpu 16 batch 1000 max
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/7B/fp16/1-gpu-16-batch --output_file nvsmi_numreqsample0_iter100_max1000.out
@@ -308,3 +310,19 @@ python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/7B/fp16/1-gpu-22
 python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer/ --engine_dir ./llama/7B/trt_engines/fp16/1-gpu-22-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 22 --max_input_tokens 500 --max_output_tokens 500 --output_dir ./outputs/llama/7B/fp16/1-gpu-22-batch --output_file bmark_numreqsample0_iter100_max500.out --random_seed 42 --num_iterations 100 --use_prompt_formatting --add_special_tokens
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp f88488e6d7ff:/app/tensorrt_llm/examples/llama/outputs/llama/7B/fp16/1-gpu-22-batch/bmark_numreqsample0_iter100_max500.out outputs/llama/7B/fp16/1-gpu-22-batch/bmark_numreqsample0_iter100_max500.out
+
+# 1 gpu 24 batch 500 max
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/7B/fp16/1-gpu-24-batch --output_file nvsmi_numreqsample0_iter100_max500.out
+# /app/tensorrt_llm/examples/llama
+python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer/ --engine_dir ./llama/7B/trt_engines/fp16/1-gpu-24-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 24 --max_input_tokens 500 --max_output_tokens 500 --output_dir ./outputs/llama/7B/fp16/1-gpu-24-batch --output_file bmark_numreqsample0_iter100_max500.out --random_seed 42 --num_iterations 100 --use_prompt_formatting --add_special_tokens
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp f88488e6d7ff:/app/tensorrt_llm/examples/llama/outputs/llama/7B/fp16/1-gpu-24-batch/bmark_numreqsample0_iter100_max500.out outputs/llama/7B/fp16/1-gpu-24-batch/bmark_numreqsample0_iter100_max500.out
+
+# 1 gpu 26 batch 500 max
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/7B/fp16/1-gpu-26-batch --output_file nvsmi_numreqsample0_iter100_max500.out
+# /app/tensorrt_llm/examples/llama
+python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer/ --engine_dir ./llama/7B/trt_engines/fp16/1-gpu-26-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 26 --max_input_tokens 500 --max_output_tokens 500 --output_dir ./outputs/llama/7B/fp16/1-gpu-26-batch --output_file bmark_numreqsample0_iter100_max500.out --random_seed 42 --num_iterations 100 --use_prompt_formatting --add_special_tokens
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp f88488e6d7ff:/app/tensorrt_llm/examples/llama/outputs/llama/7B/fp16/1-gpu-26-batch/bmark_numreqsample0_iter100_max500.out outputs/llama/7B/fp16/1-gpu-26-batch/bmark_numreqsample0_iter100_max500.out

@@ -214,6 +214,17 @@ def plot_power_over_time(
     plt.savefig(plot_filename)
 
 
+def plot_batch_latency(
+    bmark_entries,
+    plot_filename,
+    plot_sequence_length
+):
+    for bmark_entry in bmark_entries:
+        model_size_GB = bmark_entry['model_size_GB']
+        batch_size = bmark_entry['batch_size']
+        max_sequence_length = bmark_entry['max_sequence_length']
+
+
 def main(args):
     bmark_output_paths = args.bmark_output_paths
     nvsmi_output_paths = args.nvsmi_output_paths
