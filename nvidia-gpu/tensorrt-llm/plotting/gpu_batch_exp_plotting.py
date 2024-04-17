@@ -166,7 +166,6 @@ def plot_power_over_time(
 
         # Make the timestamps start at the same place
         bmark_nvsmi_time_start_diff = bmark_tuples[0][0] - timestamps[0]
-        print(f'bmark_nvsmi_time_start_diff: {bmark_nvsmi_time_start_diff}')
         if bmark_nvsmi_time_start_diff < min_bmark_nvsmi_time_start_diff:
             min_bmark_nvsmi_time_start_diff = bmark_nvsmi_time_start_diff
 
@@ -176,16 +175,9 @@ def plot_power_over_time(
         bmark_tuples_list.append(bmark_tuples)
 
     # making all the plots start execution at the same time point
-    print(len(timestamps_list))
-    print(len(curr_powers_list))
-    print(len(max_powers_list))
-    print(len(bmark_tuples_list))
-    print(len(bmark_entries))
     assert(len(timestamps_list) == len(curr_powers_list) and
            len(curr_powers_list) == len(max_powers_list) and
-           len(max_powers_list) == len(bmark_tuples_list) and
-           len(bmark_tuples_list) == len(bmark_entries))
-
+           len(max_powers_list) == len(bmark_tuples_list))
     for i in range(len(timestamps_list)):
         bmark_entry = bmark_entries[i]
         batch_size = bmark_entry['batch_size']
@@ -206,17 +198,11 @@ def plot_power_over_time(
         plot_timestamps = []
         plot_curr_powers = []
 
-        for i in range(timestamps_adjusted):
+        for i in range(len(timestamps_adjusted)):
             if timestamps_adjusted[i] >= 0:
                 plot_timestamps.append(timestamps_adjusted[i])
                 plot_curr_powers.append(curr_powers[i])
         plt.plot(plot_timestamps, plot_curr_powers, label=f'Measured GPU Power Usage (batch size {batch_size})')
-
-    #timestamps_norm_list = []
-
-        # make the timestamps start at 0
-        #timestamps_norm = [timestamp - timestamps[0] for timestamp in timestamps]
-        #plt.plot(timestamps_norm, curr_powers, label=f'Measured GPU Power Usage (batch size {batch_size})')
 
     plt.axhline(y=max_powers[0], color='r', linestyle='--', label='Peak GPU Power Usage')
     plt.xlabel('Time (seconds)')
@@ -251,9 +237,6 @@ def main(args):
         bmark_entry['bmark_info'] = bmark_info
         bmark_entry['nvsmi_info'] = nvsmi_info
         bmark_entries.append(bmark_entry)
-
-    num_bmark_entries = len(bmark_entries)
-    print(f'main num_bmark_entries: {num_bmark_entries}')
 
     if args.plot_power_over_time: # TODO: Only one plot can be generated at a time
         plot_power_over_time(
