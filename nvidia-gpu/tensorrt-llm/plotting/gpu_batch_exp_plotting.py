@@ -1,6 +1,7 @@
 import argparse
 import re
 import ast
+import matplotlib.pyplot as plt
 
 from pathlib import Path
 
@@ -147,13 +148,36 @@ def plot_power_over_time(
     # Extract timestamps and power usage from nvsmi_info
     #print(nvsmi_info[0])
     # each entry is (timestamp_raw, curr_power_usage, max_power_usage)
-    nvsmi_tuples = []
+    #nvsmi_tuples = []
+    timestamps = []
+    curr_powers = []
+    max_powers = []
     for nvsmi_dict in nvsmi_info:
         timestamp_raw = nvsmi_dict['timestamp_raw']
         curr_power_usage = nvsmi_dict['curr_power_usage']
         max_power_usage = nvsmi_dict['max_power_usage']
+
+        timestamps.append(nvsmi_dict['timestamp_raw'])
+        curr_powers.append(nvsmi_dict['curr_power_usage'])
+        max_powers.append(nvsmi_dict['max_power_usage'])
+
+    # make the timestamps start at 0
+    timestamps_norm = [timestamp - timestamps[0] for timestamp in timestamps]
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(timestamps_norm, curr_powers, label='Current GPU Power Usage')
+    plt.axhline(y=max_powers[0], color='r', linestyle='--', label='Peak GPU Power Usage')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Power Usage (W)')
+    plt.title('GPU Power Usage Over Time')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(plot_filename)
+
+
         #print(f'nvsmi_tuple: {timestamp_raw} {curr_power_usage} {max_power_usage}')
-        nvsmi_tuples.append((timestamp_raw, curr_power_usage, max_power_usage))
+        #nvsmi_tuples.append((timestamp_raw, curr_power_usage, max_power_usage))
 
         #print(batch_start_time)
         #print(batch_end_time)
