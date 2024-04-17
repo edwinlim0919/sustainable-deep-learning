@@ -13,10 +13,9 @@ batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]: \[(.*?)\]'
 #batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]'
 
 def parse_bmark_output(bmark_output_path):
+    print(f'parse_bmark_output: {bmark_output_path}')
     with open(bmark_output_path, 'r') as f:
         bmark_output_lines = f.readlines()
-
-    print(bmark_output_path)
 
     engine_path_line = bmark_output_lines[0]
     tokenizer_path_line = bmark_output_lines[1]
@@ -84,6 +83,7 @@ memory_usage_pattern = r'(\d+)MiB / (\d+)MiB'
 gpu_utilization_pattern = r'(\d+)%'
 
 def parse_nvsmi_output(nvsmi_output_path):
+    print(f'parse_nvsmi_output: {nvsmi_output_path}')
     with open(nvsmi_output_path, 'r') as f:
         nvsmi_output_lines = f.readlines()
     hardware_platform_line = nvsmi_output_lines[0] # TODO: currently unused
@@ -113,6 +113,8 @@ def parse_nvsmi_output(nvsmi_output_path):
     return nvsmi_info
 
 
+
+
 def main(args):
     bmark_output_paths = args.bmark_output_paths
     nvsmi_output_paths = args.nvsmi_output_paths
@@ -122,10 +124,6 @@ def main(args):
 
     bmark_entries = []
     for i in range(len(bmark_output_paths)):
-        #bmark_output_path = bmark_output_paths[i]
-        #nvsmi_output_path = nvsmi_output_paths[i]
-        #print(f'BMARK: {bmark_output_path}')
-        #print(f'NVSMI: {nvsmi_output_path}')
         bmark_entry = {}
         curr_bmark_params = bmark_params[i].split()
         model_size_GB = int(curr_bmark_params[0])
@@ -140,13 +138,11 @@ def main(args):
         bmark_entry['bmark_info'] = bmark_info
         bmark_entry['nvsmi_info'] = nvsmi_info
         bmark_entries.append(bmark_entry)
-        #print(bmark_entry)
 
-    print(bmark_entries[0])
+    num_bmark_entries = len(bmark_entries)
+    print(f'main num_bmark_entries: {num_bmark_entries}')
 
-    #parse_nvsmi_output(nvsmi_output_paths[2])
-    #parse_bmark_output(bmark_output_paths[2])
-    #print(bmark_output_paths[2])
+    #print(bmark_entries[0])
 
 
 if __name__ == '__main__':
