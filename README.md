@@ -52,7 +52,7 @@ https://www.privex.io/articles/how-to-resize-partition/
 Then, run the following script to setup TensorRT-LLM.
 ```bash
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
-sudo source ./setup_tensorrt-llm.sh
+./setup_tensorrt-llm.sh
 ```
 
 # Running Llama2 7B Experiments
