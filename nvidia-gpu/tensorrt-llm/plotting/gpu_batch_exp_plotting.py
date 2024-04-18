@@ -223,8 +223,19 @@ def plot_average_batch_latency(
     bmark_entries,
     plot_filename,
     plot_sequence_lengths,
-    plot_batch_sizes
+    plot_batch_sizes,
+    bmark_param_groups
 ):
+    bmark_param_group_dicts = []
+    for bmark_param_group in bmark_param_groups:
+        group_split = bmark_param_group.split()
+        bmark_param_group_dict = {}
+        bmark_param_group_dict['model_size_GB'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
+        bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
+        bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
+        bmark_param_group_dict['avg_batch_latencies'] = []
+        bmark_param_group_dicts.append(bmark_param_group_dict)
+
     for bmark_entry in bmark_entries:
         model_size_GB = bmark_entry['model_size_GB']
         batch_size = bmark_entry['batch_size']
@@ -233,7 +244,7 @@ def plot_average_batch_latency(
             continue
         if batch_size not in plot_batch_sizes:
             continue
-        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
+        #print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
@@ -255,7 +266,36 @@ def plot_average_batch_latency(
             batch_latency_sum += batch_latency
 
         avg_batch_latency = batch_latency_sum / num_iterations
-        print(f'avg_batch_latency: {avg_batch_latency}')
+        print(f'PLOT_AVERAGE_BATCH_LATENCY model_size_GB: {model_size_GB}, batch_size: {batch_size}, max_sequence_length: {max_sequence_length}, avg_batch_latency: {avg_batch_latency}, batch_size: {batch_size}')
+        avg_batch_latencies_dict = {
+            'batch_size': batch_size,
+            'avg_batch_latency': avg_batch_latency
+        }
+
+        # Identify which bmark_param_group_dict to append to
+        for bmark_param_group_dict in bmark_param_group_dicts:
+            bmark_param_match_found = False
+            if (bmark_param_group_dict['model_size_GB'] != 'X' and
+                bmark_param_group_dict['model_size_GB'] != model_size_GB):
+                continue
+            if (bmark_param_group_dict['batch_size'] != 'X' and
+                bmark_param_group_dict['batch_size'] != batch_size):
+                continue
+            if (bmark_param_group_dict['max_sequence_length'] != 'X' and
+                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
+                continue
+
+            # Only reach this point if a match is found
+            bmark_param_match_found = True
+            bmark_param_group_dict['avg_batch_latencies'].append(avg_batch_latencies_dict)
+            break
+
+        # For each bmark_entry, should at least match to one of the plotting groups
+        assert(bmark_param_match_found)
+
+    for bmark_param_group_dict in bmark_param_group_dicts:
+        print(f'bmark_param_group_dict: {bmark_param_group_dict}')
+
 
 
 def main(args):
@@ -295,14 +335,17 @@ def main(args):
         )
     if args.plot_average_batch_latency:
         if not args.plot_sequence_lengths:
-            raise ValueError('supply plot_sequence_lengths argument for plot_power_over_time')
+            raise ValueError('supply plot_sequence_lengths argument for plot_average_batch_latency')
         if not args.plot_batch_sizes:
-            raise ValueError('supply plot_batch_sizes argument for plot_power_over_time')
+            raise ValueError('supply plot_batch_sizes argument for plot_average_batch_latency')
+        if not args.bmark_param_groups:
+            raise ValueError('supply bmark_param_groups for plot_average_batch_latency')
         plot_average_batch_latency(
             bmark_entries,
             args.plot_filename,
             args.plot_sequence_lengths,
-            args.plot_batch_sizes
+            args.plot_batch_sizes,
+            args.bmark_param_groups
         )
 
 
