@@ -222,10 +222,13 @@ def plot_power_over_time(
 def plot_average_batch_latency(
     bmark_entries,
     plot_filename,
+    #plot_title,
     plot_sequence_lengths,
     plot_batch_sizes,
     bmark_param_groups
 ):
+    plt.figure(figsize=(10, 5))
+
     bmark_param_group_dicts = []
     for bmark_param_group in bmark_param_groups:
         group_split = bmark_param_group.split()
@@ -294,7 +297,25 @@ def plot_average_batch_latency(
         assert(bmark_param_match_found)
 
     for bmark_param_group_dict in bmark_param_group_dicts:
-        print(f'bmark_param_group_dict: {bmark_param_group_dict}')
+        #print(f'bmark_param_group_dict: {bmark_param_group_dict}')
+        batch_sizes = []
+        avg_latencies = []
+        for avg_batch_latencies_dict in bmark_param_group_dict['avg_batch_latencies']:
+            batch_sizes.append(avg_batch_latencies_dict['batch_size'])
+            avg_latencies.append(avg_batch_latencies_dict['avg_batch_latency'])
+
+        plt.plot(batch_sizes, avg_latencies, label=f'Llama {bmark_param_group_dict["model_size_GB"]}B Max {bmark_param_group_dict["max_sequence_length"]} Sequence Length)')
+
+    # Minimum batch size of 1
+    plt.xlim(left=1)
+
+    plt.xlabel('batch size')
+    plt.ylabel('Time (seconds)')
+    plt.title(f'Avg. Batch Latency vs. Batch Size')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(plot_filename)
 
 
 
@@ -343,6 +364,7 @@ def main(args):
         plot_average_batch_latency(
             bmark_entries,
             args.plot_filename,
+            #args.plot_title,
             args.plot_sequence_lengths,
             args.plot_batch_sizes,
             args.bmark_param_groups
@@ -397,6 +419,12 @@ if __name__ == '__main__':
         required=True,
         help='filename for specified plot'
     )
+    #parser.add_argument(
+    #    '--plot_title',
+    #    type=str,
+    #    required=True,
+    #    help='title for specified plot'
+    #)
     parser.add_argument(
         '--plot_sequence_lengths',
         type=int,
