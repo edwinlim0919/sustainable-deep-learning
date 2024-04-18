@@ -219,15 +219,43 @@ def plot_power_over_time(
     plt.savefig(plot_filename)
 
 
-def plot_batch_latency(
+def plot_average_batch_latency(
     bmark_entries,
     plot_filename,
-    plot_sequence_lengths
+    plot_sequence_lengths,
+    plot_batch_sizes
 ):
     for bmark_entry in bmark_entries:
         model_size_GB = bmark_entry['model_size_GB']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
+        if max_sequence_length not in plot_sequence_lengths:
+            continue
+        if batch_size not in plot_batch_sizes:
+            continue
+        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
+
+        # Extract timestamps from bmark_info
+        bmark_info = bmark_entry['bmark_info']
+        # each entry is (batch_start_time, batch_end_time)
+        bmark_tuples = []
+        curr_max_time = 0.0
+        batch_latency_sum = 0.0
+        num_iterations = len(bmark_info)
+
+        for batch_iteration, batch_dict in bmark_info.items():
+            batch_start_time = batch_dict['batch_start_time']
+            batch_end_time = batch_dict['batch_end_time']
+
+            # make sure timestamps are strictly increasing
+            assert(batch_start_time > curr_max_time and
+                   batch_end_time > batch_start_time)
+            curr_max_time = batch_end_time
+            batch_latency = batch_end_time - batch_start_time
+            batch_latency_sum += batch_latency
+
+        avg_batch_latency = batch_latency_sum / num_iterations
+        print(f'avg_batch_latency: {avg_batch_latency}')
 
 
 def main(args):
@@ -265,6 +293,17 @@ def main(args):
             args.plot_sequence_lengths,
             args.plot_batch_sizes
         )
+    if args.plot_average_batch_latency:
+        if not args.plot_sequence_lengths:
+            raise ValueError('supply plot_sequence_lengths argument for plot_power_over_time')
+        if not args.plot_batch_sizes:
+            raise ValueError('supply plot_batch_sizes argument for plot_power_over_time')
+        plot_average_batch_latency(
+            bmark_entries,
+            args.plot_filename,
+            args.plot_sequence_lengths,
+            args.plot_batch_sizes
+        )
 
 
 if __name__ == '__main__':
@@ -291,10 +330,23 @@ if __name__ == '__main__':
         help='[model size] [batch size] [max sequence length]'
     )
     parser.add_argument(
+        '--bmark_param_groups',
+        type=str,
+        nargs='+',
+        required=True,
+        help='[model size] [batch size] [max sequence length]'
+    )
+    parser.add_argument(
         '--plot_power_over_time',
         default=False,
         action='store_true',
         help='specify this arg to plot power over time'
+    )
+    parser.add_argument(
+        '--plot_average_batch_latency',
+        default=False,
+        action='store_true',
+        help='specify this arg to plot average batch latency'
     )
     parser.add_argument(
         '--plot_filename',
