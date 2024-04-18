@@ -285,6 +285,6 @@ python gpu_batch_exp_plotting.py --bmark_output_paths         "/dev/shm/sustaina
 															  "7 X 1000" \
 															  "7 X 500" \
 								 --plot_average_batch_latency \
-								 --plot_filename 		      "Llama13B_maxlen1000.png" \
+								 --plot_filename 		      "Llama_avg_batch_latency.png" \
 								 --plot_sequence_lengths      1000 500 \
 								 --plot_batch_sizes           1 2 4 6 8 10 12 14 16 18 20 22 24 26
