@@ -20,8 +20,9 @@ rm -rf ~/miniconda3/miniconda.sh
 #sudo apt install docker.io
 sudo apt-get update
 #sudo apt-get install docker-ce docker-ce-cli containerd.io -y
-#sudo apt-get remove containerd.io
+sudo apt-get remove containerd.io
 #sudo apt install docker.io docker-compose -y
-sudo apt install docker.io
+sudo apt-get install docker.io
+sudo apt-get remove docker-buildx-plugin
 sudo apt install docker-buildx
 sudo docker buildx install
