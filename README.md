@@ -17,8 +17,13 @@ yes | source ./env.sh
 ```
 
 Next, set up some basic dependencies for the project.
+Depending on your host machine architecture, install either x86_64 or aarch64.
 ```bash
-yes | source ./setup.sh
+# x86_64
+yes | source ./setup_x86_64.sh
+
+# aarch64
+yes | source ./setup_aarch64.sh
 ```
 
 # NVIDIA GPU Setup
