@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# TODO: This installation may conflict with the official nvidia installer installation
 # Installing the NVIDIA container toolkit
 curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
 && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
@@ -32,3 +33,7 @@ sudo make -C docker release_build
 sudo nvidia-persistenced --user root
 # Starting the container
 #sudo make -C docker release_run
+
+# TODO: check if nvidia-smi can run
+#       if conflict, then run below command
+sudo apt-get --purge remove "*nvidia*"
