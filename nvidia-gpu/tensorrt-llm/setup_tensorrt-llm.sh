@@ -36,4 +36,4 @@ sudo nvidia-persistenced --user root
 
 # TODO: check if nvidia-smi can run
 #       if conflict, then run below command
-sudo apt-get --purge remove "*nvidia*"
+# sudo apt-get --purge remove "*nvidia*"
