@@ -17,8 +17,13 @@ yes | source ./env.sh
 ```
 
 Next, set up some basic dependencies for the project.
+Depending on your host machine architecture, install either x86_64 or aarch64.
 ```bash
-yes | source ./setup.sh
+# x86_64
+yes | source ./setup_x86_64.sh
+
+# aarch64
+yes | source ./setup_aarch64.sh
 ```
 
 # NVIDIA GPU Setup
@@ -52,7 +57,7 @@ https://www.privex.io/articles/how-to-resize-partition/
 Then, run the following script to setup TensorRT-LLM.
 ```bash
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
-./setup_tensorrt-llm.sh
+source ./setup_tensorrt-llm.sh
 ```
 
 # Running Llama2 7B Experiments
