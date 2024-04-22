@@ -75,6 +75,7 @@ async def get_nvsmi_info_V100S_PCIE_32GB():
 
 #async def nvsmi_loop_V100S_PCIE_32GB(filepath: str):
 async def nvsmi_loop_V100S_PCIE_32GB(
+    nvsmi_filepath: str,
     host_filepath: str,
     container_filepath: str,
     container_id: str
@@ -85,7 +86,7 @@ async def nvsmi_loop_V100S_PCIE_32GB(
         container_id
     ):
         nvsmi_dict = await get_nvsmi_info_V100S_PCIE_32GB()
-        async with aiofiles.open(filepath, 'a') as f:
+        async with aiofiles.open(nvsmi_filepath, 'a') as f:
             await f.write(str(nvsmi_dict) + '\n')
         await asyncio.sleep(1)
 
@@ -119,7 +120,51 @@ def container_copy(
         print(f'container_copy error: {e}')
 
 
+def container_delete(
+    container_filepath: str,
+    container_id: str
+):
+    try:
+        command = [
+            'sudo',
+            'docker',
+            'exec',
+            container_id,
+            'rm',
+            '-f',
+            container_filepath
+        ]
+        result = subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f'container_delete error: {e}')
+
+
+def host_delete(host_filepath: str):
+    try:
+        command = [
+            'sudo',
+            'rm',
+            '-f',
+            host_filepath
+        ]
+        result = subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f'host_delete error: {e}')
+
+
 def main(args):
+    nvsmi_filepath = f'{args.output_dir}/{args.output_file}'
+    host_filepath = f'{args.output_dir}/{args.container_stop_file}'
+    container_filepath = f'{args.container_output_dir}/{args.container_stop_file}'
+
+    # delete stop file if it already exists in host
+    host_delete(host_filepath)
+    # delete stop file if it already exists in container
+    container_delete(
+        container_filepath,
+        args.container_id
+    )
+
     # create output dir, output file, and container stop file
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
@@ -129,8 +174,6 @@ def main(args):
         f.write('RUNNING')
 
     # copy stop file to docker container
-    host_filepath = f'{args.output_dir}/{args.container_stop_file}'
-    container_filepath = f'{args.container_output_dir}/{args.container_stop_file}'
     container_copy(
         host_filepath,
         container_filepath,
@@ -140,6 +183,7 @@ def main(args):
     #filepath = args.output_dir + '/' + args.output_file
     #asyncio.run(nvsmi_loop_V100S_PCIE_32GB(filepath))
     asyncio.run(nvsmi_loop_V100S_PCIE_32GB(
+        nvsmi_filepath,
         host_filepath,
         container_filepath,
         args.container_id
