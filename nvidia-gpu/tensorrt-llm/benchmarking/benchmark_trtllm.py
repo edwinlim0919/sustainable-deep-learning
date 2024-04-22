@@ -144,6 +144,11 @@ async def main(args):
         f.write(f'engine path: {args.engine_dir}\n')
         f.write(f'tokenizer path: {args.tokenizer_dir}\n')
 
+    # Check if stop file has been uploaded to the container
+    with (output_dir / args.stop_file).open('r') as f:
+        stop_lines = f.readlines()
+    assert('RUNNING' in stop_lines[0])
+
     # TODO change this for the actual batching
     #sampled_prompts_text = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
     if not PYTHON_BINDINGS:
@@ -237,6 +242,11 @@ async def main(args):
                 file
             )
 
+    # Sleep for 30s for extra nvsmi readings
+    asyncio.sleep(30)
+    with (output_dir / args.stop_file).open('w') as f:
+        f.write('COMPLETED\n')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -299,6 +309,12 @@ if __name__ == '__main__':
         type=str,
         required=True,
         help='output file name'
+    )
+    parser.add_argument(
+        '--stop_file',
+        type=str,
+        required=True,
+        help='stop file name'
     )
     parser.add_argument(
         '--random_seed',

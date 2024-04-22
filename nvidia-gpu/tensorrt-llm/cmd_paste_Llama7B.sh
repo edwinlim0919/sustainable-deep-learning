@@ -329,6 +329,11 @@ python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_to
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp c71f5b2d5461:/app/tensorrt_llm/examples/llama/outputs/llama/7B/fp16/1-gpu-26-batch/bmark_numreqsample0_iter100_max500.out outputs/llama/7B/fp16/1-gpu-26-batch/bmark_numreqsample0_iter100_max500.out
 
+# TODO: updated benchmark scripts here
+# TESTING
+python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/7B/fp16/1-gpu-1-batch --output_file nvsmi_testing.out --container_id c71f5b2d5461 --container_output_dir /app/tensorrt_llm/examples/llama/outputs/llama/7B/fp16/1-gpu-1-batch --container_stop_file container_stop.txt
+python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-7b-chat-hf_tokenizer/ --enginer_dir ./llama/7B/trt_engines/fp16/1-gpu-1-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /app/tensorrt_llm/examples/llama/outputs/llama/7B/fp16/1-gpu-1-batch --output_file bmark_testing.out --stop_file container_stop.txt --random_seed 42 --num_iterations 10 --use_prompt_formatting --add_special_tokens
+
 # 1 gpu 28 batch 500 max
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/7B/fp16/1-gpu-28-batch --output_file nvsmi_numreqsample0_iter100_max500.out

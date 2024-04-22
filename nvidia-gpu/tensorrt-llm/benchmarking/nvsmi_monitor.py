@@ -15,15 +15,22 @@ gpu_utilization_pattern = r"\d+%"
 timestamp_pattern = r"(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d"
 
 
-#nvsmi_loop_running = True
+def get_nvsmi_loop_running(
+    host_filepath: str,
+    container_filepath: str,
+    container_id: str
+) -> bool:
+    # Copy the container stop file from container to host
+    container_copy(
+        host_filepath,
+        container_filepath,
+        container_id,
+        False
+    )
 
-#def get_nvsmi_loop_running() -> bool:
-#    return nvsmi_loop_running
-
-
-#def set_nvsmi_loop_running(value: bool):
-#    global nvsmi_loop_running
-#    nvsmi_loop_running = value
+    with open(host_filepath, 'r') as f:
+        container_stop_lines = f.readlines()
+    return not 'COMPLETED' in container_stop_lines[0]
 
 
 async def get_nvsmi_info_V100S_PCIE_32GB():
@@ -63,9 +70,6 @@ async def get_nvsmi_info_V100S_PCIE_32GB():
         if gpu_utilization_match:
             nvsmi_dict[curr_GPU]['gpu_utilization'] = gpu_utilization_match.group()
 
-    #for key, value in nvsmi_dict.items():
-    #    print(f'{key}: {value}')
-
     return nvsmi_dict
 
 
@@ -75,11 +79,15 @@ async def nvsmi_loop_V100S_PCIE_32GB(
     container_filepath: str,
     container_id: str
 ):
-    while get_nvsmi_loop_running():
+    while get_nvsmi_loop_running(
+        host_filepath,
+        container_filepath,
+        container_id
+    ):
         nvsmi_dict = await get_nvsmi_info_V100S_PCIE_32GB()
         async with aiofiles.open(filepath, 'a') as f:
             await f.write(str(nvsmi_dict) + '\n')
-        await asyncio.sleep(1)2
+        await asyncio.sleep(1)
 
 
 def container_copy(
