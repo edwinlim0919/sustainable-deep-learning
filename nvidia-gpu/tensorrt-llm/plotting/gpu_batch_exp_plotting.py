@@ -114,6 +114,33 @@ def parse_nvsmi_output(nvsmi_output_path):
     return nvsmi_info
 
 
+def plot_normalized_token_latency(
+    bmark_entries,
+    plot_filename,
+    plot_sequence_lengths,
+    plot_batch_sizes
+):
+    for bmark_entry in bmark_entries:
+        model_size_GB = bmark_entry['model_size_GB']
+        batch_size = bmark_entry['batch_size']
+        max_sequence_length = bmark_entry['max_sequence_length']
+        if max_sequence_length not in plot_sequence_lengths:
+            continue
+        if batch_size not in plot_batch_sizes:
+            continue
+        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
+
+        # Extract timestamps from bmark_info
+        bmark_info = bmark_entry['bmark_info']
+        # each entry is (batch_start_time, batch_end_time)
+        curr_max_time = 0.0
+        for batch_iteration, batch_dict in bmark_info.items():
+            batch_start_time = batch_dict['batch_start_time']
+            batch_end_time = batch_dict['batch_end_time']
+
+        print(f'batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}')
+
+
 def plot_power_over_time(
     bmark_entries,
     plot_filename,
@@ -412,6 +439,12 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
         help='specify this arg to plot average batch latency'
+    )
+    parser.add_argument(
+        '--plot_normalized_token_latency',
+        default=False,
+        action='store_true',
+        help='specify this arg to plot normalized token latency'
     )
     parser.add_argument(
         '--plot_filename',
