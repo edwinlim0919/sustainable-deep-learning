@@ -246,7 +246,7 @@ async def main(args):
             )
 
     # Sleep for 30s for extra nvsmi readings
-    asyncio.sleep(30)
+    await asyncio.sleep(30)
     with (container_output_dir / args.container_stop_file).open('w') as f:
         f.write('COMPLETED\n')
 

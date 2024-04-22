@@ -180,8 +180,6 @@ def main(args):
         args.container_id,
         True
     )
-    #filepath = args.output_dir + '/' + args.output_file
-    #asyncio.run(nvsmi_loop_V100S_PCIE_32GB(filepath))
     asyncio.run(nvsmi_loop_V100S_PCIE_32GB(
         nvsmi_filepath,
         host_filepath,
