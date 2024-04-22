@@ -70,6 +70,7 @@ async def get_nvsmi_info_V100S_PCIE_32GB():
         if gpu_utilization_match:
             nvsmi_dict[curr_GPU]['gpu_utilization'] = gpu_utilization_match.group()
 
+    nvsmi_dict['num_gpus'] = curr_GPU + 1
     return nvsmi_dict
 
 
