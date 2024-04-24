@@ -44,6 +44,19 @@ trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin floa
 trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu-32-batch/ --max_batch_size 32
 trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16/1-gpu-64-batch/ --max_batch_size 64
 
+# TODO: 2 changes to plotting/parsing scripts and reformatting existing results
+#       - multiple dictionaries in nvsmi results for each GPU index
+#       - output token lengths no longer in length-1 list
+#       - adding name change for v100 results
+# 4-bit weight-quantized
+python convert_checkpoint.py --model_dir meta-llama/Llama-2-7b-chat-hf_model --output_dir ./llama/7B/trt_ckpt/fp16_wq4/1-gpu/ --dtype float16 --use_weight_only --weight_only_precision int4
+trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16_wq4/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16_wq4/1-gpu-1-batch/ --max_batch_size 1
+trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16_wq4/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16_wq4/1-gpu-4-batch/ --max_batch_size 4
+trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16_wq4/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16_wq4/1-gpu-8-batch/ --max_batch_size 8
+trtllm-build --checkpoint_dir ./llama/7B/trt_ckpt/fp16_wq4/1-gpu/ --gemm_plugin float16 --output_dir ./llama/7B/trt_engines/fp16_wq4/1-gpu-12-batch/ --max_batch_size 12
+
+
+
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp benchmarking/benchmark_trtllm.py 92a3527e8c38:/app/tensorrt_llm/examples/benchmark_trtllm.py
 sudo docker cp benchmarking/benchmark_utils.py 92a3527e8c38:/app/tensorrt_llm/examples/benchmark_utils.py
