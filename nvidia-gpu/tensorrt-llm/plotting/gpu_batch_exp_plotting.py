@@ -140,6 +140,8 @@ def plot_normalized_token_latency(
 
         print(f'batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}')
 
+    print(f'bmark_entries[0]: {bmark_entries[0]}')
+
 
 def plot_power_over_time(
     bmark_entries,
@@ -249,7 +251,6 @@ def plot_power_over_time(
 def plot_average_batch_latency(
     bmark_entries,
     plot_filename,
-    #plot_title,
     plot_sequence_lengths,
     plot_batch_sizes,
     bmark_param_groups
@@ -274,7 +275,6 @@ def plot_average_batch_latency(
             continue
         if batch_size not in plot_batch_sizes:
             continue
-        #print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
@@ -324,7 +324,6 @@ def plot_average_batch_latency(
         assert(bmark_param_match_found)
 
     for bmark_param_group_dict in bmark_param_group_dicts:
-        #print(f'bmark_param_group_dict: {bmark_param_group_dict}')
         batch_sizes = []
         avg_latencies = []
         for avg_batch_latencies_dict in bmark_param_group_dict['avg_batch_latencies']:
@@ -335,7 +334,6 @@ def plot_average_batch_latency(
 
     # Minimum batch size of 1
     plt.xlim(left=1)
-
     plt.xlabel('batch size')
     plt.ylabel('Time (seconds)')
     plt.title(f'Avg. Batch Latency vs. Batch Size')
@@ -391,10 +389,20 @@ def main(args):
         plot_average_batch_latency(
             bmark_entries,
             args.plot_filename,
-            #args.plot_title,
             args.plot_sequence_lengths,
             args.plot_batch_sizes,
             args.bmark_param_groups
+        )
+    if args.plot_normalized_token_latency:
+        if not args.plot_sequence_lengths:
+            raise ValueError('supply plot_sequence_lengths argument for plot_average_batch_latency')
+        if not args.plot_batch_sizes:
+            raise ValueError('supply plot_batch_sizes argument for plot_average_batch_latency')
+        plot_normalized_token_latency(
+            bmark_entries,
+            args.plot_filename,
+            args.plot_sequence_lengths,
+            args.plot_batch_sizes
         )
 
 
@@ -426,7 +434,7 @@ if __name__ == '__main__':
         type=str,
         nargs='+',
         required=True,
-        help='[model size] [batch size] [max sequence length]'
+        help='[model size] [batch size] [max sequence length] (specify "X" for any value)'
     )
     parser.add_argument(
         '--plot_power_over_time',
@@ -452,12 +460,6 @@ if __name__ == '__main__':
         required=True,
         help='filename for specified plot'
     )
-    #parser.add_argument(
-    #    '--plot_title',
-    #    type=str,
-    #    required=True,
-    #    help='title for specified plot'
-    #)
     parser.add_argument(
         '--plot_sequence_lengths',
         type=int,
