@@ -37,3 +37,11 @@ python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/13B/fp16/1-gpu-1
 python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-13b-chat-hf_tokenizer/ --engine_dir ./llama/13B/trt_engines/fp16/1-gpu-1-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16/1-gpu-1-batch --output_file bmark_numreqsample0_iter100_max1000_a10040gb.out --container_output_dir /app/tensorrt_llm/examples/llama --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --use_prompt_formatting --add_special_tokens
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp 92a3527e8c38:/app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out
+
+# 1 gpu 2 batch 1000 max
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/13B/fp16/1-gpu-2-batch --output_file nvsmi_numreqsample0_iter100_max1000_a10040gb.out --container_id 92a3527e8c38 --container_output_dir /app/tensorrt_llm/examples/llama --container_stop_file container_stop.txt --gpu_type a10040gb
+# /app/tensorrt_llm/examples/llama
+python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-13b-chat-hf_tokenizer/ --engine_dir ./llama/13B/trt_engines/fp16/1-gpu-2-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 2 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16/1-gpu-2-batch --output_file bmark_numreqsample0_iter100_max1000_a10040gb.out --container_output_dir /app/tensorrt_llm/examples/llama --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --use_prompt_formatting --add_special_tokens
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp 92a3527e8c38:/app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16/1-gpu-2-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out outputs/llama/13B/fp16/1-gpu-2-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out
