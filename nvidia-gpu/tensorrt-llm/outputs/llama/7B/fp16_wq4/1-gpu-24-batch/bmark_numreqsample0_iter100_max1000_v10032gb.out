@@ -1,0 +1,2 @@
+engine path: ./llama/7B/trt_engines/fp16_wq4/1-gpu-24-batch/
+tokenizer path: ./meta-llama/Llama-2-7b-chat-hf_tokenizer/

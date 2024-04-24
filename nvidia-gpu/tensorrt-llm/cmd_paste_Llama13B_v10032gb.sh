@@ -28,14 +28,6 @@ sudo docker cp benchmarking/benchmark_utils.py f88488e6d7ff:/app/tensorrt_llm/ex
 sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json f88488e6d7ff:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split.json
 sudo docker cp ShareGPT_V3_unfiltered_cleaned_split_top100.json f88488e6d7ff:/app/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split_top100.json
 
-# dev testing
-# /app/tensorrt_llm/examples/llama
-python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-13b-chat-hf_tokenizer/ --engine_dir ./llama/13B/trt_engines/fp16/1-gpu-1-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split_top100.json --num_requests_sample 4 --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir ./outputs/llama/13B/fp16/1-gpu-1-batch --output_file dev_testing.out --random_seed 42 --num_iterations 1 --use_prompt_formatting
-python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-13b-chat-hf_tokenizer/ --engine_dir ./llama/13B/trt_engines/fp16/1-gpu-2-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split_top100.json --num_requests_sample 4 --max_batch_size 2 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir ./outputs/llama/13B/fp16/1-gpu-2-batch --output_file dev_testing.out --random_seed 42 --num_iterations 2 --use_prompt_formatting --add_special_tokens
-python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-13b-chat-hf_tokenizer/ --engine_dir ./llama/13B/trt_engines/fp16/1-gpu-2-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 2 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir ./outputs/llama/13B/fp16/1-gpu-2-batch --output_file dev_testing.out --random_seed 42 --num_iterations 10 --use_prompt_formatting --add_special_tokens
-# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
-sudo docker cp f88488e6d7ff:/app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16/1-gpu-1-batch/dev_testing.out dev_testing.out
-sudo docker cp f88488e6d7ff:/app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16/1-gpu-2-batch/dev_testing.out dev_testing.out
 
 # experiments
 # 1 gpu 1 batch 1000 max
