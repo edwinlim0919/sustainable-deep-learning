@@ -1,0 +1,203 @@
+engine path: ./llama/7B/trt_engines/fp16/1-gpu-2-batch/
+tokenizer path: ./meta-llama/Llama-2-7b-chat-hf_tokenizer/
+num_iterations: 100
+{'max_batch_size': 2, 'iteration': 0, 'max_input_tokens': 443, 'max_output_tokens': 441, 'batch_input_lengths': [442, 442], 'batch_output_lengths': tensor([[883],
+        [883]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712631974.6413982, 'batch_end_time': 1712631983.8123274, 'batch_latency': 9.170929193496704}
+{'max_batch_size': 2, 'iteration': 1, 'max_input_tokens': 545, 'max_output_tokens': 96, 'batch_input_lengths': [544, 544], 'batch_output_lengths': tensor([[640],
+        [563]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712631983.8206182, 'batch_end_time': 1712631985.8655345, 'batch_latency': 2.0449163913726807}
+{'max_batch_size': 2, 'iteration': 2, 'max_input_tokens': 857, 'max_output_tokens': 774, 'batch_input_lengths': [856, 856], 'batch_output_lengths': tensor([[ 892],
+        [1630]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712631985.8703172, 'batch_end_time': 1712632001.49074, 'batch_latency': 15.620422840118408}
+{'max_batch_size': 2, 'iteration': 3, 'max_input_tokens': 292, 'max_output_tokens': 443, 'batch_input_lengths': [291, 291], 'batch_output_lengths': tensor([[734],
+        [734]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632001.4950955, 'batch_end_time': 1712632010.1209252, 'batch_latency': 8.625829696655273}
+{'max_batch_size': 2, 'iteration': 4, 'max_input_tokens': 33, 'max_output_tokens': 385, 'batch_input_lengths': [32, 32], 'batch_output_lengths': tensor([[183],
+        [417]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632010.1241968, 'batch_end_time': 1712632017.4302216, 'batch_latency': 7.306024789810181}
+{'max_batch_size': 2, 'iteration': 5, 'max_input_tokens': 17, 'max_output_tokens': 310, 'batch_input_lengths': [16, 16], 'batch_output_lengths': tensor([[326],
+        [326]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632017.4326231, 'batch_end_time': 1712632023.30037, 'batch_latency': 5.867746829986572}
+{'max_batch_size': 2, 'iteration': 6, 'max_input_tokens': 83, 'max_output_tokens': 195, 'batch_input_lengths': [82, 82], 'batch_output_lengths': tensor([[277],
+        [277]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632023.3028877, 'batch_end_time': 1712632027.0316617, 'batch_latency': 3.728774070739746}
+{'max_batch_size': 2, 'iteration': 7, 'max_input_tokens': 435, 'max_output_tokens': 828, 'batch_input_lengths': [434, 434], 'batch_output_lengths': tensor([[1193],
+        [1262]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632027.03519, 'batch_end_time': 1712632043.4061804, 'batch_latency': 16.37099027633667}
+{'max_batch_size': 2, 'iteration': 8, 'max_input_tokens': 37, 'max_output_tokens': 921, 'batch_input_lengths': [36, 36], 'batch_output_lengths': tensor([[957],
+        [957]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632043.4082255, 'batch_end_time': 1712632061.157523, 'batch_latency': 17.749297380447388}
+{'max_batch_size': 2, 'iteration': 9, 'max_input_tokens': 570, 'max_output_tokens': 745, 'batch_input_lengths': [569, 569], 'batch_output_lengths': tensor([[ 885],
+        [1314]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632061.1632931, 'batch_end_time': 1712632075.969032, 'batch_latency': 14.805738925933838}
+{'max_batch_size': 2, 'iteration': 10, 'max_input_tokens': 569, 'max_output_tokens': 976, 'batch_input_lengths': [568, 568], 'batch_output_lengths': tensor([[ 568],
+        [1544]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632075.9724286, 'batch_end_time': 1712632095.251248, 'batch_latency': 19.27881932258606}
+{'max_batch_size': 2, 'iteration': 11, 'max_input_tokens': 48, 'max_output_tokens': 364, 'batch_input_lengths': [47, 47], 'batch_output_lengths': tensor([[290],
+        [312]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632095.2538338, 'batch_end_time': 1712632100.320048, 'batch_latency': 5.066214323043823}
+{'max_batch_size': 2, 'iteration': 12, 'max_input_tokens': 275, 'max_output_tokens': 815, 'batch_input_lengths': [274, 274], 'batch_output_lengths': tensor([[1089],
+        [1089]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632100.326601, 'batch_end_time': 1712632116.2470176, 'batch_latency': 15.920416593551636}
+{'max_batch_size': 2, 'iteration': 13, 'max_input_tokens': 65, 'max_output_tokens': 207, 'batch_input_lengths': [64, 64], 'batch_output_lengths': tensor([[121],
+        [271]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632116.2487712, 'batch_end_time': 1712632120.1860805, 'batch_latency': 3.9373092651367188}
+{'max_batch_size': 2, 'iteration': 14, 'max_input_tokens': 127, 'max_output_tokens': 132, 'batch_input_lengths': [126, 126], 'batch_output_lengths': tensor([[258],
+        [126]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632120.1883337, 'batch_end_time': 1712632122.7238388, 'batch_latency': 2.5355050563812256}
+{'max_batch_size': 2, 'iteration': 15, 'max_input_tokens': 162, 'max_output_tokens': 290, 'batch_input_lengths': [161, 161], 'batch_output_lengths': tensor([[364],
+        [451]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632122.7251182, 'batch_end_time': 1712632128.3033488, 'batch_latency': 5.578230619430542}
+{'max_batch_size': 2, 'iteration': 16, 'max_input_tokens': 13, 'max_output_tokens': 192, 'batch_input_lengths': [12, 12], 'batch_output_lengths': tensor([[204],
+        [105]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632128.3045251, 'batch_end_time': 1712632131.9259744, 'batch_latency': 3.6214492321014404}
+{'max_batch_size': 2, 'iteration': 17, 'max_input_tokens': 50, 'max_output_tokens': 466, 'batch_input_lengths': [49, 49], 'batch_output_lengths': tensor([[515],
+        [107]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632131.927563, 'batch_end_time': 1712632140.781033, 'batch_latency': 8.853470087051392}
+{'max_batch_size': 2, 'iteration': 18, 'max_input_tokens': 209, 'max_output_tokens': 271, 'batch_input_lengths': [208, 208], 'batch_output_lengths': tensor([[479],
+        [313]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632140.7836773, 'batch_end_time': 1712632146.0274837, 'batch_latency': 5.2438063621521}
+{'max_batch_size': 2, 'iteration': 19, 'max_input_tokens': 23, 'max_output_tokens': 131, 'batch_input_lengths': [22, 22], 'batch_output_lengths': tensor([[153],
+        [153]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632146.028183, 'batch_end_time': 1712632148.5127583, 'batch_latency': 2.4845752716064453}
+{'max_batch_size': 2, 'iteration': 20, 'max_input_tokens': 28, 'max_output_tokens': 763, 'batch_input_lengths': [27, 27], 'batch_output_lengths': tensor([[790],
+        [187]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632148.514128, 'batch_end_time': 1712632163.065322, 'batch_latency': 14.551193952560425}
+{'max_batch_size': 2, 'iteration': 21, 'max_input_tokens': 16, 'max_output_tokens': 418, 'batch_input_lengths': [15, 15], 'batch_output_lengths': tensor([[336],
+        [433]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632163.0666718, 'batch_end_time': 1712632170.9945593, 'batch_latency': 7.927887439727783}
+{'max_batch_size': 2, 'iteration': 22, 'max_input_tokens': 29, 'max_output_tokens': 618, 'batch_input_lengths': [28, 28], 'batch_output_lengths': tensor([[646],
+        [274]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632170.9960334, 'batch_end_time': 1712632182.7713459, 'batch_latency': 11.775312423706055}
+{'max_batch_size': 2, 'iteration': 23, 'max_input_tokens': 14, 'max_output_tokens': 938, 'batch_input_lengths': [13, 13], 'batch_output_lengths': tensor([[951],
+        [951]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632182.772958, 'batch_end_time': 1712632200.8055813, 'batch_latency': 18.032623291015625}
+{'max_batch_size': 2, 'iteration': 24, 'max_input_tokens': 73, 'max_output_tokens': 676, 'batch_input_lengths': [72, 72], 'batch_output_lengths': tensor([[748],
+        [194]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632200.807174, 'batch_end_time': 1712632213.7258296, 'batch_latency': 12.918655633926392}
+{'max_batch_size': 2, 'iteration': 25, 'max_input_tokens': 97, 'max_output_tokens': 584, 'batch_input_lengths': [96, 96], 'batch_output_lengths': tensor([[680],
+        [294]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632213.7280982, 'batch_end_time': 1712632224.901675, 'batch_latency': 11.173576831817627}
+{'max_batch_size': 2, 'iteration': 26, 'max_input_tokens': 28, 'max_output_tokens': 802, 'batch_input_lengths': [27, 27], 'batch_output_lengths': tensor([[829],
+        [829]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632224.9032996, 'batch_end_time': 1712632240.2952857, 'batch_latency': 15.39198613166809}
+{'max_batch_size': 2, 'iteration': 27, 'max_input_tokens': 270, 'max_output_tokens': 645, 'batch_input_lengths': [269, 269], 'batch_output_lengths': tensor([[914],
+        [901]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632240.2974222, 'batch_end_time': 1712632252.8558574, 'batch_latency': 12.558435201644897}
+{'max_batch_size': 2, 'iteration': 28, 'max_input_tokens': 25, 'max_output_tokens': 285, 'batch_input_lengths': [24, 24], 'batch_output_lengths': tensor([[309],
+        [163]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632252.856936, 'batch_end_time': 1712632258.2585247, 'batch_latency': 5.401588678359985}
+{'max_batch_size': 2, 'iteration': 29, 'max_input_tokens': 801, 'max_output_tokens': 397, 'batch_input_lengths': [800, 800], 'batch_output_lengths': tensor([[1197],
+        [1197]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632258.2613714, 'batch_end_time': 1712632266.3729672, 'batch_latency': 8.111595869064331}
+{'max_batch_size': 2, 'iteration': 30, 'max_input_tokens': 45, 'max_output_tokens': 480, 'batch_input_lengths': [44, 44], 'batch_output_lengths': tensor([[462],
+        [524]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632266.3747606, 'batch_end_time': 1712632275.5384657, 'batch_latency': 9.163705110549927}
+{'max_batch_size': 2, 'iteration': 31, 'max_input_tokens': 43, 'max_output_tokens': 639, 'batch_input_lengths': [42, 42], 'batch_output_lengths': tensor([[681],
+        [681]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632275.540067, 'batch_end_time': 1712632287.7834792, 'batch_latency': 12.243412256240845}
+{'max_batch_size': 2, 'iteration': 32, 'max_input_tokens': 963, 'max_output_tokens': 479, 'batch_input_lengths': [962, 962], 'batch_output_lengths': tensor([[1441],
+        [1080]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632287.7867954, 'batch_end_time': 1712632297.6500905, 'batch_latency': 9.863295078277588}
+{'max_batch_size': 2, 'iteration': 33, 'max_input_tokens': 20, 'max_output_tokens': 348, 'batch_input_lengths': [19, 19], 'batch_output_lengths': tensor([[367],
+        [367]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632297.6510825, 'batch_end_time': 1712632304.257192, 'batch_latency': 6.606109380722046}
+{'max_batch_size': 2, 'iteration': 34, 'max_input_tokens': 340, 'max_output_tokens': 601, 'batch_input_lengths': [339, 339], 'batch_output_lengths': tensor([[940],
+        [735]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632304.2595744, 'batch_end_time': 1712632316.0173442, 'batch_latency': 11.75776982307434}
+{'max_batch_size': 2, 'iteration': 35, 'max_input_tokens': 82, 'max_output_tokens': 37, 'batch_input_lengths': [81, 81], 'batch_output_lengths': tensor([[100],
+        [118]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632316.0191538, 'batch_end_time': 1712632316.755281, 'batch_latency': 0.7361271381378174}
+{'max_batch_size': 2, 'iteration': 36, 'max_input_tokens': 452, 'max_output_tokens': 654, 'batch_input_lengths': [451, 451], 'batch_output_lengths': tensor([[1105],
+        [1046]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632316.757321, 'batch_end_time': 1712632329.690239, 'batch_latency': 12.932918071746826}
+{'max_batch_size': 2, 'iteration': 37, 'max_input_tokens': 106, 'max_output_tokens': 412, 'batch_input_lengths': [105, 105], 'batch_output_lengths': tensor([[489],
+        [517]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632329.6919007, 'batch_end_time': 1712632337.5774903, 'batch_latency': 7.885589599609375}
+{'max_batch_size': 2, 'iteration': 38, 'max_input_tokens': 173, 'max_output_tokens': 353, 'batch_input_lengths': [172, 172], 'batch_output_lengths': tensor([[525],
+        [359]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632337.578801, 'batch_end_time': 1712632344.3668694, 'batch_latency': 6.788068532943726}
+{'max_batch_size': 2, 'iteration': 39, 'max_input_tokens': 65, 'max_output_tokens': 202, 'batch_input_lengths': [64, 64], 'batch_output_lengths': tensor([[266],
+        [266]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632344.3678622, 'batch_end_time': 1712632348.2135217, 'batch_latency': 3.8456594944000244}
+{'max_batch_size': 2, 'iteration': 40, 'max_input_tokens': 32, 'max_output_tokens': 676, 'batch_input_lengths': [31, 31], 'batch_output_lengths': tensor([[707],
+        [707]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632348.2143896, 'batch_end_time': 1712632361.1524973, 'batch_latency': 12.93810772895813}
+{'max_batch_size': 2, 'iteration': 41, 'max_input_tokens': 53, 'max_output_tokens': 271, 'batch_input_lengths': [52, 52], 'batch_output_lengths': tensor([[323],
+        [323]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632361.1536593, 'batch_end_time': 1712632366.3103771, 'batch_latency': 5.156717777252197}
+{'max_batch_size': 2, 'iteration': 42, 'max_input_tokens': 61, 'max_output_tokens': 516, 'batch_input_lengths': [60, 60], 'batch_output_lengths': tensor([[439],
+        [576]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632366.311714, 'batch_end_time': 1712632376.1673155, 'batch_latency': 9.85560154914856}
+{'max_batch_size': 2, 'iteration': 43, 'max_input_tokens': 174, 'max_output_tokens': 191, 'batch_input_lengths': [173, 173], 'batch_output_lengths': tensor([[364],
+        [364]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632376.1696784, 'batch_end_time': 1712632379.8590486, 'batch_latency': 3.6893701553344727}
+{'max_batch_size': 2, 'iteration': 44, 'max_input_tokens': 364, 'max_output_tokens': 136, 'batch_input_lengths': [363, 363], 'batch_output_lengths': tensor([[381],
+        [499]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632379.8617456, 'batch_end_time': 1712632382.5921497, 'batch_latency': 2.7304041385650635}
+{'max_batch_size': 2, 'iteration': 45, 'max_input_tokens': 32, 'max_output_tokens': 728, 'batch_input_lengths': [31, 31], 'batch_output_lengths': tensor([[759],
+        [668]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632382.5931149, 'batch_end_time': 1712632396.5417638, 'batch_latency': 13.948648929595947}
+{'max_batch_size': 2, 'iteration': 46, 'max_input_tokens': 80, 'max_output_tokens': 588, 'batch_input_lengths': [79, 79], 'batch_output_lengths': tensor([[158],
+        [667]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632396.5433314, 'batch_end_time': 1712632407.7668402, 'batch_latency': 11.223508834838867}
+{'max_batch_size': 2, 'iteration': 47, 'max_input_tokens': 101, 'max_output_tokens': 475, 'batch_input_lengths': [100, 100], 'batch_output_lengths': tensor([[575],
+        [575]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632407.7682364, 'batch_end_time': 1712632416.8687863, 'batch_latency': 9.100549936294556}
+{'max_batch_size': 2, 'iteration': 48, 'max_input_tokens': 37, 'max_output_tokens': 350, 'batch_input_lengths': [36, 36], 'batch_output_lengths': tensor([[386],
+        [386]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632416.8701217, 'batch_end_time': 1712632423.5365567, 'batch_latency': 6.66643500328064}
+{'max_batch_size': 2, 'iteration': 49, 'max_input_tokens': 82, 'max_output_tokens': 726, 'batch_input_lengths': [81, 81], 'batch_output_lengths': tensor([[807],
+        [807]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632423.5379133, 'batch_end_time': 1712632437.5066426, 'batch_latency': 13.968729257583618}
+{'max_batch_size': 2, 'iteration': 50, 'max_input_tokens': 25, 'max_output_tokens': 434, 'batch_input_lengths': [24, 24], 'batch_output_lengths': tensor([[458],
+        [458]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632437.5083568, 'batch_end_time': 1712632445.7619858, 'batch_latency': 8.253628969192505}
+{'max_batch_size': 2, 'iteration': 51, 'max_input_tokens': 971, 'max_output_tokens': 871, 'batch_input_lengths': [970, 970], 'batch_output_lengths': tensor([[1841],
+        [1841]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632445.7667744, 'batch_end_time': 1712632463.6545765, 'batch_latency': 17.887802124023438}
+{'max_batch_size': 2, 'iteration': 52, 'max_input_tokens': 17, 'max_output_tokens': 398, 'batch_input_lengths': [16, 16], 'batch_output_lengths': tensor([[414],
+        [382]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632463.6562064, 'batch_end_time': 1712632471.2037394, 'batch_latency': 7.54753303527832}
+{'max_batch_size': 2, 'iteration': 53, 'max_input_tokens': 654, 'max_output_tokens': 155, 'batch_input_lengths': [653, 653], 'batch_output_lengths': tensor([[808],
+        [808]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632471.2071478, 'batch_end_time': 1712632474.4589603, 'batch_latency': 3.25181245803833}
+{'max_batch_size': 2, 'iteration': 54, 'max_input_tokens': 57, 'max_output_tokens': 106, 'batch_input_lengths': [56, 56], 'batch_output_lengths': tensor([[162],
+        [162]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632474.4601865, 'batch_end_time': 1712632476.4854088, 'batch_latency': 2.0252223014831543}
+{'max_batch_size': 2, 'iteration': 55, 'max_input_tokens': 45, 'max_output_tokens': 396, 'batch_input_lengths': [44, 44], 'batch_output_lengths': tensor([[440],
+        [440]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632476.4864075, 'batch_end_time': 1712632484.0366194, 'batch_latency': 7.5502119064331055}
+{'max_batch_size': 2, 'iteration': 56, 'max_input_tokens': 19, 'max_output_tokens': 471, 'batch_input_lengths': [18, 18], 'batch_output_lengths': tensor([[489],
+        [375]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632484.0378366, 'batch_end_time': 1712632492.9949937, 'batch_latency': 8.957157135009766}
+{'max_batch_size': 2, 'iteration': 57, 'max_input_tokens': 13, 'max_output_tokens': 132, 'batch_input_lengths': [12, 12], 'batch_output_lengths': tensor([[144],
+        [144]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632492.9958487, 'batch_end_time': 1712632495.484266, 'batch_latency': 2.488417387008667}
+{'max_batch_size': 2, 'iteration': 58, 'max_input_tokens': 9, 'max_output_tokens': 274, 'batch_input_lengths': [8, 8], 'batch_output_lengths': tensor([[282],
+        [282]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632495.484934, 'batch_end_time': 1712632500.662889, 'batch_latency': 5.177954912185669}
+{'max_batch_size': 2, 'iteration': 59, 'max_input_tokens': 75, 'max_output_tokens': 242, 'batch_input_lengths': [74, 74], 'batch_output_lengths': tensor([[316],
+        [316]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632500.6643288, 'batch_end_time': 1712632505.2895663, 'batch_latency': 4.625237464904785}
+{'max_batch_size': 2, 'iteration': 60, 'max_input_tokens': 33, 'max_output_tokens': 497, 'batch_input_lengths': [32, 32], 'batch_output_lengths': tensor([[529],
+        [ 90]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632505.2905126, 'batch_end_time': 1712632514.7206302, 'batch_latency': 9.4301176071167}
+{'max_batch_size': 2, 'iteration': 61, 'max_input_tokens': 11, 'max_output_tokens': 230, 'batch_input_lengths': [10, 10], 'batch_output_lengths': tensor([[240],
+        [240]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632514.7215674, 'batch_end_time': 1712632519.06447, 'batch_latency': 4.342902660369873}
+{'max_batch_size': 2, 'iteration': 62, 'max_input_tokens': 37, 'max_output_tokens': 499, 'batch_input_lengths': [36, 36], 'batch_output_lengths': tensor([[535],
+        [241]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632519.0656326, 'batch_end_time': 1712632528.569045, 'batch_latency': 9.50341248512268}
+{'max_batch_size': 2, 'iteration': 63, 'max_input_tokens': 15, 'max_output_tokens': 446, 'batch_input_lengths': [14, 14], 'batch_output_lengths': tensor([[337],
+        [460]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632528.5701802, 'batch_end_time': 1712632537.0329056, 'batch_latency': 8.462725400924683}
+{'max_batch_size': 2, 'iteration': 64, 'max_input_tokens': 38, 'max_output_tokens': 549, 'batch_input_lengths': [37, 37], 'batch_output_lengths': tensor([[586],
+        [427]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632537.0344737, 'batch_end_time': 1712632547.5176632, 'batch_latency': 10.483189582824707}
+{'max_batch_size': 2, 'iteration': 65, 'max_input_tokens': 89, 'max_output_tokens': 687, 'batch_input_lengths': [88, 88], 'batch_output_lengths': tensor([[775],
+        [495]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632547.519435, 'batch_end_time': 1712632560.7104135, 'batch_latency': 13.190978527069092}
+{'max_batch_size': 2, 'iteration': 66, 'max_input_tokens': 43, 'max_output_tokens': 398, 'batch_input_lengths': [42, 42], 'batch_output_lengths': tensor([[440],
+        [292]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632560.7116463, 'batch_end_time': 1712632568.2950096, 'batch_latency': 7.58336329460144}
+{'max_batch_size': 2, 'iteration': 67, 'max_input_tokens': 376, 'max_output_tokens': 486, 'batch_input_lengths': [375, 375], 'batch_output_lengths': tensor([[861],
+        [861]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632568.297768, 'batch_end_time': 1712632577.8374763, 'batch_latency': 9.539708137512207}
+{'max_batch_size': 2, 'iteration': 68, 'max_input_tokens': 93, 'max_output_tokens': 305, 'batch_input_lengths': [92, 92], 'batch_output_lengths': tensor([[397],
+        [397]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632577.8389928, 'batch_end_time': 1712632583.668577, 'batch_latency': 5.829584121704102}
+{'max_batch_size': 2, 'iteration': 69, 'max_input_tokens': 492, 'max_output_tokens': 513, 'batch_input_lengths': [491, 491], 'batch_output_lengths': tensor([[1004],
+        [ 491]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632583.670514, 'batch_end_time': 1712632593.7698457, 'batch_latency': 10.099331617355347}
+{'max_batch_size': 2, 'iteration': 70, 'max_input_tokens': 229, 'max_output_tokens': 287, 'batch_input_lengths': [228, 228], 'batch_output_lengths': tensor([[515],
+        [499]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632593.772142, 'batch_end_time': 1712632599.337459, 'batch_latency': 5.565317153930664}
+{'max_batch_size': 2, 'iteration': 71, 'max_input_tokens': 409, 'max_output_tokens': 412, 'batch_input_lengths': [408, 408], 'batch_output_lengths': tensor([[820],
+        [820]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632599.3393786, 'batch_end_time': 1712632607.46047, 'batch_latency': 8.121091365814209}
+{'max_batch_size': 2, 'iteration': 72, 'max_input_tokens': 24, 'max_output_tokens': 328, 'batch_input_lengths': [23, 23], 'batch_output_lengths': tensor([[351],
+        [351]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632607.4614882, 'batch_end_time': 1712632613.6875129, 'batch_latency': 6.226024627685547}
+{'max_batch_size': 2, 'iteration': 73, 'max_input_tokens': 401, 'max_output_tokens': 135, 'batch_input_lengths': [400, 400], 'batch_output_lengths': tensor([[415],
+        [535]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632613.6895711, 'batch_end_time': 1712632616.4217896, 'batch_latency': 2.7322185039520264}
+{'max_batch_size': 2, 'iteration': 74, 'max_input_tokens': 262, 'max_output_tokens': 351, 'batch_input_lengths': [261, 261], 'batch_output_lengths': tensor([[261],
+        [612]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632616.4232094, 'batch_end_time': 1712632623.2153406, 'batch_latency': 6.792131185531616}
+{'max_batch_size': 2, 'iteration': 75, 'max_input_tokens': 142, 'max_output_tokens': 475, 'batch_input_lengths': [141, 141], 'batch_output_lengths': tensor([[616],
+        [616]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632623.216629, 'batch_end_time': 1712632632.3505733, 'batch_latency': 9.133944272994995}
+{'max_batch_size': 2, 'iteration': 76, 'max_input_tokens': 14, 'max_output_tokens': 100, 'batch_input_lengths': [13, 13], 'batch_output_lengths': tensor([[113],
+        [ 36]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632632.351716, 'batch_end_time': 1712632634.2343488, 'batch_latency': 1.8826327323913574}
+{'max_batch_size': 2, 'iteration': 77, 'max_input_tokens': 54, 'max_output_tokens': 368, 'batch_input_lengths': [53, 53], 'batch_output_lengths': tensor([[421],
+        [421]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632634.235312, 'batch_end_time': 1712632641.2455118, 'batch_latency': 7.010199785232544}
+{'max_batch_size': 2, 'iteration': 78, 'max_input_tokens': 25, 'max_output_tokens': 227, 'batch_input_lengths': [24, 24], 'batch_output_lengths': tensor([[251],
+        [251]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632641.246815, 'batch_end_time': 1712632645.549899, 'batch_latency': 4.303084135055542}
+{'max_batch_size': 2, 'iteration': 79, 'max_input_tokens': 112, 'max_output_tokens': 517, 'batch_input_lengths': [111, 111], 'batch_output_lengths': tensor([[628],
+        [628]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632645.5512667, 'batch_end_time': 1712632655.4723237, 'batch_latency': 9.921056985855103}
+{'max_batch_size': 2, 'iteration': 80, 'max_input_tokens': 71, 'max_output_tokens': 493, 'batch_input_lengths': [70, 70], 'batch_output_lengths': tensor([[563],
+        [563]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632655.4737096, 'batch_end_time': 1712632664.9058175, 'batch_latency': 9.432107925415039}
+{'max_batch_size': 2, 'iteration': 81, 'max_input_tokens': 49, 'max_output_tokens': 389, 'batch_input_lengths': [48, 48], 'batch_output_lengths': tensor([[437],
+        [437]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632664.9074807, 'batch_end_time': 1712632672.324624, 'batch_latency': 7.41714334487915}
+{'max_batch_size': 2, 'iteration': 82, 'max_input_tokens': 376, 'max_output_tokens': 652, 'batch_input_lengths': [375, 375], 'batch_output_lengths': tensor([[1027],
+        [1027]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632672.3263748, 'batch_end_time': 1712632685.13075, 'batch_latency': 12.804375171661377}
+{'max_batch_size': 2, 'iteration': 83, 'max_input_tokens': 80, 'max_output_tokens': 303, 'batch_input_lengths': [79, 79], 'batch_output_lengths': tensor([[382],
+        [353]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632685.132353, 'batch_end_time': 1712632690.9209373, 'batch_latency': 5.788584232330322}
+{'max_batch_size': 2, 'iteration': 84, 'max_input_tokens': 295, 'max_output_tokens': 301, 'batch_input_lengths': [294, 294], 'batch_output_lengths': tensor([[595],
+        [595]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632690.9233663, 'batch_end_time': 1712632696.7946503, 'batch_latency': 5.871284008026123}
+{'max_batch_size': 2, 'iteration': 85, 'max_input_tokens': 22, 'max_output_tokens': 854, 'batch_input_lengths': [21, 21], 'batch_output_lengths': tensor([[875],
+        [709]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632696.796002, 'batch_end_time': 1712632713.1956437, 'batch_latency': 16.399641752243042}
+{'max_batch_size': 2, 'iteration': 86, 'max_input_tokens': 738, 'max_output_tokens': 292, 'batch_input_lengths': [737, 737], 'batch_output_lengths': tensor([[1029],
+        [1029]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632713.1985538, 'batch_end_time': 1712632719.1856303, 'batch_latency': 5.9870765209198}
+{'max_batch_size': 2, 'iteration': 87, 'max_input_tokens': 101, 'max_output_tokens': 788, 'batch_input_lengths': [100, 100], 'batch_output_lengths': tensor([[113],
+        [452]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632719.187168, 'batch_end_time': 1712632725.9146328, 'batch_latency': 6.727464914321899}
+{'max_batch_size': 2, 'iteration': 88, 'max_input_tokens': 85, 'max_output_tokens': 109, 'batch_input_lengths': [84, 84], 'batch_output_lengths': tensor([[193],
+        [193]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632725.9157417, 'batch_end_time': 1712632728.0139155, 'batch_latency': 2.0981738567352295}
+{'max_batch_size': 2, 'iteration': 89, 'max_input_tokens': 514, 'max_output_tokens': 799, 'batch_input_lengths': [513, 513], 'batch_output_lengths': tensor([[1312],
+        [1152]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632728.0161572, 'batch_end_time': 1712632743.900912, 'batch_latency': 15.88475489616394}
+{'max_batch_size': 2, 'iteration': 90, 'max_input_tokens': 135, 'max_output_tokens': 661, 'batch_input_lengths': [134, 134], 'batch_output_lengths': tensor([[795],
+        [548]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632743.9026017, 'batch_end_time': 1712632756.637946, 'batch_latency': 12.735344171524048}
+{'max_batch_size': 2, 'iteration': 91, 'max_input_tokens': 278, 'max_output_tokens': 291, 'batch_input_lengths': [277, 277], 'batch_output_lengths': tensor([[290],
+        [568]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632756.6408405, 'batch_end_time': 1712632762.2942395, 'batch_latency': 5.6533989906311035}
+{'max_batch_size': 2, 'iteration': 92, 'max_input_tokens': 55, 'max_output_tokens': 748, 'batch_input_lengths': [54, 54], 'batch_output_lengths': tensor([[802],
+        [224]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632762.2953773, 'batch_end_time': 1712632776.5860276, 'batch_latency': 14.290650367736816}
+{'max_batch_size': 2, 'iteration': 93, 'max_input_tokens': 445, 'max_output_tokens': 943, 'batch_input_lengths': [444, 444], 'batch_output_lengths': tensor([[1187],
+        [1387]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632776.5880687, 'batch_end_time': 1712632795.2626224, 'batch_latency': 18.674553632736206}
+{'max_batch_size': 2, 'iteration': 94, 'max_input_tokens': 18, 'max_output_tokens': 82, 'batch_input_lengths': [17, 17], 'batch_output_lengths': tensor([[99],
+        [66]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632795.263938, 'batch_end_time': 1712632796.8213203, 'batch_latency': 1.557382345199585}
+{'max_batch_size': 2, 'iteration': 95, 'max_input_tokens': 40, 'max_output_tokens': 942, 'batch_input_lengths': [39, 39], 'batch_output_lengths': tensor([[981],
+        [362]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632796.8223977, 'batch_end_time': 1712632814.895314, 'batch_latency': 18.072916269302368}
+{'max_batch_size': 2, 'iteration': 96, 'max_input_tokens': 292, 'max_output_tokens': 325, 'batch_input_lengths': [291, 291], 'batch_output_lengths': tensor([[294],
+        [616]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632814.898317, 'batch_end_time': 1712632821.2064261, 'batch_latency': 6.3081090450286865}
+{'max_batch_size': 2, 'iteration': 97, 'max_input_tokens': 78, 'max_output_tokens': 231, 'batch_input_lengths': [77, 77], 'batch_output_lengths': tensor([[308],
+        [170]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632821.2075515, 'batch_end_time': 1712632825.6155448, 'batch_latency': 4.407993316650391}
+{'max_batch_size': 2, 'iteration': 98, 'max_input_tokens': 944, 'max_output_tokens': 555, 'batch_input_lengths': [943, 943], 'batch_output_lengths': tensor([[1498],
+        [1498]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632825.6193297, 'batch_end_time': 1712632837.014872, 'batch_latency': 11.39554238319397}
+{'max_batch_size': 2, 'iteration': 99, 'max_input_tokens': 121, 'max_output_tokens': 525, 'batch_input_lengths': [120, 120], 'batch_output_lengths': tensor([[645],
+        [645]], device='cuda:0', dtype=torch.int32), 'batch_start_time': 1712632837.016795, 'batch_end_time': 1712632847.0991814, 'batch_latency': 10.082386493682861}

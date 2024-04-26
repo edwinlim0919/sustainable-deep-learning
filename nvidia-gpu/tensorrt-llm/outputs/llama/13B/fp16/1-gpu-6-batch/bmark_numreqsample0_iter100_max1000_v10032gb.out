@@ -1,0 +1,2 @@
+engine path: ./llama/13B/trt_engines/fp16/1-gpu-6-batch/
+tokenizer path: ./meta-llama/Llama-2-13b-chat-hf_tokenizer/
