@@ -114,6 +114,8 @@ def parse_nvsmi_output(nvsmi_output_path):
     return nvsmi_info
 
 
+# Normalized token latency
+# - The mean of every request's end-to-end latency divided by its output length
 def plot_normalized_token_latency(
     bmark_entries,
     plot_filename,
@@ -138,9 +140,23 @@ def plot_normalized_token_latency(
             batch_start_time = batch_dict['batch_start_time']
             batch_end_time = batch_dict['batch_end_time']
 
-        print(f'batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}')
+            # make sure timestamps are strictly increasing
+            assert(batch_start_time > curr_max_time and
+                   batch_end_time > batch_start_time)
+            curr_max_time = batch_end_time
 
-    print(f'bmark_entries[0]: {bmark_entries[0]}')
+            # TODO: w/o continuous batching, latency of every request in batch is the same
+            batch_e2e_latency = batch_end_time - batch_start_time
+
+    example_bmark_info = bmark_entries[0]['bmark_info']
+    for batch_iteration, batch_dict in example_bmark_info.items():
+        example_batch_dict = batch_dict
+    for key, value in batch_dict.items():
+        print(f'{key}: {value}')
+
+        #print(f'batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}')
+
+    #print(f'bmark_entries[0]: {bmark_entries[0]}')
 
 
 def plot_power_over_time(
@@ -433,7 +449,6 @@ if __name__ == '__main__':
         '--bmark_param_groups',
         type=str,
         nargs='+',
-        required=True,
         help='[model size] [batch size] [max sequence length] (specify "X" for any value)'
     )
     parser.add_argument(
