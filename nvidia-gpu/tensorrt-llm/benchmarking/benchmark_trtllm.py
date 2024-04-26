@@ -139,10 +139,18 @@ async def main(args):
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
+    container_output_dir = Path(args.container_output_dir)
+    container_output_dir.mkdir(exist_ok=True, parents=True)
+
     logger.info(f'MAIN creating output directory {args.output_dir} w/ files {args.output_file}')
     with (output_dir / args.output_file).open('w') as f:
         f.write(f'engine path: {args.engine_dir}\n')
         f.write(f'tokenizer path: {args.tokenizer_dir}\n')
+
+    # Check if stop file has been uploaded to the container
+    with (container_output_dir / args.container_stop_file).open('r') as f:
+        container_stop_lines = f.readlines()
+    assert('RUNNING' in container_stop_lines[0])
 
     # TODO change this for the actual batching
     #sampled_prompts_text = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
@@ -237,6 +245,11 @@ async def main(args):
                 file
             )
 
+    # Sleep for 30s for extra nvsmi readings
+    await asyncio.sleep(30)
+    with (container_output_dir / args.container_stop_file).open('w') as f:
+        f.write('COMPLETED\n')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -299,6 +312,18 @@ if __name__ == '__main__':
         type=str,
         required=True,
         help='output file name'
+    )
+    parser.add_argument(
+        '--container_output_dir',
+        type=str,
+        required=True,
+        help='directory in docker container for saving output files'
+    )
+    parser.add_argument(
+        '--container_stop_file',
+        type=str,
+        required=True,
+        help='filepath in docker container for coordinating nvsmi loop stop'
     )
     parser.add_argument(
         '--random_seed',
