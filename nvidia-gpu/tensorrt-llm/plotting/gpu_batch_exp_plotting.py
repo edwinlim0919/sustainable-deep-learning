@@ -10,8 +10,8 @@ batch_input_tokens_pattern = r'batch_input_tokens\[(\d+)\]: \[(.*?)\]'
 batch_output_tokens_pattern = r'batch_output_tokens\[(\d+)\]: \[(.*?)\]'
 
 batch_input_lengths_pattern = r'batch_input_lengths\[(\d+)\]'
-batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]: \[(.*?)\]'
-#batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]'
+#batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]: \[(.*?)\]'
+batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]'
 
 def parse_bmark_output(bmark_output_path):
     print(f'parse_bmark_output: {bmark_output_path}')
@@ -71,10 +71,14 @@ def parse_bmark_output(bmark_output_path):
         if 'batch_output_lengths' in line:
             batch_output_lengths_match = re.search(batch_output_lengths_pattern, line)
             batch_output_lengths_index = int(batch_output_lengths_match.group(1))
-            #batch_output_lengths = int(line.strip().split()[-1]) # TODO: Make experiment write just the int without the list wrapper
-            length_list_str = batch_output_lengths_match.group(2)
-            batch_output_lengths = int(ast.literal_eval(f'[{length_list_str}]')[0])
+            batch_output_lengths = int(line.strip().split()[-1])
             bmark_info[curr_iteration]['batch_output_lengths'][batch_output_lengths_index] = batch_output_lengths
+
+            #batch_output_lengths_match = re.search(batch_output_lengths_pattern, line)
+            #batch_output_lengths_index = int(batch_output_lengths_match.group(1))
+            #length_list_str = batch_output_lengths_match.group(2)
+            #batch_output_lengths = int(ast.literal_eval(f'[{length_list_str}]')[0])
+            #bmark_info[curr_iteration]['batch_output_lengths'][batch_output_lengths_index] = batch_output_lengths
 
     return bmark_info
 
