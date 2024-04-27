@@ -327,3 +327,8 @@ python gpu_batch_exp_plotting.py --bmark_output_paths         "/dev/shm/sustaina
 								 --plot_filename 		      "Llama_normalized_token_latency.png" \
 								 --plot_sequence_lengths      1000 \
 								 --plot_batch_sizes           1 2 4 6 8 10 12 14 16 18 20 22 24 26
+
+
+
+
+python convert_output_format.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out"
