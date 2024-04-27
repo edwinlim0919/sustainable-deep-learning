@@ -14,17 +14,16 @@ def format_bmark_output(bmark_output_path: str):
 
     modified_lines = []
     for line in bmark_output_lines:
-        if 'batch_output_lengths' in line:
-            # change batch_output_lengths formatting
-            batch_output_lengths_match = re.search(batch_output_lengths_pattern_old, line)
+        # change batch_output_lengths formatting
+        batch_output_lengths_match = re.search(batch_output_lengths_pattern_old, line)
+
+        # Some files might already be in the correct format
+        if batch_output_lengths_match:
             batch_output_lengths_index = int(batch_output_lengths_match.group(1))
             length_list_str = batch_output_lengths_match.group(2)
             batch_output_lengths = int(ast.literal_eval(f'[{length_list_str}]')[0])
-
-            #print(f'line: {line.strip()}, batch_output_lengths_index: {batch_output_lengths_index}, batch_output_lengths: {batch_output_lengths}')
             new_line = f'batch_output_lengths[{batch_output_lengths_index}]: {batch_output_lengths}\n'
             modified_lines.append(new_line)
-            #print(f'new_line: {new_line}')
         else:
             # no modification needed
             modified_lines.append(line)
