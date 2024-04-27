@@ -78,37 +78,6 @@ async def get_nvsmi_info(gpu_type: str):
     return nvsmi_dict
 
 
-# TODO: lots of repeat code with V100 nvsmi info parsing, but tbh don't really care lol
-#       wait a minute actually I do care
-#async def get_nvsmi_info_A100_SXM4_40GB():
-#    output = subprocess.check_output(['nvidia-smi'])
-#    decoded_output = output.decode('utf-8')
-#    nvsmi_dict = {}
-#    curr_GPU = -1
-#
-#    for line in decoded_output.split('\n'):
-#        timestamp_match = re.search(timestamp_pattern, line)
-#
-#        if timestamp_match:
-#            nvsmi_dict['timestamp_readable'] = timestamp_match.group()
-#            current_date = datetime.now().strftime("%Y-%m-%d")
-#            datetime_string = f"{current_date} {time_string}"
-#            datetime_object = datetime.strptime(datetime_string, "%Y-%m-%d %H:%M:%S")
-#            timestamp = datetime_object.timestamp()
-#            nvsmi_dict['timestamp_raw'] = timestamp
-#
-#        # correlate readings with GPU index
-#        if 'A100-SXM4-40GB' in line:
-#            curr_GPU += 1
-#            nvsmi_dict[curr_GPU] = {}
-#
-#        print(line)
-#
-#    print()
-#    for key, value in nvsmi_dict.items():
-#        print('{key}: {value}')
-
-
 #async def nvsmi_loop_V100S_PCIE_32GB(
 async def nvsmi_loop(
     nvsmi_filepath: str,

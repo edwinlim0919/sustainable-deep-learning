@@ -10,7 +10,6 @@ batch_input_tokens_pattern = r'batch_input_tokens\[(\d+)\]: \[(.*?)\]'
 batch_output_tokens_pattern = r'batch_output_tokens\[(\d+)\]: \[(.*?)\]'
 
 batch_input_lengths_pattern = r'batch_input_lengths\[(\d+)\]'
-#batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]: \[(.*?)\]'
 batch_output_lengths_pattern = r'batch_output_lengths\[(\d+)\]'
 
 def parse_bmark_output(bmark_output_path):
@@ -74,15 +73,10 @@ def parse_bmark_output(bmark_output_path):
             batch_output_lengths = int(line.strip().split()[-1])
             bmark_info[curr_iteration]['batch_output_lengths'][batch_output_lengths_index] = batch_output_lengths
 
-            #batch_output_lengths_match = re.search(batch_output_lengths_pattern, line)
-            #batch_output_lengths_index = int(batch_output_lengths_match.group(1))
-            #length_list_str = batch_output_lengths_match.group(2)
-            #batch_output_lengths = int(ast.literal_eval(f'[{length_list_str}]')[0])
-            #bmark_info[curr_iteration]['batch_output_lengths'][batch_output_lengths_index] = batch_output_lengths
-
     return bmark_info
 
 
+temp_celsius_pattern = r'(\d+)C'
 power_usage_pattern = r'(\d+)W / (\d+)W'
 memory_usage_pattern = r'(\d+)MiB / (\d+)MiB'
 gpu_utilization_pattern = r'(\d+)%'
@@ -91,29 +85,40 @@ def parse_nvsmi_output(nvsmi_output_path):
     print(f'parse_nvsmi_output: {nvsmi_output_path}')
     with open(nvsmi_output_path, 'r') as f:
         nvsmi_output_lines = f.readlines()
-    hardware_platform_line = nvsmi_output_lines[0] # TODO: currently unused
+    # currently unused, but exists
+    hardware_platform_line = nvsmi_output_lines[0]
 
     nvsmi_info = []
     for line in nvsmi_output_lines[1:]:
         nvsmi_dict = ast.literal_eval(line)
+        num_gpus = nvsmi_dict['num_gpus']
 
-        power_usage_match = re.search(power_usage_pattern, nvsmi_dict['power_usage'])
-        curr_power_usage = int(power_usage_match.group(1))
-        max_power_usage = int(power_usage_match.group(2))
-        nvsmi_dict['curr_power_usage'] = curr_power_usage
-        nvsmi_dict['max_power_usage'] = max_power_usage
+        for i in range(num_gpus):
+            if nvsmi_dict[i]['temp_celsius'] != 'N/A':
+                temp_celsius_match = re.search(temp_celsius_pattern, nvsmi_dict[i]['temp_celsius'])
+                curr_temp_celsius = int(temp_celsius_match.group(1))
+                nvsmi_dict[i]['curr_temp_celsius'] = curr_temp_celsius
 
-        memory_usage_match = re.search(memory_usage_pattern, nvsmi_dict['memory_usage'])
-        curr_memory_usage = int(memory_usage_match.group(1))
-        max_memory_usage = int(memory_usage_match.group(2))
-        nvsmi_dict['curr_memory_usage'] = curr_memory_usage
-        nvsmi_dict['max_memory_usage'] = max_memory_usage
+            if nvsmi_dict[i]['power_usage'] != 'N/A':
+                power_usage_match = re.search(power_usage_pattern, nvsmi_dict[i]['power_usage'])
+                curr_power_usage = int(power_usage_match.group(1))
+                max_power_usage = int(power_usage_match.group(2))
+                nvsmi_dict[i]['curr_power_usage'] = curr_power_usage
+                nvsmi_dict[i]['max_power_usage'] = max_power_usage
 
-        gpu_utilization_match = re.search(gpu_utilization_pattern, nvsmi_dict['gpu_utilization'])
-        gpu_utilization_percent = int(gpu_utilization_match.group(1))
-        nvsmi_dict['gpu_utilization_percent'] = gpu_utilization_percent
+            if nvsmi_dict[i]['memory_usage'] != 'N/A':
+                memory_usage_match = re.search(memory_usage_pattern, nvsmi_dict[i]['memory_usage'])
+                curr_memory_usage = int(memory_usage_match.group(1))
+                max_memory_usage = int(memory_usage_match.group(2))
+                nvsmi_dict[i]['curr_memory_usage'] = curr_memory_usage
+                nvsmi_dict[i]['max_memory_usage'] = max_memory_usage
 
-        nvsmi_info.append(nvsmi_dict) # TODO: make sure that times are strictly increasing in order
+            if nvsmi_dict[i]['gpu_utilization'] != 'N/A':
+                gpu_utilization_match = re.search(gpu_utilization_pattern, nvsmi_dict[i]['gpu_utilization'])
+                gpu_utilization_percent = int(gpu_utilization_match.group(1))
+                nvsmi_dict[i]['gpu_utilization_percent'] = gpu_utilization_percent
+
+            nvsmi_info.append(nvsmi_dict) # TODO: make sure that times are strictly increasing in order
 
     return nvsmi_info
 
