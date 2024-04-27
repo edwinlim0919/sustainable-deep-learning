@@ -6,7 +6,7 @@ model = NanoLLM.from_pretrained(
     quantization='q4f16_ft'
 )
 
-response = model.generate("Once upon a time,", max_new_tokens=128)
+response = model.generate("Write me a poem with Edwin as the theme.", max_new_tokens=128)
 
 for token in response:
     print(token, end='', flush=True)
