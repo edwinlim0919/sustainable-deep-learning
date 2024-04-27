@@ -1,0 +1,23 @@
+# interactive prompt
+parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/' -e 's|[(),]||g'
+}
+
+BYELLOW='\[\033[01;33m\]'
+WHITE='\[\033[0;39m\]'
+GREEN='\[\033[0;92m\]'
+BLUE='\[\033[0;94m\]'
+PURPLE='\[\033[1;35m\]'
+
+PS1="${BYELLOW}[\@]${GREEN}:[\u@\h]${BLUE}:[\W]${PURPLE}"
+cond_git_branch() {
+    GIT_BRANCH=$(parse_git_branch)
+    if [ ! -z "${GIT_BRANCH}" ]; then
+        printf ":[${GIT_BRANCH}]"
+    fi
+}
+PS1+='$(cond_git_branch)'"${WHITE}\n"
+PS1+=$'\u276f '
+
+# continuation interactive prompt (for multi-line commands)
+PS2=$'\u276f '
