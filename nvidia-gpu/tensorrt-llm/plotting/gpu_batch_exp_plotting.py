@@ -21,7 +21,9 @@ def parse_bmark_output(bmark_output_path):
     tokenizer_path_line = bmark_output_lines[1]
     num_iterations_line = bmark_output_lines[2]
     num_iterations = int(num_iterations_line.split()[-1])
-    bmark_info = {}
+    bmark_info = {
+        'num_iterations': num_iterations
+    }
 
     for line in bmark_output_lines[3:]:
         if 'iteration' in line:
@@ -147,6 +149,12 @@ def plot_normalized_token_latency(
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
+        num_iterations = bmark_info['num_iterations']
+
+        # keeping running sum of normalized token latencies to average at the end for this bmark
+        normalized_token_latency_sum = 0
+        included_normalized_token_latency_sum = 0
+
         # each entry is (batch_start_time, batch_end_time)
         curr_max_time = 0.0
         for batch_iteration, batch_dict in bmark_info.items():
@@ -158,11 +166,11 @@ def plot_normalized_token_latency(
                    batch_end_time > batch_start_time)
             curr_max_time = batch_end_time
             # TODO: w/o continuous batching, latency of every request in batch is the same
-            batch_e2e_latency = batch_end_time - batch_start_time
+            e2e_batch_latency = batch_end_time - batch_start_time
 
             batch_size = batch_dict['batch_size']
-            total_batch_tokens = 0
-            included_total_batch_tokens = 0
+            total_batch_output_lengths = 0
+            included_total_batch_output_lengths = 0
             for i in range(batch_size):
                 batch_input_tokens = batch_dict['batch_input_tokens'][i]
                 batch_input_lengths = batch_dict['batch_input_lengths'][i]
@@ -174,15 +182,30 @@ def plot_normalized_token_latency(
                        len(batch_output_tokens) == batch_output_lengths)
 
                 # count non-padding tokens (or any excluded tokens)
-                included_batch_input_tokens, included_batch_output_tokens = 0, 0
+                included_batch_input_lengths, included_batch_output_lengths = 0, 0
                 for token_id in batch_input_tokens:
                     if token_id not in excluded_tokens:
-                        included_batch_input_tokens += 1
+                        included_batch_input_lengths += 1
                 for token_id in batch_output_tokens:
                     if token_id not in excluded_tokens:
-                        included_batch_output_tokens += 1
+                        included_batch_output_lengths += 1
 
-                # add to token sum for this batch
+                # add to token sums for this batch
+                total_batch_output_lengths += batch_output_lengths
+                included_total_batch_output_lengths += included_batch_output_lengths
+
+            # calculate normalized token latencies for this current batch
+            batch_normalized_token_latency = e2e_batch_latency / total_batch_output_lengths
+            included_batch_normalized_token_latency = e2e_batch_latency / included_total_batch_output_lengths
+
+            # add latencies to running sums
+            normalized_token_latency_sum += batch_normalized_token_latency
+            included_normalized_token_latency_sum += included_batch_normalized_token_latency
+
+        # calculate actual normalized token latencies for entire bmark
+        normalized_token_latency = normalized_token_latency_sum / num_iterations
+        included_normalized_token_latency = included_normalized_token_latency_sum / num_iterations
+
 
     #example_bmark_info = bmark_entries[0]['bmark_info']
     #for batch_iteration, batch_dict in example_bmark_info.items():
