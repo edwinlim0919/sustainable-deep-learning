@@ -21,9 +21,10 @@ def parse_bmark_output(bmark_output_path):
     tokenizer_path_line = bmark_output_lines[1]
     num_iterations_line = bmark_output_lines[2]
     num_iterations = int(num_iterations_line.split()[-1])
-    bmark_info = {
-        'num_iterations': num_iterations
-    }
+    #bmark_info = {
+    #    'num_iterations': num_iterations
+    #}
+    bmark_info = {}
 
     for line in bmark_output_lines[3:]:
         if 'iteration' in line:
@@ -159,7 +160,7 @@ def plot_normalized_token_latency(
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
-        num_iterations = bmark_info['num_iterations']
+        #num_iterations = bmark_info['num_iterations']
 
         # keeping running sum of normalized token latencies to average at the end for this bmark
         normalized_token_latency_sum = 0
@@ -167,7 +168,9 @@ def plot_normalized_token_latency(
 
         # each entry is (batch_start_time, batch_end_time)
         curr_max_time = 0.0
+        num_iterations = 0
         for batch_iteration, batch_dict in bmark_info.items():
+            num_iterations += 1
             batch_start_time = batch_dict['batch_start_time']
             batch_end_time = batch_dict['batch_end_time']
 
