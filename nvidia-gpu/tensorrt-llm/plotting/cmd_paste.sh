@@ -453,6 +453,6 @@ python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep
 								 					  "7 X 1000 v10032gb" \
 													  "13 X 1000 a10040gb" \
 													  "13 X 1000 v10032gb" \
-								 --excluded_tokens    32000 \
+								 --excluded_tokens    32000 2 \
 								 --plot_normalized_token_latency \
 								 --plot_filename      "llama2_normalized_token_latency.png"

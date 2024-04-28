@@ -186,26 +186,39 @@ def plot_normalized_token_latency(
                 batch_output_lengths = batch_dict['batch_output_lengths'][i]
 
                 # verify lengths
+
+                print('\nexcluded tokens')
+                for token in excluded_tokens:
+                    print(token)
+                    print(type(token))
+                    assert(type(token) == int)
+
                 print('\nIO LENGTHS')
                 print(len(batch_input_tokens))
                 print(batch_input_lengths)
                 print(len(batch_output_tokens))
                 print(batch_output_lengths)
-                assert(len(batch_input_tokens) == batch_input_lengths and
-                       len(batch_output_tokens) == batch_output_lengths)
 
                 # count non-padding tokens (or any excluded tokens)
                 included_batch_input_lengths, included_batch_output_lengths = 0, 0
                 for token_id in batch_input_tokens:
+                    assert(type(token_id) == int)
                     if token_id not in excluded_tokens:
                         included_batch_input_lengths += 1
                 for token_id in batch_output_tokens:
+                    assert(type(token_id) == int)
                     if token_id not in excluded_tokens:
                         included_batch_output_lengths += 1
 
                 # add to token sums for this batch
                 total_batch_output_lengths += batch_output_lengths
                 included_total_batch_output_lengths += included_batch_output_lengths
+
+                print(included_batch_output_lengths)
+
+                # TODO: this will not hold
+                assert(len(batch_input_tokens) == batch_input_lengths and
+                       len(batch_output_tokens) == batch_output_lengths)
 
             # calculate normalized token latencies for this current batch
             batch_normalized_token_latency = e2e_batch_latency / total_batch_output_lengths
