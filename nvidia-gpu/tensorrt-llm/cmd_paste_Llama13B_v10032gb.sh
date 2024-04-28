@@ -31,6 +31,7 @@ trtllm-build --checkpoint_dir ./llama/13B/trt_ckpt/fp16_wq4/1-gpu/ --gemm_plugin
 trtllm-build --checkpoint_dir ./llama/13B/trt_ckpt/fp16_wq4/1-gpu/ --gemm_plugin float16 --output_dir ./llama/13B/trt_engines/fp16_wq4/1-gpu-8-batch/ --max_batch_size 8
 trtllm-build --checkpoint_dir ./llama/13B/trt_ckpt/fp16_wq4/1-gpu/ --gemm_plugin float16 --output_dir ./llama/13B/trt_engines/fp16_wq4/1-gpu-10-batch/ --max_batch_size 10
 trtllm-build --checkpoint_dir ./llama/13B/trt_ckpt/fp16_wq4/1-gpu/ --gemm_plugin float16 --output_dir ./llama/13B/trt_engines/fp16_wq4/1-gpu-12-batch/ --max_batch_size 12
+trtllm-build --checkpoint_dir ./llama/13B/trt_ckpt/fp16_wq4/1-gpu/ --gemm_plugin float16 --output_dir ./llama/13B/trt_engines/fp16_wq4/1-gpu-14-batch/ --max_batch_size 14
 
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp benchmarking/benchmark_trtllm.py b209d39f9c48:/app/tensorrt_llm/examples/benchmark_trtllm.py
@@ -201,3 +202,11 @@ python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/13B/fp16_wq4/1-g
 python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-13b-chat-hf_tokenizer/ --engine_dir ./llama/13B/trt_engines/fp16_wq4/1-gpu-12-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 12 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16_wq4/1-gpu-12-batch --output_file bmark_numreqsample0_iter100_max1000_v10032gb.out --container_output_dir /app/tensorrt_llm/examples/llama --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --use_prompt_formatting --add_special_tokens
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp b209d39f9c48:/app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16_wq4/1-gpu-12-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out outputs/llama/13B/fp16_wq4/1-gpu-12-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out
+
+# 1 gpu 14 batch 1000 max
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+python benchmarking/nvsmi_monitor.py --output_dir outputs/llama/13B/fp16_wq4/1-gpu-14-batch --output_file nvsmi_numreqsample0_iter100_max1000_v10032gb.out --container_id b209d39f9c48 --container_output_dir /app/tensorrt_llm/examples/llama --container_stop_file container_stop.txt --gpu_type v10032gb
+# /app/tensorrt_llm/examples/llama
+python ../benchmark_trtllm.py --tokenizer_dir ./meta-llama/Llama-2-13b-chat-hf_tokenizer/ --engine_dir ./llama/13B/trt_engines/fp16_wq4/1-gpu-14-batch/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 14 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16_wq4/1-gpu-14-batch --output_file bmark_numreqsample0_iter100_max1000_v10032gb.out --container_output_dir /app/tensorrt_llm/examples/llama --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --use_prompt_formatting --add_special_tokens
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp b209d39f9c48:/app/tensorrt_llm/examples/llama/outputs/llama/13B/fp16_wq4/1-gpu-14-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out outputs/llama/13B/fp16_wq4/1-gpu-14-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out
