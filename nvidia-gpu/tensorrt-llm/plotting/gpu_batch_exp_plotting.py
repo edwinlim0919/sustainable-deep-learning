@@ -128,18 +128,19 @@ def parse_nvsmi_output(nvsmi_output_path):
 def plot_normalized_token_latency(
     bmark_entries,
     plot_filename,
-    plot_sequence_lengths,
-    plot_batch_sizes,
+    #plot_sequence_lengths,
+    #plot_batch_sizes,
+    bmark_param_groups,
     excluded_tokens
 ):
     for bmark_entry in bmark_entries:
         model_size_GB = bmark_entry['model_size_GB']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
-        if max_sequence_length not in plot_sequence_lengths:
-            continue
-        if batch_size not in plot_batch_sizes:
-            continue
+        #if max_sequence_length not in plot_sequence_lengths:
+        #    continue
+        #if batch_size not in plot_batch_sizes:
+        #    continue
         print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
 
         # Extract timestamps from bmark_info
@@ -158,15 +159,31 @@ def plot_normalized_token_latency(
             # TODO: w/o continuous batching, latency of every request in batch is the same
             batch_e2e_latency = batch_end_time - batch_start_time
 
-    example_bmark_info = bmark_entries[0]['bmark_info']
-    for batch_iteration, batch_dict in example_bmark_info.items():
-        example_batch_dict = batch_dict
-    for key, value in batch_dict.items():
-        print(f'{key}: {value}')
+            batch_size = batch_dict['batch_size']
+            for i in range(batch_size):
+                batch_input_tokens = batch_dict['batch_input_tokens'][i]
+                batch_input_lengths = batch_dict['batch_input_lengths'][i]
+                batch_output_tokens = batch_dict['batch_output_tokens'][i]
+                batch_output_lengths = batch_dict['batch_output_lengths'][i]
 
-        #print(f'batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}')
+                # verify lengths
+                assert(len(batch_input_tokens) == batch_input_lengths and
+                       len(batch_output_tokens) == batch_output_lengths)
 
-    #print(f'bmark_entries[0]: {bmark_entries[0]}')
+                # count non-padding tokens (or any excluded tokens)
+                included_batch_input_tokens, included_batch_output_tokens = 0, 0
+                for token_id in batch_input_tokens:
+                    if token_id not in excluded_tokens:
+                        included_batch_input_tokens += 1
+                for token_id in batch_output_tokens:
+                    if token_id not in excluded_tokens:
+                        included_batch_output_tokens += 1
+
+    #example_bmark_info = bmark_entries[0]['bmark_info']
+    #for batch_iteration, batch_dict in example_bmark_info.items():
+    #    example_batch_dict = batch_dict
+    #for key, value in batch_dict.items():
+    #    print(f'{key}: {value}')
 
 
 def plot_power_over_time(
@@ -384,12 +401,14 @@ def main(args):
         model_size_GB = int(curr_bmark_params[0])
         batch_size = int(curr_bmark_params[1])
         max_sequence_length = int(curr_bmark_params[2])
+        gpu_type = curr_bmark_params[3]
         bmark_info = parse_bmark_output(bmark_output_paths[i])
         nvsmi_info = parse_nvsmi_output(nvsmi_output_paths[i])
 
         bmark_entry['model_size_GB'] = model_size_GB
         bmark_entry['batch_size'] = batch_size
         bmark_entry['max_sequence_length'] = max_sequence_length
+        bmark_entry['gpu_type'] = gpu_type
         bmark_entry['bmark_info'] = bmark_info
         bmark_entry['nvsmi_info'] = nvsmi_info
         bmark_entries.append(bmark_entry)
@@ -420,15 +439,15 @@ def main(args):
             args.bmark_param_groups
         )
     if args.plot_normalized_token_latency:
-        if not args.plot_sequence_lengths:
-            raise ValueError('supply plot_sequence_lengths argument for plot_average_batch_latency')
-        if not args.plot_batch_sizes:
-            raise ValueError('supply plot_batch_sizes argument for plot_average_batch_latency')
+        #if not args.plot_sequence_lengths:
+        #    raise ValueError('supply plot_sequence_lengths argument for plot_average_batch_latency')
+        #if not args.plot_batch_sizes:
+        #    raise ValueError('supply plot_batch_sizes argument for plot_average_batch_latency')
         plot_normalized_token_latency(
             bmark_entries,
             args.plot_filename,
-            args.plot_sequence_lengths,
-            args.plot_batch_sizes
+            args.bmark_param_groups,
+            args.excluded_tokens
         )
 
 
@@ -453,12 +472,13 @@ if __name__ == '__main__':
         type=str,
         nargs='+',
         required=True,
-        help='[model size] [batch size] [max sequence length]'
+        help='[model size] [batch size] [max sequence length] [gpu type]'
     )
     parser.add_argument(
         '--bmark_param_groups',
         type=str,
         nargs='+',
+        required=True,
         help='[model size] [batch size] [max sequence length] (specify "X" for any value)'
     )
     parser.add_argument(
@@ -496,6 +516,12 @@ if __name__ == '__main__':
         type=int,
         nargs='+',
         help='specify which batch sizes to generate the plot for'
+    )
+    parser.add_argument(
+        '--excluded_tokens',
+        type=int,
+        nargs='+',
+        help='specify tokens ids such as padding token ids to exclude from useful work done'
     )
     args = parser.parse_args()
     main(args)
