@@ -133,8 +133,6 @@ def parse_nvsmi_output(nvsmi_output_path):
 def plot_normalized_token_latency(
     bmark_entries,
     plot_filename,
-    #plot_sequence_lengths,
-    #plot_batch_sizes,
     bmark_param_groups,
     excluded_tokens
 ):
@@ -145,22 +143,19 @@ def plot_normalized_token_latency(
         model_size_GB = bmark_entry['model_size_GB']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
+        gpu_type = bmark_entry['gpu_type']
 
         plotting_info = {
             'model_size_GB': model_size_GB,
             'batch_size': batch_size,
-            'max_sequence_length': max_sequence_length
+            'max_sequence_length': max_sequence_length,
+            'gpu_type': gpu_type
         }
 
-        #if max_sequence_length not in plot_sequence_lengths:
-        #    continue
-        #if batch_size not in plot_batch_sizes:
-        #    continue
-        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
+        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length} {gpu_type}')
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
-        #num_iterations = bmark_info['num_iterations']
 
         # keeping running sum of normalized token latencies to average at the end for this bmark
         normalized_token_latency_sum = 0
@@ -191,6 +186,11 @@ def plot_normalized_token_latency(
                 batch_output_lengths = batch_dict['batch_output_lengths'][i]
 
                 # verify lengths
+                print('\nIO LENGTHS')
+                print(len(batch_input_tokens))
+                print(batch_input_lengths)
+                print(len(batch_output_tokens))
+                print(batch_output_lengths)
                 assert(len(batch_input_tokens) == batch_input_lengths and
                        len(batch_output_tokens) == batch_output_lengths)
 
