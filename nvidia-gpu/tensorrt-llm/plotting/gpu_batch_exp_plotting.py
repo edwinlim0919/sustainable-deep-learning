@@ -125,6 +125,8 @@ def parse_nvsmi_output(nvsmi_output_path):
 
 # Normalized token latency
 # - The mean of every request's end-to-end latency divided by its output length
+# - Input tokens also included in the output, but they also need preprocessing in the prefill stage, so included in calculation
+#   TODO: Is this okay?
 def plot_normalized_token_latency(
     bmark_entries,
     plot_filename,
@@ -155,11 +157,12 @@ def plot_normalized_token_latency(
             assert(batch_start_time > curr_max_time and
                    batch_end_time > batch_start_time)
             curr_max_time = batch_end_time
-
             # TODO: w/o continuous batching, latency of every request in batch is the same
             batch_e2e_latency = batch_end_time - batch_start_time
 
             batch_size = batch_dict['batch_size']
+            total_batch_tokens = 0
+            included_total_batch_tokens = 0
             for i in range(batch_size):
                 batch_input_tokens = batch_dict['batch_input_tokens'][i]
                 batch_input_lengths = batch_dict['batch_input_lengths'][i]
@@ -178,6 +181,8 @@ def plot_normalized_token_latency(
                 for token_id in batch_output_tokens:
                     if token_id not in excluded_tokens:
                         included_batch_output_tokens += 1
+
+                # add to token sum for this batch
 
     #example_bmark_info = bmark_entries[0]['bmark_info']
     #for batch_iteration, batch_dict in example_bmark_info.items():
