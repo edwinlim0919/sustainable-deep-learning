@@ -154,6 +154,9 @@ def plot_normalized_token_latency(
         # keeping running sum of normalized token latencies to average at the end for this bmark
         normalized_token_latency_sum = 0
         included_normalized_token_latency_sum = 0
+        e2e_batch_latency_sum = 0
+        total_batch_output_lengths_sum = 0
+        total_included_batch_output_lengths_sum = 0
 
         # each entry is (batch_start_time, batch_end_time)
         curr_max_time = 0.0
@@ -169,10 +172,11 @@ def plot_normalized_token_latency(
             curr_max_time = batch_end_time
             # TODO: w/o continuous batching, latency of every request in batch is the same
             e2e_batch_latency = batch_end_time - batch_start_time
+            e2e_batch_latency_sum += e2e_batch_latency
 
             batch_size = batch_dict['batch_size']
             total_batch_output_lengths = 0
-            included_total_batch_output_lengths = 0
+            total_included_batch_output_lengths = 0
             for i in range(batch_size):
                 batch_input_tokens = batch_dict['batch_input_tokens'][i]
                 batch_input_lengths = batch_dict['batch_input_lengths'][i]
@@ -203,14 +207,17 @@ def plot_normalized_token_latency(
 
                 # add to token sums for this batch
                 total_batch_output_lengths += batch_output_lengths
-                included_total_batch_output_lengths += included_batch_output_lengths
-                # verify lengths
+                total_included_batch_output_lengths += included_batch_output_lengths
+
+                # verify lengths for this batch
                 assert(len(batch_input_tokens) == batch_input_lengths and
                        len(batch_output_tokens) == (included_batch_output_lengths + excluded_batch_output_lengths))
 
             # calculate normalized token latencies for this current batch
             batch_normalized_token_latency = e2e_batch_latency / total_batch_output_lengths
-            included_batch_normalized_token_latency = e2e_batch_latency / included_total_batch_output_lengths
+            included_batch_normalized_token_latency = e2e_batch_latency / total_included_batch_output_lengths
+            total_batch_output_lengths_sum += total_batch_output_lengths
+            total_included_batch_output_lengths_sum += total_included_batch_output_lengths
 
             # add latencies to running sums
             normalized_token_latency_sum += batch_normalized_token_latency
@@ -219,6 +226,9 @@ def plot_normalized_token_latency(
         # calculate actual normalized token latencies for entire bmark
         plotting_info['normalized_token_latency'] = normalized_token_latency_sum / num_iterations
         plotting_info['included_normalized_token_latency'] = included_normalized_token_latency_sum / num_iterations
+        plotting_info['avg_e2e_batch_latency'] = e2e_batch_latency_sum / num_iterations
+        plotting_info['avg_output_tokens_per_batch'] = total_batch_output_lengths_sum / num_iterations
+        plotting_info['avg_included_output_tokens_per_batch'] = included_total_batch_output_lengths_sum / num_iterations
         plotting_infos.append(plotting_info)
 
     for plotting_info in plotting_infos:
