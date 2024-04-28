@@ -129,7 +129,8 @@ def plot_normalized_token_latency(
     bmark_entries,
     plot_filename,
     plot_sequence_lengths,
-    plot_batch_sizes
+    plot_batch_sizes,
+    excluded_tokens
 ):
     for bmark_entry in bmark_entries:
         model_size_GB = bmark_entry['model_size_GB']
