@@ -137,10 +137,20 @@ def plot_normalized_token_latency(
     bmark_param_groups,
     excluded_tokens
 ):
+    # holds dictionaries for holding just the plotting info
+    plotting_infos = []
+
     for bmark_entry in bmark_entries:
         model_size_GB = bmark_entry['model_size_GB']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
+
+        plotting_info = {
+            'model_size_GB': model_size_GB,
+            'batch_size': batch_size,
+            'max_sequence_length': max_sequence_length
+        }
+
         #if max_sequence_length not in plot_sequence_lengths:
         #    continue
         #if batch_size not in plot_batch_sizes:
@@ -203,9 +213,13 @@ def plot_normalized_token_latency(
             included_normalized_token_latency_sum += included_batch_normalized_token_latency
 
         # calculate actual normalized token latencies for entire bmark
-        normalized_token_latency = normalized_token_latency_sum / num_iterations
-        included_normalized_token_latency = included_normalized_token_latency_sum / num_iterations
+        plotting_info['normalized_token_latency'] = normalized_token_latency_sum / num_iterations
+        plotting_info['included_normalized_token_latency'] = included_normalized_token_latency_sum / num_iterations
+        plotting_infos.append(plotting_info)
 
+    for plotting_info in plotting_infos:
+        for key, value in plotting_info.items():
+            print(f'{key}: {value}')
 
     #example_bmark_info = bmark_entries[0]['bmark_info']
     #for batch_iteration, batch_dict in example_bmark_info.items():
