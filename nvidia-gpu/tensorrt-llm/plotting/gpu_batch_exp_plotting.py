@@ -21,9 +21,6 @@ def parse_bmark_output(bmark_output_path):
     tokenizer_path_line = bmark_output_lines[1]
     num_iterations_line = bmark_output_lines[2]
     num_iterations = int(num_iterations_line.split()[-1])
-    #bmark_info = {
-    #    'num_iterations': num_iterations
-    #}
     bmark_info = {}
 
     for line in bmark_output_lines[3:]:
@@ -144,19 +141,16 @@ def plot_normalized_token_latency(
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
-
         plotting_info = {
             'model_size_GB': model_size_GB,
             'batch_size': batch_size,
             'max_sequence_length': max_sequence_length,
             'gpu_type': gpu_type
         }
-
         print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length} {gpu_type}')
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
-
         # keeping running sum of normalized token latencies to average at the end for this bmark
         normalized_token_latency_sum = 0
         included_normalized_token_latency_sum = 0
@@ -185,40 +179,34 @@ def plot_normalized_token_latency(
                 batch_output_tokens = batch_dict['batch_output_tokens'][i]
                 batch_output_lengths = batch_dict['batch_output_lengths'][i]
 
-                # verify lengths
-
-                print('\nexcluded tokens')
-                for token in excluded_tokens:
-                    print(token)
-                    print(type(token))
-                    assert(type(token) == int)
-
-                print('\nIO LENGTHS')
-                print(len(batch_input_tokens))
-                print(batch_input_lengths)
-                print(len(batch_output_tokens))
-                print(batch_output_lengths)
-
                 # count non-padding tokens (or any excluded tokens)
                 included_batch_input_lengths, included_batch_output_lengths = 0, 0
-                for token_id in batch_input_tokens:
+                excluded_batch_input_lengths, excluded_batch_output_lengths = 0, 0
+                included_batch_input_tokens, included_batch_output_tokens = [], []
+                excluded_batch_input_tokens, excluded_batch_output_tokens = [], []
+                for token_id in batch_input_tokens: # TODO: these values currently are not used anywhere
                     assert(type(token_id) == int)
-                    if token_id not in excluded_tokens:
+                    if token_id in excluded_tokens:
+                        excluded_batch_input_tokens.append(token_id)
+                        excluded_batch_input_lengths += 1
+                    else:
+                        included_batch_input_tokens.append(token_id)
                         included_batch_input_lengths += 1
                 for token_id in batch_output_tokens:
                     assert(type(token_id) == int)
-                    if token_id not in excluded_tokens:
+                    if token_id in excluded_tokens:
+                        excluded_batch_output_tokens.append(token_id)
+                        excluded_batch_output_lengths += 1
+                    else:
+                        included_batch_output_tokens.append(token_id)
                         included_batch_output_lengths += 1
 
                 # add to token sums for this batch
                 total_batch_output_lengths += batch_output_lengths
                 included_total_batch_output_lengths += included_batch_output_lengths
-
-                print(included_batch_output_lengths)
-
-                # TODO: this will not hold
+                # verify lengths
                 assert(len(batch_input_tokens) == batch_input_lengths and
-                       len(batch_output_tokens) == batch_output_lengths)
+                       len(batch_output_tokens) == (included_batch_output_lengths + excluded_batch_output_lengths))
 
             # calculate normalized token latencies for this current batch
             batch_normalized_token_latency = e2e_batch_latency / total_batch_output_lengths
@@ -236,6 +224,7 @@ def plot_normalized_token_latency(
     for plotting_info in plotting_infos:
         for key, value in plotting_info.items():
             print(f'{key}: {value}')
+        print()
 
     #example_bmark_info = bmark_entries[0]['bmark_info']
     #for batch_iteration, batch_dict in example_bmark_info.items():
