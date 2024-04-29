@@ -256,7 +256,11 @@ def plot_normalized_token_latency(
         batch_sweep_info['avg_tflops_per_batch'] = avg_flops_per_batch / (10 ** 12)
 
         # calculate TFLOPs achievable in avg batch time by a100 (624 FP16 TFLOPS)
-        batch_sweep_info['peak_TFLOPs_in_batch_time'] = batch_sweep_info['avg_e2e_batch_latency'] * 624
+        #batch_sweep_info['peak_TFLOPs_in_batch_time'] = batch_sweep_info['avg_e2e_batch_latency'] * 624
+        #batch_sweep_info['avg_GPU_utilization'] = batch_sweep_info['avg_tflops_per_batch'] / batch_sweep_info['peak_TFLOPs_in_batch_time']
+
+        # TFLOPs achievable v100 (130 TFLOPS)
+        batch_sweep_info['peak_TFLOPs_in_batch_time'] = batch_sweep_info['avg_e2e_batch_latency'] * 130
         batch_sweep_info['avg_GPU_utilization'] = batch_sweep_info['avg_tflops_per_batch'] / batch_sweep_info['peak_TFLOPs_in_batch_time']
 
         # group things in to their bmark param group
@@ -285,7 +289,6 @@ def plot_normalized_token_latency(
 
     plot_batch_sizes = []
     plot_gpu_utilization = []
-
     for bmark_param_group_dict in bmark_param_group_dicts:
         #for key, value in bmark_param_group_dict.items():
         #    print(f'{key}: {value}')
@@ -293,7 +296,19 @@ def plot_normalized_token_latency(
         for info_dict in batch_sweep_info:
             print(f'{info_dict["batch_size"]}: {info_dict["avg_GPU_utilization"]}')
             plot_batch_sizes.append(info_dict['batch_size'])
-            plot_gpu_utilization.append(info_dict['avg_GPU_utilization'])
+            plot_gpu_utilization.append(info_dict['avg_GPU_utilization'] * 100)
+
+    plt.figure(figsize=(10, 5))
+    #plt.bar(plot_batch_sizes, plot_gpu_utilization, color='blue')
+    plt.plot(plot_batch_sizes, plot_gpu_utilization, marker='o', linestyle='-', color='blue')
+
+    plt.xlabel('Batch Size')
+    plt.ylabel('GPU Utilization (%)')
+    #plt.title('A100 40GB SXM Utilization w/ Llama 7B')
+    plt.title('V100 32GB PCIE Utilization w/ Llama 7B')
+    plt.xticks(plot_batch_sizes)
+    plt.grid(True)
+    plt.savefig('v10032gb_llama7b_utilization.png')
 
     # sanity prints
     #for batch_sweep_info in batch_sweep_infos:
