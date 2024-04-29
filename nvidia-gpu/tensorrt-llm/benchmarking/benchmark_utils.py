@@ -14,25 +14,27 @@ def load_tokenizer(
     tokenizer_dir: str,
     add_special_tokens: bool
 ):
-    if 'llama' in tokenizer_dir:
-        tokenizer = AutoTokenizer.from_pretrained(
-            tokenizer_dir,
-            legacy=False,
-            padding_side='left',
-            truncation_side='left',
-            trust_remote_code=True,
-            use_fast=True
-        )
+    #if 'llama' in tokenizer_dir:
+    tokenizer = AutoTokenizer.from_pretrained(
+        tokenizer_dir,
+        legacy=False,
+        padding_side='left',
+        truncation_side='left',
+        trust_remote_code=True,
+        use_fast=True
+    )
 
-        if add_special_tokens:
-            tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+    if add_special_tokens:
+        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
-        if tokenizer.pad_token_id is None:
-            tokenizer.pad_token_id = tokenizer.eos_token_id
-        pad_id = tokenizer.pad_token_id
-        end_id = tokenizer.eos_token_id
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+    pad_id = tokenizer.pad_token_id
+    end_id = tokenizer.eos_token_id
 
-        return tokenizer, pad_id, end_id
+    return tokenizer, pad_id, end_id
+
+    #elif 'gpt2' in tokenizer_dir:
 
 
 def prepare_inputs(batch_input_texts: list[str],
