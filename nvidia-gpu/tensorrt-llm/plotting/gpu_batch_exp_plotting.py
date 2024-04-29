@@ -2,8 +2,9 @@ import argparse
 import re
 import ast
 import matplotlib.pyplot as plt
-
 from pathlib import Path
+
+import transformer_model_scaling
 
 
 batch_input_tokens_pattern = r'batch_input_tokens\[(\d+)\]: \[(.*?)\]'
@@ -133,15 +134,27 @@ def plot_normalized_token_latency(
     bmark_param_groups,
     excluded_tokens
 ):
+    plt.figure(figsize=(10, 5))
+    bmark_param_group_dicts = []
+    for bmark_param_group in bmark_param_groups:
+        group_split = bmark_param_group.split()
+        bmark_param_group_dict = {}
+        bmark_param_group_dict['model_size_GB'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
+        bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
+        bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
+        bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
+        bmark_param_group_dict['batch_sweep_info'] = []
+        bmark_param_group_dicts.append(bmark_param_group_dict)
+
     # holds dictionaries for holding just the plotting info
-    plotting_infos = []
+    #batch_sweep_infos = []
 
     for bmark_entry in bmark_entries:
         model_size_GB = bmark_entry['model_size_GB']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
-        plotting_info = {
+        batch_sweep_info = {
             'model_size_GB': model_size_GB,
             'batch_size': batch_size,
             'max_sequence_length': max_sequence_length,
@@ -224,17 +237,69 @@ def plot_normalized_token_latency(
             included_normalized_token_latency_sum += included_batch_normalized_token_latency
 
         # calculate actual normalized token latencies for entire bmark
-        plotting_info['normalized_token_latency'] = normalized_token_latency_sum / num_iterations
-        plotting_info['included_normalized_token_latency'] = included_normalized_token_latency_sum / num_iterations
-        plotting_info['avg_e2e_batch_latency'] = e2e_batch_latency_sum / num_iterations
-        plotting_info['avg_output_tokens_per_batch'] = total_batch_output_lengths_sum / num_iterations
-        plotting_info['avg_included_output_tokens_per_batch'] = included_total_batch_output_lengths_sum / num_iterations
-        plotting_infos.append(plotting_info)
+        batch_sweep_info['normalized_token_latency'] = normalized_token_latency_sum / num_iterations
+        batch_sweep_info['included_normalized_token_latency'] = included_normalized_token_latency_sum / num_iterations
+        batch_sweep_info['avg_e2e_batch_latency'] = e2e_batch_latency_sum / num_iterations
+        batch_sweep_info['avg_output_tokens_per_batch'] = total_batch_output_lengths_sum / num_iterations
+        batch_sweep_info['avg_included_output_tokens_per_batch'] = total_included_batch_output_lengths_sum / num_iterations
+        #batch_sweep_infos.append(batch_sweep_info)
 
-    for plotting_info in plotting_infos:
-        for key, value in plotting_info.items():
-            print(f'{key}: {value}')
-        print()
+        # calculate avg FLOPs per batch 7B
+        avg_flops_per_batch = transformer_model_scaling.calculate_transformer_flops(
+            4096,
+            32,
+            4096,
+            4096,
+            int(batch_sweep_info['avg_output_tokens_per_batch'])
+        )
+        batch_sweep_info['avg_flops_per_batch'] = avg_flops_per_batch
+        batch_sweep_info['avg_tflops_per_batch'] = avg_flops_per_batch / (10 ** 12)
+
+        # calculate TFLOPs achievable in avg batch time by a100 (624 FP16 TFLOPS)
+        batch_sweep_info['peak_TFLOPs_in_batch_time'] = batch_sweep_info['avg_e2e_batch_latency'] * 624
+        batch_sweep_info['avg_GPU_utilization'] = batch_sweep_info['avg_tflops_per_batch'] / batch_sweep_info['peak_TFLOPs_in_batch_time']
+
+        # group things in to their bmark param group
+        for bmark_param_group_dict in bmark_param_group_dicts:
+            bmark_param_match_found = False
+            if (bmark_param_group_dict['model_size_GB'] != 'X' and
+                bmark_param_group_dict['model_size_GB'] != model_size_GB):
+                continue
+            if (bmark_param_group_dict['batch_size'] != 'X' and
+                bmark_param_group_dict['batch_size'] != batch_size):
+                continue
+            if (bmark_param_group_dict['max_sequence_length'] != 'X' and
+                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
+                continue
+            if (bmark_param_group_dict['gpu_type'] != 'X' and
+                bmark_param_group_dict['gpu_type'] != gpu_type):
+                continue
+
+            # Only reach this point if a match is found
+            bmark_param_match_found = True
+            bmark_param_group_dict['batch_sweep_info'].append(batch_sweep_info)
+            break
+
+        # For each bmark_entry, should at least match to one of the plotting groups
+        assert(bmark_param_match_found)
+
+    plot_batch_sizes = []
+    plot_gpu_utilization = []
+
+    for bmark_param_group_dict in bmark_param_group_dicts:
+        #for key, value in bmark_param_group_dict.items():
+        #    print(f'{key}: {value}')
+        batch_sweep_info = bmark_param_group_dict['batch_sweep_info']
+        for info_dict in batch_sweep_info:
+            print(f'{info_dict["batch_size"]}: {info_dict["avg_GPU_utilization"]}')
+            plot_batch_sizes.append(info_dict['batch_size'])
+            plot_gpu_utilization.append(info_dict['avg_GPU_utilization'])
+
+    # sanity prints
+    #for batch_sweep_info in batch_sweep_infos:
+    #    for key, value in batch_sweep_info.items():
+    #        print(f'{key}: {value}')
+    #    print()
 
     #example_bmark_info = bmark_entries[0]['bmark_info']
     #for batch_iteration, batch_dict in example_bmark_info.items():
