@@ -67,3 +67,11 @@ python benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/137M/fp16/1-gpu-64
 python ../benchmark_trtllm.py --tokenizer_dir gpt2 --engine_dir gpt2/trt_engines/fp16/1-gpu-64-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 64 --max_input_tokens 500 --max_output_tokens 500 --output_dir /app/tensorrt_llm/examples/gpt/outputs/gpt/137M/fp16/1-gpu-64-batch --output_file bmark_numreqsample0_iter100_max500_v10032gb.out --container_output_dir /app/tensorrt_llm/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp b209d39f9c48:/app/tensorrt_llm/examples/gpt/outputs/gpt/137M/fp16/1-gpu-64-batch/bmark_numreqsample0_iter100_max500_v10032gb.out outputs/gpt/137M/fp16/1-gpu-64-batch/bmark_numreqsample0_iter100_max500_v10032gb.out
+
+# 1 gpu 96 batch 500 max
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+python benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/137M/fp16/1-gpu-96-batch --output_file nvsmi_numreqsample0_iter100_max500_v10032gb.out --container_id b209d39f9c48 --container_output_dir /app/tensorrt_llm/examples/gpt --container_stop_file container_stop.txt --gpu_type v10032gb
+# no prompt formatting and extra padding token
+python ../benchmark_trtllm.py --tokenizer_dir gpt2 --engine_dir gpt2/trt_engines/fp16/1-gpu-96-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 96 --max_input_tokens 500 --max_output_tokens 500 --output_dir /app/tensorrt_llm/examples/gpt/outputs/gpt/137M/fp16/1-gpu-96-batch --output_file bmark_numreqsample0_iter100_max500_v10032gb.out --container_output_dir /app/tensorrt_llm/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp b209d39f9c48:/app/tensorrt_llm/examples/gpt/outputs/gpt/137M/fp16/1-gpu-96-batch/bmark_numreqsample0_iter100_max500_v10032gb.out outputs/gpt/137M/fp16/1-gpu-96-batch/bmark_numreqsample0_iter100_max500_v10032gb.out
