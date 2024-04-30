@@ -376,6 +376,12 @@ if __name__ == '__main__':
         action='store_true',
         help='Whether or not to use prompt formatting for better generation.'
     )
+    parser.add_argument(
+        '--no_token_output',
+        default=False,
+        action='store_true',
+        help='Specify this argument to save output space by not saving token output.'
+    )
     parser.add_argument('--log_level', type=str, default='info')
     args = parser.parse_args()
     asyncio.run(main(args))
