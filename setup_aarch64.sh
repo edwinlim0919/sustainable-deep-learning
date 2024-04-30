@@ -26,3 +26,7 @@ sudo apt-get install docker.io
 sudo apt-get remove docker-buildx-plugin
 sudo apt install docker-buildx
 sudo docker buildx install
+
+sudo apt-get update
+sudo apt-get -y install git git-lfs
+git lfs install

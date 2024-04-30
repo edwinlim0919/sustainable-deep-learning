@@ -15,9 +15,9 @@ sudo systemctl restart docker
 #sudo apt-get update
 #sudo apt install openmpi-bin openmpi-common libopenmpi-dev
 
-sudo apt-get update
-sudo apt-get -y install git git-lfs
-git lfs install
+#sudo apt-get update
+#sudo apt-get -y install git git-lfs
+#git lfs install
 
 conda create --name tensorrt-llm python=3.10
 conda activate tensorrt-llm
