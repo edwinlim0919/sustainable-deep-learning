@@ -80,7 +80,8 @@ def parse_batch_dict(
 
 def write_batch_dict(
     batch_dict: dict,
-    file: IO
+    file: IO,
+    no_token_logging: bool
 ):
     batch_size = batch_dict['batch_size']
     assert((len(batch_dict['batch_input_prompts']) == len(batch_dict['batch_input_tokens'])) and
@@ -99,14 +100,16 @@ def write_batch_dict(
     file.write(f'max_output_tokens: {batch_dict["max_output_tokens"]}\n')
     file.write(f'batch_start_time: {batch_dict["batch_start_time"]}\n')
     file.write(f'batch_end_time: {batch_dict["batch_end_time"]}\n')
-    for i in range(batch_size):
-        file.write(f'batch_input_tokens[{i}]: {batch_dict["batch_input_tokens"][i]}\n')
+    if not no_token_logging:
+        for i in range(batch_size):
+            file.write(f'batch_input_tokens[{i}]: {batch_dict["batch_input_tokens"][i]}\n')
     for i in range(batch_size):
         file.write(f'batch_input_lengths[{i}]: {batch_dict["batch_input_lengths"][i]}\n')
+    if not no_token_logging:
+        for i in range(batch_size):
+            file.write(f'batch_output_tokens[{i}]: {batch_dict["batch_output_tokens"][i]}\n')
     for i in range(batch_size):
-        file.write(f'batch_output_tokens[{i}]: {batch_dict["batch_output_tokens"][i]}\n')
-    for i in range(batch_size):
-        file.write(f'batch_output_lengths[{i}]: {batch_dict["batch_output_lengths"][i][0]}\n') # TODO: check if this works [0]
+        file.write(f'batch_output_lengths[{i}]: {batch_dict["batch_output_lengths"][i][0]}\n')
 
 
 # General Llama2 prompt formatting given a list of message dicts

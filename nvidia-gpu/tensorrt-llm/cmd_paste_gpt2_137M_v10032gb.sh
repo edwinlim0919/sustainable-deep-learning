@@ -21,6 +21,7 @@ trtllm-build --checkpoint_dir gpt2/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --
 trtllm-build --checkpoint_dir gpt2/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2/trt_engines/fp16/1-gpu-96-batch/ --max_batch_size 96
 trtllm-build --checkpoint_dir gpt2/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2/trt_engines/fp16/1-gpu-128-batch/ --max_batch_size 128
 trtllm-build --checkpoint_dir gpt2/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2/trt_engines/fp16/1-gpu-256-batch/ --max_batch_size 256
+trtllm-build --checkpoint_dir gpt2/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2/trt_engines/fp16/1-gpu-512-batch/ --max_batch_size 512
 
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp benchmarking/benchmark_trtllm.py b209d39f9c48:/app/tensorrt_llm/examples/benchmark_trtllm.py
@@ -93,3 +94,11 @@ python benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/137M/fp16/1-gpu-25
 python ../benchmark_trtllm.py --tokenizer_dir gpt2 --engine_dir gpt2/trt_engines/fp16/1-gpu-256-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 256 --max_input_tokens 500 --max_output_tokens 500 --output_dir /app/tensorrt_llm/examples/gpt/outputs/gpt/137M/fp16/1-gpu-256-batch --output_file bmark_numreqsample0_iter100_max500_v10032gb.out --container_output_dir /app/tensorrt_llm/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp b209d39f9c48:/app/tensorrt_llm/examples/gpt/outputs/gpt/137M/fp16/1-gpu-256-batch/bmark_numreqsample0_iter100_max500_v10032gb.out outputs/gpt/137M/fp16/1-gpu-256-batch/bmark_numreqsample0_iter100_max500_v10032gb.out
+
+# 1 gpu 512 batch 500 max
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+python benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/137M/fp16/1-gpu-512-batch --output_file nvsmi_numreqsample0_iter100_max500_v10032gb.out --container_id b209d39f9c48 --container_output_dir /app/tensorrt_llm/examples/gpt --container_stop_file container_stop.txt --gpu_type v10032gb
+# no prompt formatting and extra padding token
+python ../benchmark_trtllm.py --tokenizer_dir gpt2 --engine_dir gpt2/trt_engines/fp16/1-gpu-512-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 512 --max_input_tokens 500 --max_output_tokens 500 --output_dir /app/tensorrt_llm/examples/gpt/outputs/gpt/137M/fp16/1-gpu-512-batch --output_file bmark_numreqsample0_iter100_max500_v10032gb.out --container_output_dir /app/tensorrt_llm/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp b209d39f9c48:/app/tensorrt_llm/examples/gpt/outputs/gpt/137M/fp16/1-gpu-512-batch/bmark_numreqsample0_iter100_max500_v10032gb.out outputs/gpt/137M/fp16/1-gpu-512-batch/bmark_numreqsample0_iter100_max500_v10032gb.out

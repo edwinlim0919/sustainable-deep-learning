@@ -242,7 +242,8 @@ async def main(args):
             )
             benchmark_utils.write_batch_dict(
                 batch_dict,
-                file
+                file,
+                args.no_token_logging
             )
 
     # Sleep for 30s for extra nvsmi readings
@@ -377,10 +378,10 @@ if __name__ == '__main__':
         help='Whether or not to use prompt formatting for better generation.'
     )
     parser.add_argument(
-        '--no_token_output',
+        '--no_token_logging',
         default=False,
         action='store_true',
-        help='Specify this argument to save output space by not saving token output.'
+        help='Specify this argument to avoid absurdly long output logs by not saving the token output.'
     )
     parser.add_argument('--log_level', type=str, default='info')
     args = parser.parse_args()
