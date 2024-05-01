@@ -1,6 +1,6 @@
 # TensorRT-LLM standalone
 
-sed -i "s/b209d39f9c48/b209d39f9c48/g" cmd_paste_Llama13B_v10032gb.sh # replace docker container id in cmd_paste.sh with the current one
+sed -i "s/b209d39f9c48/b209d39f9c48/g" cmd_paste_gpt2_2B_v10032gb.sh # replace docker container id in cmd_paste.sh with the current one
 
 # Flushing GPU memory
 sudo fuser -v /dev/nvidia*
