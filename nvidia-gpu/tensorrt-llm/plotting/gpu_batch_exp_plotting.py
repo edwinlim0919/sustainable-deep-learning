@@ -326,8 +326,9 @@ def plot_normalized_token_latency(
 def plot_power_over_time(
     bmark_entries,
     plot_filename,
-    plot_sequence_lengths,
-    plot_batch_sizes
+    gpu_idx
+    #plot_sequence_lengths,
+    #plot_batch_sizes
 ):
     plt.figure(figsize=(10, 5))
     min_bmark_nvsmi_time_start_diff = float('inf')
@@ -341,11 +342,8 @@ def plot_power_over_time(
         model_size_GB = bmark_entry['model_size_GB']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
-        if max_sequence_length not in plot_sequence_lengths:
-            continue
-        if batch_size not in plot_batch_sizes:
-            continue
-        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length}')
+        gpu_type = bmark_entry['gpu_type']
+        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length} {gpu_type}')
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
@@ -370,12 +368,17 @@ def plot_power_over_time(
         max_powers = []
         for nvsmi_dict in nvsmi_info:
             timestamp_raw = nvsmi_dict['timestamp_raw']
-            curr_power_usage = nvsmi_dict['curr_power_usage']
-            max_power_usage = nvsmi_dict['max_power_usage']
+            #for key, val in nvsmi_dict.items():
+            #    print(f'{key}: {val}')
+            #    print(f'{key}: {type(key)}')
+            #print(f'{gpu_idx}: {type(gpu_idx)}')
+            gpu_idx_dict = nvsmi_dict[gpu_idx]
+            curr_power_usage = gpu_idx_dict['curr_power_usage']
+            max_power_usage = gpu_idx_dict['max_power_usage']
 
             timestamps.append(nvsmi_dict['timestamp_raw'])
-            curr_powers.append(nvsmi_dict['curr_power_usage'])
-            max_powers.append(nvsmi_dict['max_power_usage'])
+            curr_powers.append(gpu_idx_dict['curr_power_usage'])
+            max_powers.append(gpu_idx_dict['max_power_usage'])
 
         # Make the timestamps start at the same place
         bmark_nvsmi_time_start_diff = bmark_tuples[0][0] - timestamps[0]
@@ -388,44 +391,77 @@ def plot_power_over_time(
         bmark_tuples_list.append(bmark_tuples)
         bmark_entry_list.append(bmark_entry)
 
+    #for tl in timestamps_list:
+    #    print(f'tl: {tl}')
+
     # making all the plots start execution at the same time point
     assert(len(timestamps_list) == len(curr_powers_list) and
            len(curr_powers_list) == len(max_powers_list) and
            len(max_powers_list) == len(bmark_tuples_list))
-    for i in range(len(timestamps_list)):
-        bmark_entry = bmark_entry_list[i]
+
+    # TODO: oh my god...
+    for j in range(len(curr_powers_list)):
+        lst = curr_powers_list[j]
+    #for lst in curr_powers_list:
+        print(f'lst: {lst}')
+
+        whatthefuck = []
+        for i in range(len(lst)):
+            whatthefuck.append(i)
+
+        assert(len(whatthefuck) == len(lst))
+            #print(i)
+        #curr_fake_timestamps_list = []
+        #for i in range(len(lst)):
+        #    curr_fake_timestamps_list.append(i)
+
+    #for i in range(len(timestamps_list)):
+        print(j)
+        bmark_entry = bmark_entry_list[j]
+        model_size_GB = bmark_entry['model_size_GB']
         batch_size = bmark_entry['batch_size']
+        max_sequence_length = bmark_entry['max_sequence_length']
+        gpu_type = bmark_entry['gpu_type']
 
-        timestamps = timestamps_list[i]
-        curr_powers = curr_powers_list[i]
-        max_powers = max_powers_list[i]
-        bmark_tuples = bmark_tuples_list[i]
+    #    timestamps = timestamps_list[i]
+    #    curr_powers = curr_powers_list[i]
+    #    max_powers = max_powers_list[i]
+    #    bmark_tuples = bmark_tuples_list[i]
 
-        bmark_nvsmi_time_start_diff = bmark_tuples[0][0] - timestamps[0]
-        diff_from_min = bmark_nvsmi_time_start_diff - min_bmark_nvsmi_time_start_diff
+    #    bmark_nvsmi_time_start_diff = bmark_tuples[0][0] - timestamps[0]
+    #    diff_from_min = bmark_nvsmi_time_start_diff - min_bmark_nvsmi_time_start_diff
 
-        timestamps_norm = [timestamp - timestamps[0] for timestamp in timestamps]
-        timestamps_adjusted = [timestamp - diff_from_min for timestamp in timestamps_norm]
+    #    timestamps_norm = [timestamp - timestamps[0] for timestamp in timestamps]
+    #    timestamps_adjusted = [timestamp - diff_from_min for timestamp in timestamps_norm]
 
-        assert(len(timestamps_adjusted) == len(curr_powers) and
-               len(curr_powers) == len(max_powers))
-        plot_timestamps = []
-        plot_curr_powers = []
+    #    assert(len(timestamps_adjusted) == len(curr_powers) and
+    #           len(curr_powers) == len(max_powers))
+    #    plot_timestamps = []
+    #    plot_curr_powers = []
 
-        for i in range(len(timestamps_adjusted)):
-            if timestamps_adjusted[i] >= 0:
-                plot_timestamps.append(timestamps_adjusted[i])
-                plot_curr_powers.append(curr_powers[i])
-        plt.plot(plot_timestamps, plot_curr_powers, label=f'Measured GPU Power Usage (batch size {batch_size})')
+    #    for i in range(len(timestamps_adjusted)):
+    #        if timestamps_adjusted[i] >= 0:
+    #            plot_timestamps.append(timestamps_adjusted[i])
+    #            plot_curr_powers.append(curr_powers[i])
 
-    plt.axhline(y=max_powers[0], color='r', linestyle='--', label='Peak GPU Power Usage')
-    plt.xlabel('Time (seconds)')
-    plt.ylabel('Power Usage (W)')
-    plt.title(f'GPU Power Usage Llama{model_size_GB}B Max Seq. Len(s) {plot_sequence_lengths}')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(plot_filename)
+    #    # TODO: oh my god...
+    #    #makeshift_plot_timestamps = 
+
+    #    if j == 3 or j == 4:
+
+    #        plt.plot(whatthefuck, lst, label=f'maxseq: {max_sequence_length}, gpu: {gpu_type}, wq4')
+    #    else:
+    #        plt.plot(whatthefuck, lst, label=f'maxseq: {max_sequence_length}, gpu: {gpu_type}')
+
+    #plt.axhline(y=250, color='r', linestyle='--', label='Peak v100 Power Usage')
+    #plt.axhline(y=400, color='r', linestyle='--', label='Peak a100 Power Usage')
+    #plt.xlabel('Time (seconds)')
+    #plt.ylabel('Power Usage (W)')
+    #plt.title(f'GPU Power Usage Llama{model_size_GB}B')
+    #plt.legend()
+    #plt.grid(True)
+    #plt.tight_layout()
+    #plt.savefig(plot_filename)
 
 
 def plot_average_batch_latency(
@@ -551,15 +587,16 @@ def main(args):
         bmark_entries.append(bmark_entry)
 
     if args.plot_power_over_time: # TODO: Only one plot can be generated at a time
-        if not args.plot_sequence_lengths:
-            raise ValueError('supply plot_sequence_lengths argument for plot_power_over_time')
-        if not args.plot_batch_sizes:
-            raise ValueError('supply plot_batch_sizes argument for plot_power_over_time')
+        #if not args.plot_sequence_lengths:
+        #    raise ValueError('supply plot_sequence_lengths argument for plot_power_over_time')
+        #if not args.plot_batch_sizes:
+        #    raise ValueError('supply plot_batch_sizes argument for plot_power_over_time')
         plot_power_over_time(
             bmark_entries,
             args.plot_filename,
-            args.plot_sequence_lengths,
-            args.plot_batch_sizes
+            args.gpu_idx
+            #args.plot_sequence_lengths,
+            #args.plot_batch_sizes
         )
     if args.plot_average_batch_latency:
         if not args.plot_sequence_lengths:
@@ -615,7 +652,6 @@ if __name__ == '__main__':
         '--bmark_param_groups',
         type=str,
         nargs='+',
-        required=True,
         help='[model size] [batch size] [max sequence length] (specify "X" for any value)'
     )
     parser.add_argument(
@@ -659,6 +695,11 @@ if __name__ == '__main__':
         type=int,
         nargs='+',
         help='specify tokens ids such as padding token ids to exclude from useful work done'
+    )
+    parser.add_argument(
+        '--gpu_idx',
+        type=int,
+        help='specify which idx of GPU for nvsmi info'
     )
     args = parser.parse_args()
     main(args)

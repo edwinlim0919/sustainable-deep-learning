@@ -506,3 +506,26 @@ python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep
 								 --excluded_tokens    32000 2 \
 								 --plot_normalized_token_latency \
 								 --plot_filename      "llama2_normalized_token_latency.png"
+
+python convert_output_format.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_v10032gb.out"
+python convert_output_format.py --nvsmi_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
+                                --num_gpus 2
+
+python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_v10032gb.out" \
+													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								 --nvsmi_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
+													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								 --bmark_params 	  "7 1 1000 v10032gb" \
+								                      "7 1 1000 a10040gb" \
+													  "7 1 500 v10032gb" \
+													  "7 1 1000 a10040gb" \
+													  "7 1 1000 v10032gb" \
+							     --plot_power_over_time \
+								 --gpu_idx 0 \
+								 --plot_filename      "Llama_7B_Power_Usage.png"
