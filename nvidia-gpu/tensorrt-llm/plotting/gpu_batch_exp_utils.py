@@ -120,3 +120,7 @@ def parse_nvsmi_output(nvsmi_output_path):
         nvsmi_info.append(nvsmi_dict) # TODO: make sure that times are strictly increasing in order
 
     return nvsmi_info
+
+
+def write_nvsmi_output(nvsmi_output_path):
+

@@ -3,6 +3,7 @@ import re
 import ast
 import os
 import shutil
+import datetime
 
 import gpu_batch_exp_utils
 
@@ -43,33 +44,21 @@ def correlate_bmark_nvsmi_timestamps(
     #for nvsmi_dict in nvsmi_output:
     for i in range(len(nvsmi_output)):
         nvsmi_dict = nvsmi_output[i]
-        gpu_dict = nvsmi_dict[gpu_idx]
-        gpu_utilization = gpu_dict['gpu_utilization']
 
-        if i == bmark_start_index or i == bmark_end_index:
-            print(nvsmi_dict)
+        # assume non-bmark nvsmi timing interval is 1 second
+        if i < bmark_start_index:
+            calculated_timestamp = bmark_start_time - (bmark_start_index - i)
+            print(f'BEFORE: {calculated_timestamp}')
+        elif i > bmark_end_index:
+            calculated_timestamp = bmark_end_time + (i - bmark_end_index)
+            print(f'AFTER: {calculated_timestamp}')
+        else:
+            calculated_timestamp = bmark_start_time + ((i - bmark_start_index) * nvsmi_timing_interval)
+            print(f'DURING: {calculated_timestamp}')
 
-        #print(f'gpu_utilization: {gpu_utilization}')
-
-        ## find index where gpu utilization becomes not 0
-        #if gpu_utilization != '0%' and bmark_start_index == -1:
-        #    bmark_start_index = i
-
-        ## once gpu utilization has started, wait until it becomes 0 again
-        #if bmark_start_index != -1:
-        #    if gpu_utilization == '0%' and bmark_end_index == -1:
-        #        bmark_end_index = i - 1
-
-        ## make sure the gpu utilization does not drop to 0 and back while bmark is still running
-        #if bmark_start_index != -1 and bmark_end_index != -1:
-        #    assert(gpu_utilization == '0%')
-
-    #nvsmi_timing_interval = bmark_e2e_time / (bmark_end_index - bmark_start_index)
-    #print(f'bmark_start_index: {bmark_start_index}')
-    #print(f'bmark_end_index: {bmark_end_index}')
-    #print(f'nvsmi_timing_interval: {nvsmi_timing_interval}')
-    #print(f'len(nvsmi_output): {len(nvsmi_output)}')
-
+        timestamp_readable = datetime.datetime.fromtimestamp(calculated_timestamp).strftime("%H:%M:%S")
+        nvsmi_dict['timestamp_raw'] = calculated_timestamp
+        nvsmi_dict['timestamp_readable'] = timestamp_readable
 
 
 def main(args):
