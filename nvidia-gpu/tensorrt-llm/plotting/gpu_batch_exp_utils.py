@@ -117,6 +117,6 @@ def parse_nvsmi_output(nvsmi_output_path):
                 gpu_utilization_percent = int(gpu_utilization_match.group(1))
                 nvsmi_dict[i]['gpu_utilization_percent'] = gpu_utilization_percent
 
-            nvsmi_info.append(nvsmi_dict) # TODO: make sure that times are strictly increasing in order
+        nvsmi_info.append(nvsmi_dict) # TODO: make sure that times are strictly increasing in order
 
     return nvsmi_info

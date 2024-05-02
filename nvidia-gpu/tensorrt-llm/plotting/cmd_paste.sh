@@ -530,5 +530,15 @@ python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep
 								 --gpu_idx 0 \
 								 --plot_filename      "Llama_7B_Power_Usage.png"
 
-python fix_nvsmi_output_timing.py --bmark_output_paths ""
-/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   104 \
+								  --nvsmi_end_line     470
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   37 \
+								  --nvsmi_end_line     145
+
