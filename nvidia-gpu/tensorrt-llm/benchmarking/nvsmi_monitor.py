@@ -27,6 +27,9 @@ def get_nvsmi_loop_running(
     return not 'COMPLETED' in container_stop_lines[0]
 
 
+# TODO: Need to take a look at nvsmi output parsing again
+#       - more explicit timestamp matching
+#       - make sure some of the matches have surrounding spaces
 temp_celsius_pattern = r"\d+C"
 power_usage_pattern = r"\d+W / \d+W"
 memory_usage_pattern = r"\d+MiB / \d+MiB"
@@ -39,6 +42,7 @@ async def get_nvsmi_info(gpu_type: str):
     decoded_output = output.decode('utf-8')
     nvsmi_dict = {}
     curr_GPU = -1 # TODO: this is janky
+    timestamp_found = False
 
     for line in decoded_output.split('\n'):
         temp_celsius_match = re.search(temp_celsius_pattern, line)
@@ -48,7 +52,7 @@ async def get_nvsmi_info(gpu_type: str):
         timestamp_match = re.search(timestamp_pattern, line)
 
         # Timestamp only happens once and is not correlated with a specific GPU
-        if timestamp_match:
+        if timestamp_match and not timestamp_found:
             nvsmi_dict['timestamp_readable'] = timestamp_match.group()
             time_string = timestamp_match.group()
             current_date = datetime.now().strftime("%Y-%m-%d")
@@ -56,6 +60,7 @@ async def get_nvsmi_info(gpu_type: str):
             datetime_object = datetime.strptime(datetime_string, "%Y-%m-%d %H:%M:%S")
             timestamp = datetime_object.timestamp()
             nvsmi_dict['timestamp_raw'] = timestamp
+            timestamp_found = True
 
         # Correlate readings with a specific GPU
         if ((gpu_type == 'v10032gb' and 'V100S-PCIE-32GB' in line) or

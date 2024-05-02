@@ -529,3 +529,6 @@ python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep
 							     --plot_power_over_time \
 								 --gpu_idx 0 \
 								 --plot_filename      "Llama_7B_Power_Usage.png"
+
+python fix_nvsmi_output_timing.py --bmark_output_paths ""
+/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch
