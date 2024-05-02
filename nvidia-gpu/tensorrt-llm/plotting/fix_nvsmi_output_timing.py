@@ -60,6 +60,8 @@ def correlate_bmark_nvsmi_timestamps(
         nvsmi_dict['timestamp_raw'] = calculated_timestamp
         nvsmi_dict['timestamp_readable'] = timestamp_readable
 
+    return nvsmi_output
+
 
 def main(args):
     bmark_output_path = args.bmark_output_path
@@ -76,13 +78,15 @@ def main(args):
         save_output_path = nvsmi_output_path.replace('.out', '_old.out')
         shutil.copy(nvsmi_output_path, save_output_path)
 
-    correlate_bmark_nvsmi_timestamps(
+    nvsmi_output = correlate_bmark_nvsmi_timestamps(
         bmark_output_path,
         nvsmi_output_path,
         gpu_idx,
         nvsmi_start_line,
         nvsmi_end_line
     )
+
+    gpu_batch_exp_utils.write_nvsmi_output(nvsmi_output_path, nvsmi_output)
 
 
 # This script adds timestamp information to nvsmi output files by correlating gpu utilization with the start and end of the batch experiments

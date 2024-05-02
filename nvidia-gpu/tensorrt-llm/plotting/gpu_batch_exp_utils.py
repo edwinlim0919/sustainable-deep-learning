@@ -122,5 +122,24 @@ def parse_nvsmi_output(nvsmi_output_path):
     return nvsmi_info
 
 
-def write_nvsmi_output(nvsmi_output_path):
+def write_nvsmi_output(nvsmi_output_path, nvsmi_output):
+    print(f'write_nvsmi_output: {nvsmi_output_path}')
 
+    # Extract the header of nvsmi output
+    with open(nvsmi_output_path, 'r') as f:
+        nvsmi_output_lines = f.readlines()
+    hardware_platform_line = nvsmi_output_lines[0]
+
+    new_nvsmi_output_lines = []
+    with open(nvsmi_output_path, 'w') as f:
+        f.write(hardware_platform_line)
+
+        for nvsmi_dict in nvsmi_output:
+            nvsmi_storage_dict = {}
+            nvsmi_storage_dict['timestamp_readable'] = nvsmi_dict['timestamp_readable']
+            nvsmi_storage_dict['timestamp_raw'] = nvsmi_dict['timestamp_raw']
+            for i in range(nvsmi_dict['num_gpus']):
+                nvsmi_storage_dict[i] = nvsmi_dict[i]
+            nvsmi_storage_dict['num_gpus'] = nvsmi_dict['num_gpus']
+
+            f.write(str(nvsmi_storage_dict) + '\n')
