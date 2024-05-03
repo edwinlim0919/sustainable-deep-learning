@@ -382,7 +382,7 @@ def plot_power_or_energy(
     plot_a100_max_power = False
     plot_v100_max_power = False
 
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(10, 3))
     for bmark_entry in bmark_entries:
         model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
@@ -444,8 +444,8 @@ def plot_power_or_energy(
         # project power measurements over a 24 hour period
         if project_24_hr:
             # take the inner slice of timestamps and power
-            timestamp_slice = new_nvsmi_timestamps[20:-20].copy()
-            curr_powers_slice = new_nvsmi_curr_powers[20:-20].copy()
+            timestamp_slice = new_nvsmi_timestamps[15:-15].copy()
+            curr_powers_slice = new_nvsmi_curr_powers[15:-15].copy()
             timestamp_slice_copy = timestamp_slice.copy()
             curr_powers_slice_copy = curr_powers_slice.copy()
             timestamp_offset = timestamp_slice[-1] + 1
@@ -455,7 +455,7 @@ def plot_power_or_energy(
             for curr_power in curr_powers_slice:
                 curr_powers_sum += curr_power
             curr_powers_avg = curr_powers_sum / len(curr_powers_slice)
-            curr_powers_avg_portion = 0.1 * curr_powers_avg
+            curr_powers_avg_portion = 0.25 * curr_powers_avg
             lower_bound = curr_powers_avg - curr_powers_avg_portion
             upper_bound = curr_powers_avg + curr_powers_avg_portion
 
@@ -498,8 +498,8 @@ def plot_power_or_energy(
         print(f'new_nvsmi_curr_powers: {new_nvsmi_curr_powers}')
         plt.plot(new_nvsmi_timestamps, new_nvsmi_curr_powers, label=f'{model_size} {batch_size} {gpu_type}')
 
-    if plot_a100_max_power:
-        plt.axhline(y=400, color='red', linestyle='--', label='Peak A100 Power')
+    #if plot_a100_max_power:
+    #    plt.axhline(y=400, color='red', linestyle='--', label='Peak A100 Power')
     if plot_v100_max_power:
         plt.axhline(y=250, color='orange', linestyle='--', label='Peak V100 Power')
     plt.xlabel('Time (seconds)')
@@ -508,6 +508,7 @@ def plot_power_or_energy(
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    #plt.ylim(100, 260)
     plt.savefig(plot_filename)
 
 
@@ -518,7 +519,7 @@ def plot_average_batch_latency(
     plot_batch_sizes,
     bmark_param_groups
 ):
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(10, 3))
 
     bmark_param_group_dicts = []
     for bmark_param_group in bmark_param_groups:
