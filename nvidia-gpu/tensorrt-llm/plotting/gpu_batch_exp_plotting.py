@@ -19,7 +19,7 @@ def plot_throughput_vs_latency(
     for bmark_param_group in bmark_param_groups:
         group_split = bmark_param_group.split()
         bmark_param_group_dict = {}
-        bmark_param_group_dict['model_size'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
+        bmark_param_group_dict['model_size'] = group_split[0] if group_split[0] != 'X' else 'X'
         bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
         bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
         bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
@@ -28,6 +28,7 @@ def plot_throughput_vs_latency(
         bmark_param_group_dict['batch_sizes'] = []
         bmark_param_group_dict['avg_tpss'] = []
         bmark_param_group_dict['avg_spts'] = []
+        bmark_param_group_dict['avg_batch_e2e_times'] = []
         bmark_param_group_dicts.append(bmark_param_group_dict)
 
     for bmark_entry in bmark_entries:
@@ -47,6 +48,7 @@ def plot_throughput_vs_latency(
         # tps = tokens per second
         batch_tps_sum = 0
         batch_spt_sum = 0
+        batch_e2e_time_sum = 0
         num_iterations = 0
         for batch_iteration, batch_dict in bmark_info.items():
             batch_start_time = batch_dict['batch_start_time']
@@ -69,13 +71,15 @@ def plot_throughput_vs_latency(
             # tps = tokens per second
             batch_tps = total_batch_generated_tokens / batch_e2e_time
             batch_tps_sum += batch_tps
+            batch_e2e_time_sum += batch_e2e_time
             num_iterations += 1
 
         avg_tps = batch_tps_sum / num_iterations
         avg_spt = batch_spt_sum / num_iterations
+        avg_batch_e2e_time = batch_e2e_time_sum / num_iterations
         #bmark_entry['avg_tps'] = avg_tps
         #bmark_entry['avg_spt'] = avg_spt
-        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_spt}')
+        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_spt} {avg_batch_e2e_time}')
 
         # group plotting points into the group_dicts
         bmark_param_match_found = False
@@ -99,6 +103,7 @@ def plot_throughput_vs_latency(
             bmark_param_group_dict['batch_sizes'].append(batch_size)
             bmark_param_group_dict['avg_tpss'].append(avg_tps)
             bmark_param_group_dict['avg_spts'].append(avg_spt)
+            bmark_param_group_dict['avg_batch_e2e_times'].append(avg_batch_e2e_time)
             break
 
         # For each bmark_entry, should at least match to one of the plotting groups
@@ -109,14 +114,38 @@ def plot_throughput_vs_latency(
         for key, val in bmark_param_group_dict.items():
             print(f'{key}, {val}')
 
+        avg_tpss = bmark_param_group_dict['avg_tpss']
+        avg_spts = bmark_param_group_dict['avg_spts']
+        avg_batch_e2e_times = bmark_param_group_dict['avg_batch_e2e_times']
+        batch_sizes = bmark_param_group_dict['batch_sizes']
+
         model_size = bmark_param_group_dict['model_size']
         max_sequence_length = bmark_param_group_dict['max_sequence_length']
         gpu_type = bmark_param_group_dict['gpu_type']
-        plt.plot(bmark_param_group_dict['avg_spts'], bmark_param_group_dict['avg_tpss'], label=f'{model_size} {gpu_type}', marker='o')
-    plt.xlabel('Seconds Per Token')
-    plt.ylabel('Tokens Per Second')
+        #plt.plot(bmark_param_group_dict['avg_spts'], bmark_param_group_dict['avg_tpss'], label=f'{model_size} {gpu_type}', marker='o')
+        #plt.plot(avg_spts, avg_batch_e2e_times, label=f'{model_size} {gpu_type}', marker='o')
+
+        #plt.plot(avg_batch_e2e_times, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
+        plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
+
+        #for avg_batch_e2e_time, avg_spt, batch_size in zip(avg_batch_e2e_times, avg_spts, batch_sizes):
+        #    plt.annotate(str(batch_size),
+        #                 (avg_batch_e2e_time, avg_spt),
+        #                 textcoords='offset points',
+        #                 xytext=(0, 10),
+        #                 ha='center')
+        for avg_tps, avg_spt, batch_size in zip(avg_tpss, avg_spts, batch_sizes):
+            plt.annotate(str(batch_size),
+                         (avg_tps, avg_spt),
+                         textcoords='offset points',
+                         xytext=(0, 10),
+                         ha='center')
+
+    plt.xlabel('Tokens Per Second')
+    plt.ylabel('Avg. Request Token Latency')
     plt.title(plot_name)
     plt.grid(True)
+    plt.legend()
     plt.savefig(plot_filename)
 
 
@@ -578,7 +607,7 @@ def main(args):
     for i in range(len(bmark_output_paths)):
         bmark_entry = {}
         curr_bmark_params = bmark_params[i].split()
-        model_size = int(curr_bmark_params[0])
+        model_size = curr_bmark_params[0]
         batch_size = int(curr_bmark_params[1])
         max_sequence_length = int(curr_bmark_params[2])
         gpu_type = curr_bmark_params[3]
