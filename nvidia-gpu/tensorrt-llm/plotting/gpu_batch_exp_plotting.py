@@ -23,6 +23,7 @@ def plot_throughput_vs_latency(
         bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
         bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
         bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
+        bmark_param_group_dict['weight_quantization'] = group_split[4] if group_split[4] != 'X' else 'X'
 
         # For latency vs. throughput plots, track batch_sizes + avg tps + avg spt
         bmark_param_group_dict['batch_sizes'] = []
@@ -36,6 +37,7 @@ def plot_throughput_vs_latency(
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
+        weight_quantization = bmark_entry['weight_quantization']
         #batch_sweep_info = {
         #    'model_size': model_size,
         #    'batch_size': batch_size,
@@ -101,6 +103,9 @@ def plot_throughput_vs_latency(
                 continue
             if (bmark_param_group_dict['gpu_type'] != 'X' and
                 bmark_param_group_dict['gpu_type'] != gpu_type):
+                continue
+            if (bmark_param_group_dict['weight_quantization'] != 'X' and
+                bmark_param_group_dict['weight_quantization'] != weight_quantization):
                 continue
 
             # Only reach this point if a match is found
@@ -617,6 +622,7 @@ def main(args):
         batch_size = int(curr_bmark_params[1])
         max_sequence_length = int(curr_bmark_params[2])
         gpu_type = curr_bmark_params[3]
+        weight_quantization = curr_bmark_params[4]
         bmark_info = gpu_batch_exp_utils.parse_bmark_output(bmark_output_paths[i])
         nvsmi_info = gpu_batch_exp_utils.parse_nvsmi_output(nvsmi_output_paths[i])
 
@@ -624,6 +630,7 @@ def main(args):
         bmark_entry['batch_size'] = batch_size
         bmark_entry['max_sequence_length'] = max_sequence_length
         bmark_entry['gpu_type'] = gpu_type
+        bmark_entry['weight_quantization'] = weight_quantization
         bmark_entry['bmark_info'] = bmark_info
         bmark_entry['nvsmi_info'] = nvsmi_info
         bmark_entries.append(bmark_entry)
