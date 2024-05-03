@@ -833,3 +833,69 @@ python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-dee
 								  --gpu_idx            0 \
 								  --nvsmi_start_line   36 \
 								  --nvsmi_end_line     720
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   36 \
+								  --nvsmi_end_line     88
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   74 \
+								  --nvsmi_end_line     186
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-4-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-4-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   37 \
+								  --nvsmi_end_line     208
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-4-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-4-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   72 \
+								  --nvsmi_end_line     492
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-8-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-8-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   40 \
+								  --nvsmi_end_line     282
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-8-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-8-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   74 \
+								  --nvsmi_end_line     1513
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-12-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-12-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   35 \
+								  --nvsmi_end_line     364
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-12-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-12-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   72 \
+								  --nvsmi_end_line     1904
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-16-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-16-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   72 \
+								  --nvsmi_end_line     2256
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-20-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-20-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   73 \
+								  --nvsmi_end_line     2553
+
+python fix_nvsmi_output_timing.py --bmark_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-22-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_path  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16_wq4/1-gpu-22-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --gpu_idx            0 \
+								  --nvsmi_start_line   72 \
+								  --nvsmi_end_line     2772
