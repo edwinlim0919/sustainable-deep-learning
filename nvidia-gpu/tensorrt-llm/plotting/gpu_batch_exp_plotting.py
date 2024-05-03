@@ -443,9 +443,9 @@ def plot_power_or_energy(
         plt.plot(new_nvsmi_timestamps, new_nvsmi_curr_powers, label=f'{model_size} {batch_size} {gpu_type} {weight_quantization}')
 
     if plot_a100_max_power:
-        plt.axhline(y=400, color='r', linestyle='--', label='Peak A100 Power')
+        plt.axhline(y=400, color='red', linestyle='--', label='Peak A100 Power')
     if plot_v100_max_power:
-        plt.axhline(y=250, color='o', linestyle='--', label='Peak V100 Power')
+        plt.axhline(y=250, color='orange', linestyle='--', label='Peak V100 Power')
     plt.xlabel('Time (seconds)')
     plt.ylabel('Power Usage (W)')
     plt.title(plot_name)
