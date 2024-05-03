@@ -10,37 +10,43 @@ import gpu_batch_exp_utils
 
 def plot_throughput_vs_latency(
     bmark_entries,
+    bmark_param_groups,
     plot_filename,
-    bmark_param_groups
+    plot_name
 ):
     # This is just for grouping different bmark data points into lines
     bmark_param_group_dicts = []
     for bmark_param_group in bmark_param_groups:
         group_split = bmark_param_group.split()
         bmark_param_group_dict = {}
-        bmark_param_group_dict['model_size_GB'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
+        bmark_param_group_dict['model_size'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
         bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
         bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
         bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
-        #bmark_param_group_dict['batch_sweep_info'] = []
+
+        # For latency vs. throughput plots, track batch_sizes + avg tps + avg spt
+        bmark_param_group_dict['batch_sizes'] = []
+        bmark_param_group_dict['avg_tpss'] = []
+        bmark_param_group_dict['avg_spts'] = []
         bmark_param_group_dicts.append(bmark_param_group_dict)
 
     for bmark_entry in bmark_entries:
-        #model_size_GB = bmark_entry['model_size_GB']
-        #batch_size = bmark_entry['batch_size']
-        #max_sequence_length = bmark_entry['max_sequence_length']
-        #gpu_type = bmark_entry['gpu_type']
+        model_size = bmark_entry['model_size']
+        batch_size = bmark_entry['batch_size']
+        max_sequence_length = bmark_entry['max_sequence_length']
+        gpu_type = bmark_entry['gpu_type']
         #batch_sweep_info = {
-        #    'model_size_GB': model_size_GB,
+        #    'model_size': model_size,
         #    'batch_size': batch_size,
         #    'max_sequence_length': max_sequence_length,
         #    'gpu_type': gpu_type
         #}
-        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length} {gpu_type}')
+        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
 
         bmark_info = bmark_entry['bmark_info']
         # tps = tokens per second
         batch_tps_sum = 0
+        batch_spt_sum = 0
         num_iterations = 0
         for batch_iteration, batch_dict in bmark_info.items():
             batch_start_time = batch_dict['batch_start_time']
@@ -54,12 +60,75 @@ def plot_throughput_vs_latency(
                 batch_output_lengths_sum += batch_output_lengths
             total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
 
+            # The average number of generated tokens for a single prompt in the batch
+            avg_batch_generated_tokens = total_batch_generated_tokens / batch_size
+            # The average seconds per token for a single prompt in the batch
+            batch_spt = batch_e2e_time / avg_batch_generated_tokens
+            batch_spt_sum += batch_spt
+
             # tps = tokens per second
             batch_tps = total_batch_generated_tokens / batch_e2e_time
             batch_tps_sum += batch_tps
             num_iterations += 1
 
         avg_tps = batch_tps_sum / num_iterations
+        avg_spt = batch_spt_sum / num_iterations
+        #bmark_entry['avg_tps'] = avg_tps
+        #bmark_entry['avg_spt'] = avg_spt
+        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_spt}')
+
+        # group plotting points into the group_dicts
+        bmark_param_match_found = False
+        for bmark_param_group_dict in bmark_param_group_dicts:
+            if (bmark_param_group_dict['model_size'] != 'X' and
+                bmark_param_group_dict['model_size'] != model_size):
+                continue
+            if (bmark_param_group_dict['batch_size'] != 'X' and
+                bmark_param_group_dict['batch_size'] != batch_size):
+                continue
+            if (bmark_param_group_dict['max_sequence_length'] != 'X' and
+                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
+                continue
+            if (bmark_param_group_dict['gpu_type'] != 'X' and
+                bmark_param_group_dict['gpu_type'] != gpu_type):
+                continue
+
+            # Only reach this point if a match is found
+            bmark_param_match_found = True
+            #bmark_param_group_dict['batch_sweep_info'].append(batch_sweep_info)
+            bmark_param_group_dict['batch_sizes'].append(batch_size)
+            bmark_param_group_dict['avg_tpss'].append(avg_tps)
+            bmark_param_group_dict['avg_spts'].append(avg_spt)
+            break
+
+        # For each bmark_entry, should at least match to one of the plotting groups
+        assert(bmark_param_match_found)
+
+    plt.figure(figsize=(10, 5))
+    for bmark_param_group_dict in bmark_param_group_dicts:
+        for key, val in bmark_param_group_dict.items():
+            print(f'{key}, {val}')
+
+        model_size = bmark_param_group_dict['model_size']
+        max_sequence_length = bmark_param_group_dict['max_sequence_length']
+        gpu_type = bmark_param_group_dict['gpu_type']
+        plt.plot(bmark_param_group_dict['avg_spts'], bmark_param_group_dict['avg_tpss'], label=f'{model_size} {gpu_type}', marker='o')
+    plt.xlabel('Seconds Per Token')
+    plt.ylabel('Tokens Per Second')
+    plt.title(plot_name)
+    plt.grid(True)
+    plt.savefig(plot_filename)
+
+
+    #plt.figure(figsize=(10, 5))
+    #plt.plot(plot_batch_sizes, plot_gpu_utilization, marker='o', linestyle='-', color='blue')
+    #plt.xlabel('Batch Size')
+    #plt.ylabel('GPU Utilization (%)')
+    #plt.title('V100 32GB PCIE Utilization w/ Llama 7B')
+    #plt.xticks(plot_batch_sizes)
+    #plt.grid(True)
+    #plt.savefig('v10032gb_llama7b_utilization.png')
+
 
 
 # Normalized token latency
@@ -77,7 +146,7 @@ def plot_normalized_token_latency(
     for bmark_param_group in bmark_param_groups:
         group_split = bmark_param_group.split()
         bmark_param_group_dict = {}
-        bmark_param_group_dict['model_size_GB'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
+        bmark_param_group_dict['model_size'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
         bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
         bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
         bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
@@ -88,17 +157,17 @@ def plot_normalized_token_latency(
     #batch_sweep_infos = []
 
     for bmark_entry in bmark_entries:
-        model_size_GB = bmark_entry['model_size_GB']
+        model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
         batch_sweep_info = {
-            'model_size_GB': model_size_GB,
+            'model_size': model_size,
             'batch_size': batch_size,
             'max_sequence_length': max_sequence_length,
             'gpu_type': gpu_type
         }
-        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length} {gpu_type}')
+        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
@@ -204,8 +273,8 @@ def plot_normalized_token_latency(
         # group things in to their bmark param group
         for bmark_param_group_dict in bmark_param_group_dicts:
             bmark_param_match_found = False
-            if (bmark_param_group_dict['model_size_GB'] != 'X' and
-                bmark_param_group_dict['model_size_GB'] != model_size_GB):
+            if (bmark_param_group_dict['model_size'] != 'X' and
+                bmark_param_group_dict['model_size'] != model_size):
                 continue
             if (bmark_param_group_dict['batch_size'] != 'X' and
                 bmark_param_group_dict['batch_size'] != batch_size):
@@ -277,11 +346,11 @@ def plot_power_over_time(
     bmark_entry_list = []
 
     for bmark_entry in bmark_entries:
-        model_size_GB = bmark_entry['model_size_GB']
+        model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
-        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length} {gpu_type}')
+        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
@@ -356,7 +425,7 @@ def plot_power_over_time(
     #for i in range(len(timestamps_list)):
         print(j)
         bmark_entry = bmark_entry_list[j]
-        model_size_GB = bmark_entry['model_size_GB']
+        model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
@@ -395,7 +464,7 @@ def plot_power_over_time(
     #plt.axhline(y=400, color='r', linestyle='--', label='Peak a100 Power Usage')
     #plt.xlabel('Time (seconds)')
     #plt.ylabel('Power Usage (W)')
-    #plt.title(f'GPU Power Usage Llama{model_size_GB}B')
+    #plt.title(f'GPU Power Usage Llama{model_size}B')
     #plt.legend()
     #plt.grid(True)
     #plt.tight_layout()
@@ -415,14 +484,14 @@ def plot_average_batch_latency(
     for bmark_param_group in bmark_param_groups:
         group_split = bmark_param_group.split()
         bmark_param_group_dict = {}
-        bmark_param_group_dict['model_size_GB'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
+        bmark_param_group_dict['model_size'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
         bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
         bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
         bmark_param_group_dict['avg_batch_latencies'] = []
         bmark_param_group_dicts.append(bmark_param_group_dict)
 
     for bmark_entry in bmark_entries:
-        model_size_GB = bmark_entry['model_size_GB']
+        model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         if max_sequence_length not in plot_sequence_lengths:
@@ -450,7 +519,7 @@ def plot_average_batch_latency(
             batch_latency_sum += batch_latency
 
         avg_batch_latency = batch_latency_sum / num_iterations
-        print(f'PLOT_AVERAGE_BATCH_LATENCY model_size_GB: {model_size_GB}, batch_size: {batch_size}, max_sequence_length: {max_sequence_length}, avg_batch_latency: {avg_batch_latency}, batch_size: {batch_size}')
+        print(f'PLOT_AVERAGE_BATCH_LATENCY model_size: {model_size}, batch_size: {batch_size}, max_sequence_length: {max_sequence_length}, avg_batch_latency: {avg_batch_latency}, batch_size: {batch_size}')
         avg_batch_latencies_dict = {
             'batch_size': batch_size,
             'avg_batch_latency': avg_batch_latency
@@ -459,8 +528,8 @@ def plot_average_batch_latency(
         # Identify which bmark_param_group_dict to append to
         for bmark_param_group_dict in bmark_param_group_dicts:
             bmark_param_match_found = False
-            if (bmark_param_group_dict['model_size_GB'] != 'X' and
-                bmark_param_group_dict['model_size_GB'] != model_size_GB):
+            if (bmark_param_group_dict['model_size'] != 'X' and
+                bmark_param_group_dict['model_size'] != model_size):
                 continue
             if (bmark_param_group_dict['batch_size'] != 'X' and
                 bmark_param_group_dict['batch_size'] != batch_size):
@@ -484,7 +553,7 @@ def plot_average_batch_latency(
             batch_sizes.append(avg_batch_latencies_dict['batch_size'])
             avg_latencies.append(avg_batch_latencies_dict['avg_batch_latency'])
 
-        plt.plot(batch_sizes, avg_latencies, label=f'Llama {bmark_param_group_dict["model_size_GB"]}B Max {bmark_param_group_dict["max_sequence_length"]} Sequence Length)')
+        plt.plot(batch_sizes, avg_latencies, label=f'Llama {bmark_param_group_dict["model_size"]}B Max {bmark_param_group_dict["max_sequence_length"]} Sequence Length)')
 
     # Minimum batch size of 1
     plt.xlim(left=1)
@@ -509,14 +578,14 @@ def main(args):
     for i in range(len(bmark_output_paths)):
         bmark_entry = {}
         curr_bmark_params = bmark_params[i].split()
-        model_size_GB = int(curr_bmark_params[0])
+        model_size = int(curr_bmark_params[0])
         batch_size = int(curr_bmark_params[1])
         max_sequence_length = int(curr_bmark_params[2])
         gpu_type = curr_bmark_params[3]
-        bmark_info = gpu_batch_utils.parse_bmark_output(bmark_output_paths[i])
-        nvsmi_info = gpu_batch_utils.parse_nvsmi_output(nvsmi_output_paths[i])
+        bmark_info = gpu_batch_exp_utils.parse_bmark_output(bmark_output_paths[i])
+        nvsmi_info = gpu_batch_exp_utils.parse_nvsmi_output(nvsmi_output_paths[i])
 
-        bmark_entry['model_size_GB'] = model_size_GB
+        bmark_entry['model_size'] = model_size
         bmark_entry['batch_size'] = batch_size
         bmark_entry['max_sequence_length'] = max_sequence_length
         bmark_entry['gpu_type'] = gpu_type
@@ -560,6 +629,13 @@ def main(args):
             args.plot_filename,
             args.bmark_param_groups,
             args.excluded_tokens
+        )
+    if args.plot_throughput_vs_latency:
+        plot_throughput_vs_latency(
+            bmark_entries,
+            args.bmark_param_groups,
+            args.plot_filename,
+            args.plot_name
         )
 
 
@@ -611,10 +687,22 @@ if __name__ == '__main__':
         help='specify this arg to plot normalized token latency'
     )
     parser.add_argument(
+        '--plot_throughput_vs_latency',
+        default=False,
+        action='store_true',
+        help='specify this arg to plot throughput vs latency'
+    )
+    parser.add_argument(
         '--plot_filename',
         type=str,
         required=True,
         help='filename for specified plot'
+    )
+    parser.add_argument(
+        '--plot_name',
+        type=str,
+        required=True,
+        help='title for specified plot'
     )
     parser.add_argument(
         '--plot_sequence_lengths',
