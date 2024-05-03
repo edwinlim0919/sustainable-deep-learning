@@ -8,6 +8,60 @@ import transformer_model_scaling
 import gpu_batch_exp_utils
 
 
+def plot_throughput_vs_latency(
+    bmark_entries,
+    plot_filename,
+    bmark_param_groups
+):
+    # This is just for grouping different bmark data points into lines
+    bmark_param_group_dicts = []
+    for bmark_param_group in bmark_param_groups:
+        group_split = bmark_param_group.split()
+        bmark_param_group_dict = {}
+        bmark_param_group_dict['model_size_GB'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
+        bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
+        bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
+        bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
+        #bmark_param_group_dict['batch_sweep_info'] = []
+        bmark_param_group_dicts.append(bmark_param_group_dict)
+
+    for bmark_entry in bmark_entries:
+        #model_size_GB = bmark_entry['model_size_GB']
+        #batch_size = bmark_entry['batch_size']
+        #max_sequence_length = bmark_entry['max_sequence_length']
+        #gpu_type = bmark_entry['gpu_type']
+        #batch_sweep_info = {
+        #    'model_size_GB': model_size_GB,
+        #    'batch_size': batch_size,
+        #    'max_sequence_length': max_sequence_length,
+        #    'gpu_type': gpu_type
+        #}
+        print(f'bmark_entry: {model_size_GB} {batch_size} {max_sequence_length} {gpu_type}')
+
+        bmark_info = bmark_entry['bmark_info']
+        # tps = tokens per second
+        batch_tps_sum = 0
+        num_iterations = 0
+        for batch_iteration, batch_dict in bmark_info.items():
+            batch_start_time = batch_dict['batch_start_time']
+            batch_end_time = batch_dict['batch_end_time']
+            batch_e2e_time = batch_end_time - batch_start_time
+
+            batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
+            for batch_input_length_index, batch_input_lengths in batch_dict['batch_input_lengths'].items():
+                batch_input_lengths_sum += batch_input_lengths
+            for batch_output_length_index, batch_output_lengths in batch_dict['batch_output_lengths'].items():
+                batch_output_lengths_sum += batch_output_lengths
+            total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+
+            # tps = tokens per second
+            batch_tps = total_batch_generated_tokens / batch_e2e_time
+            batch_tps_sum += batch_tps
+            num_iterations += 1
+
+        avg_tps = batch_tps_sum / num_iterations
+
+
 # Normalized token latency
 # - The mean of every request's end-to-end latency divided by its output length
 # - Input tokens also included in the output, but they also need preprocessing in the prefill stage, so included in calculation
