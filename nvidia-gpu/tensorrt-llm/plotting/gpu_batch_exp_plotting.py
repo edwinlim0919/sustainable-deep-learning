@@ -2,6 +2,7 @@ import argparse
 import re
 import ast
 import matplotlib.pyplot as plt
+import math
 from pathlib import Path
 
 import transformer_model_scaling
@@ -375,7 +376,8 @@ def plot_power_or_energy(
     bmark_entries,
     plot_filename,
     plot_name,
-    gpu_idx
+    gpu_idx,
+    project_24_hr
 ):
     plot_a100_max_power = False
     plot_v100_max_power = False
@@ -435,12 +437,66 @@ def plot_power_or_energy(
             new_nvsmi_curr_powers.append(nvsmi_curr_powers[i])
             new_nvsmi_max_powers.append(nvsmi_max_powers[i])
 
-        bmark_entry['nvsmi_timestamps'] = new_nvsmi_timestamps
-        bmark_entry['nvsmi_curr_powers'] = new_nvsmi_curr_powers
-        bmark_entry['nvsmi_max_powers'] = new_nvsmi_max_powers
+        initial_timestamp = new_nvsmi_timestamps[0]
+        for i in range(len(new_nvsmi_timestamps)):
+            new_nvsmi_timestamps[i] = new_nvsmi_timestamps[i] - initial_timestamp
+
+        # project power measurements over a 24 hour period
+        if project_24_hr:
+            # take the inner slice of timestamps and power
+            timestamp_slice = new_nvsmi_timestamps[20:-20].copy()
+            curr_powers_slice = new_nvsmi_curr_powers[20:-20].copy()
+            timestamp_slice_copy = timestamp_slice.copy()
+            curr_powers_slice_copy = curr_powers_slice.copy()
+            timestamp_offset = timestamp_slice[-1] + 1
+
+            # Take the average of the curr_powers_slice
+            curr_powers_sum = 0
+            for curr_power in curr_powers_slice:
+                curr_powers_sum += curr_power
+            curr_powers_avg = curr_powers_sum / len(curr_powers_slice)
+            curr_powers_avg_portion = 0.1 * curr_powers_avg
+            lower_bound = curr_powers_avg - curr_powers_avg_portion
+            upper_bound = curr_powers_avg + curr_powers_avg_portion
+
+            timestamp_slice_duration = timestamp_slice[-1] - timestamp_slice[0]
+            print(f'timestamp_slice_duration: {timestamp_slice_duration}')
+            # find how many slices fit into a day (ceil)
+            slice_multiplier = math.ceil((24 * 60 * 60) / timestamp_slice_duration)
+            print(f'slice_multiplier: {slice_multiplier}')
+
+            # append slices until 24 hours is reached
+            for j in range(slice_multiplier):
+                # add offset to timestamp_slice_copy
+                for k in range(len(timestamp_slice_copy)):
+                    timestamp_slice_copy[k] += timestamp_offset
+
+                for i in range(len(timestamp_slice_copy)):
+                    timestamp_slice.append(timestamp_slice_copy[i])
+                    curr_powers_slice.append(curr_powers_slice_copy[i])
+
+            # cut off entries that go past 24 hours
+            new_nvsmi_timestamps = []
+            new_nvsmi_curr_powers = []
+            assert(len(timestamp_slice) == len(curr_powers_slice))
+            for j in range(len(timestamp_slice)):
+                # only show 5 minutes of power trace to make plot legible
+                if timestamp_slice[j] > (10 * 60):
+                    break
+                new_nvsmi_timestamps.append(timestamp_slice[j])
+
+                # avg-based smoothing so that the plot is legible
+                if (curr_powers_slice[j] < lower_bound or
+                    curr_powers_slice[j] > upper_bound):
+                    new_nvsmi_curr_powers.append(curr_powers_avg)
+                else:
+                    new_nvsmi_curr_powers.append(curr_powers_slice[j])
+                #new_nvsmi_curr_powers.append(curr_powers_slice[j])
 
         # no groupings necessary for these plots
-        plt.plot(new_nvsmi_timestamps, new_nvsmi_curr_powers, label=f'{model_size} {batch_size} {gpu_type} {weight_quantization}')
+        print(f'new_nvsmi_timestamps: {new_nvsmi_timestamps}')
+        print(f'new_nvsmi_curr_powers: {new_nvsmi_curr_powers}')
+        plt.plot(new_nvsmi_timestamps, new_nvsmi_curr_powers, label=f'{model_size} {batch_size} {gpu_type}')
 
     if plot_a100_max_power:
         plt.axhline(y=400, color='red', linestyle='--', label='Peak A100 Power')
@@ -453,70 +509,6 @@ def plot_power_or_energy(
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(plot_filename)
-
-    ## TODO: oh my god...
-    #for j in range(len(curr_powers_list)):
-    #    lst = curr_powers_list[j]
-    ##for lst in curr_powers_list:
-    #    print(f'lst: {lst}')
-
-    #    whatthefuck = []
-    #    for i in range(len(lst)):
-    #        whatthefuck.append(i)
-
-    #    assert(len(whatthefuck) == len(lst))
-    #        #print(i)
-    #    #curr_fake_timestamps_list = []
-    #    #for i in range(len(lst)):
-    #    #    curr_fake_timestamps_list.append(i)
-
-    ##for i in range(len(timestamps_list)):
-    #    print(j)
-    #    bmark_entry = bmark_entry_list[j]
-    #    model_size = bmark_entry['model_size']
-    #    batch_size = bmark_entry['batch_size']
-    #    max_sequence_length = bmark_entry['max_sequence_length']
-    #    gpu_type = bmark_entry['gpu_type']
-
-    #    timestamps = timestamps_list[i]
-    #    curr_powers = curr_powers_list[i]
-    #    max_powers = max_powers_list[i]
-    #    bmark_tuples = bmark_tuples_list[i]
-
-    #    bmark_nvsmi_time_start_diff = bmark_tuples[0][0] - timestamps[0]
-    #    diff_from_min = bmark_nvsmi_time_start_diff - min_bmark_nvsmi_time_start_diff
-
-    #    timestamps_norm = [timestamp - timestamps[0] for timestamp in timestamps]
-    #    timestamps_adjusted = [timestamp - diff_from_min for timestamp in timestamps_norm]
-
-    #    assert(len(timestamps_adjusted) == len(curr_powers) and
-    #           len(curr_powers) == len(max_powers))
-    #    plot_timestamps = []
-    #    plot_curr_powers = []
-
-    #    for i in range(len(timestamps_adjusted)):
-    #        if timestamps_adjusted[i] >= 0:
-    #            plot_timestamps.append(timestamps_adjusted[i])
-    #            plot_curr_powers.append(curr_powers[i])
-
-    #    # TODO: oh my god...
-    #    #makeshift_plot_timestamps = 
-
-    #    if j == 3 or j == 4:
-
-    #        plt.plot(whatthefuck, lst, label=f'maxseq: {max_sequence_length}, gpu: {gpu_type}, wq4')
-    #    else:
-    #        plt.plot(whatthefuck, lst, label=f'maxseq: {max_sequence_length}, gpu: {gpu_type}')
-
-    #plt.axhline(y=250, color='r', linestyle='--', label='Peak v100 Power Usage')
-    #plt.axhline(y=400, color='r', linestyle='--', label='Peak a100 Power Usage')
-    #plt.xlabel('Time (seconds)')
-    #plt.ylabel('Power Usage (W)')
-    #plt.title(f'GPU Power Usage Llama{model_size}B')
-    #plt.legend()
-    #plt.grid(True)
-    #plt.tight_layout()
-    #plt.savefig(plot_filename)
 
 
 def plot_average_batch_latency(
@@ -648,7 +640,8 @@ def main(args):
             bmark_entries,
             args.plot_filename,
             args.plot_name,
-            args.gpu_idx
+            args.gpu_idx,
+            args.project_24_hr
         )
     if args.plot_average_batch_latency:
         if not args.plot_sequence_lengths:
@@ -771,6 +764,12 @@ if __name__ == '__main__':
         '--gpu_idx',
         type=int,
         help='specify which idx of GPU for nvsmi info'
+    )
+    parser.add_argument(
+        '--project_24_hr',
+        default=False,
+        action='store_true',
+        help='specify this for power plots to project power measurements over a 24 hour period'
     )
     args = parser.parse_args()
     main(args)
