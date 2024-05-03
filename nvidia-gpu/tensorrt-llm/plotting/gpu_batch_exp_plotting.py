@@ -50,6 +50,7 @@ def plot_throughput_vs_latency(
         batch_spt_sum = 0
         batch_e2e_time_sum = 0
         num_iterations = 0
+
         for batch_iteration, batch_dict in bmark_info.items():
             batch_start_time = batch_dict['batch_start_time']
             batch_end_time = batch_dict['batch_end_time']
@@ -64,6 +65,11 @@ def plot_throughput_vs_latency(
 
             # The average number of generated tokens for a single prompt in the batch
             avg_batch_generated_tokens = total_batch_generated_tokens / batch_size
+
+            # In the off case that there were no generated tokens in this batch, skip this iteration
+            if avg_batch_generated_tokens == 0:
+                continue
+
             # The average seconds per token for a single prompt in the batch
             batch_spt = batch_e2e_time / avg_batch_generated_tokens
             batch_spt_sum += batch_spt
