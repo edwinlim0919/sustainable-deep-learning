@@ -371,105 +371,112 @@ def plot_normalized_token_latency(
     #    print(f'{key}: {value}')
 
 
-def plot_power_over_time(
+def plot_power_or_energy(
     bmark_entries,
     plot_filename,
+    plot_name,
     gpu_idx
-    #plot_sequence_lengths,
-    #plot_batch_sizes
 ):
-    plt.figure(figsize=(10, 5))
-    min_bmark_nvsmi_time_start_diff = float('inf')
-    timestamps_list = []
-    curr_powers_list = []
-    max_powers_list = []
-    bmark_tuples_list = []
-    bmark_entry_list = []
+    plot_a100_max_power = False
+    plot_v100_max_power = False
 
+    plt.figure(figsize=(10, 5))
     for bmark_entry in bmark_entries:
         model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
-        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
+        weight_quantization = bmark_entry['weight_quantization']
+        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type} {weight_quantization}')
+
+        if gpu_type == 'a10040gb':
+            plot_a100_max_power = True
+        if gpu_type == 'v10032gb':
+            plot_v100_max_power = True
 
         # Extract timestamps from bmark_info
         bmark_info = bmark_entry['bmark_info']
         # each entry is (batch_start_time, batch_end_time)
-        bmark_tuples = []
-        curr_max_time = 0.0
+        bmark_timestamps = []
         for batch_iteration, batch_dict in bmark_info.items():
             batch_start_time = batch_dict['batch_start_time']
             batch_end_time = batch_dict['batch_end_time']
-
-            # make sure timestamps are strictly increasing
-            assert(batch_start_time > curr_max_time and
-                   batch_end_time > batch_start_time)
-            curr_max_time = batch_end_time
-            bmark_tuples.append((batch_start_time, batch_end_time))
+            bmark_timestamps.append(batch_start_time)
+            bmark_timestamps.append(batch_end_time)
+        bmark_entry['bmark_timestamps'] = bmark_timestamps
 
         # Extract timestamps and power usage from nvsmi_info
         nvsmi_info = bmark_entry['nvsmi_info']
         # each entry is (timestamp_raw, curr_power_usage, max_power_usage)
-        timestamps = []
-        curr_powers = []
-        max_powers = []
+        nvsmi_timestamps = []
+        nvsmi_curr_powers = []
+        nvsmi_max_powers = []
         for nvsmi_dict in nvsmi_info:
             timestamp_raw = nvsmi_dict['timestamp_raw']
-            #for key, val in nvsmi_dict.items():
-            #    print(f'{key}: {val}')
-            #    print(f'{key}: {type(key)}')
-            #print(f'{gpu_idx}: {type(gpu_idx)}')
+            nvsmi_timestamps.append(timestamp_raw)
+
             gpu_idx_dict = nvsmi_dict[gpu_idx]
             curr_power_usage = gpu_idx_dict['curr_power_usage']
             max_power_usage = gpu_idx_dict['max_power_usage']
+            nvsmi_curr_powers.append(curr_power_usage)
+            nvsmi_max_powers.append(max_power_usage)
 
-            timestamps.append(nvsmi_dict['timestamp_raw'])
-            curr_powers.append(gpu_idx_dict['curr_power_usage'])
-            max_powers.append(gpu_idx_dict['max_power_usage'])
+        # Make the nvsmi timestamp entries start in the same place as the bmark timestamp entries
+        assert(len(nvsmi_timestamps) == len(nvsmi_curr_powers) and
+               len(nvsmi_curr_powers) == len(nvsmi_max_powers))
+        new_nvsmi_timestamps, new_nvsmi_curr_powers, new_nvsmi_max_powers = [], [], []
+        initial_bmark_timestamp = bmark_timestamps[0]
+        for i in range(len(nvsmi_timestamps)):
+            # leave a 10 second buffer
+            if (initial_bmark_timestamp - nvsmi_timestamps[i]) > 10:
+                continue
+            # if close enough, then add to plotting lists
+            new_nvsmi_timestamps.append(nvsmi_timestamps[i])
+            new_nvsmi_curr_powers.append(nvsmi_curr_powers[i])
+            new_nvsmi_max_powers.append(nvsmi_max_powers[i])
 
-        # Make the timestamps start at the same place
-        bmark_nvsmi_time_start_diff = bmark_tuples[0][0] - timestamps[0]
-        if bmark_nvsmi_time_start_diff < min_bmark_nvsmi_time_start_diff:
-            min_bmark_nvsmi_time_start_diff = bmark_nvsmi_time_start_diff
+        bmark_entry['nvsmi_timestamps'] = new_nvsmi_timestamps
+        bmark_entry['nvsmi_curr_powers'] = new_nvsmi_curr_powers
+        bmark_entry['nvsmi_max_powers'] = new_nvsmi_max_powers
 
-        timestamps_list.append(timestamps)#_norm)
-        curr_powers_list.append(curr_powers)
-        max_powers_list.append(max_powers)
-        bmark_tuples_list.append(bmark_tuples)
-        bmark_entry_list.append(bmark_entry)
+        # no groupings necessary for these plots
+        plt.plot(new_nvsmi_timestamps, new_nvsmi_curr_powers, label=f'{model_size} {batch_size} {gpu_type} {weight_quantization}')
 
-    #for tl in timestamps_list:
-    #    print(f'tl: {tl}')
+    if plot_a100_max_power:
+        plt.axhline(y=400, color='r', linestyle='--', label='Peak A100 Power')
+    if plot_v100_max_power:
+        plt.axhline(y=250, color='o', linestyle='--', label='Peak V100 Power')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Power Usage (W)')
+    plt.title(plot_name)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(plot_filename)
 
-    # making all the plots start execution at the same time point
-    assert(len(timestamps_list) == len(curr_powers_list) and
-           len(curr_powers_list) == len(max_powers_list) and
-           len(max_powers_list) == len(bmark_tuples_list))
+    ## TODO: oh my god...
+    #for j in range(len(curr_powers_list)):
+    #    lst = curr_powers_list[j]
+    ##for lst in curr_powers_list:
+    #    print(f'lst: {lst}')
 
-    # TODO: oh my god...
-    for j in range(len(curr_powers_list)):
-        lst = curr_powers_list[j]
-    #for lst in curr_powers_list:
-        print(f'lst: {lst}')
+    #    whatthefuck = []
+    #    for i in range(len(lst)):
+    #        whatthefuck.append(i)
 
-        whatthefuck = []
-        for i in range(len(lst)):
-            whatthefuck.append(i)
+    #    assert(len(whatthefuck) == len(lst))
+    #        #print(i)
+    #    #curr_fake_timestamps_list = []
+    #    #for i in range(len(lst)):
+    #    #    curr_fake_timestamps_list.append(i)
 
-        assert(len(whatthefuck) == len(lst))
-            #print(i)
-        #curr_fake_timestamps_list = []
-        #for i in range(len(lst)):
-        #    curr_fake_timestamps_list.append(i)
-
-    #for i in range(len(timestamps_list)):
-        print(j)
-        bmark_entry = bmark_entry_list[j]
-        model_size = bmark_entry['model_size']
-        batch_size = bmark_entry['batch_size']
-        max_sequence_length = bmark_entry['max_sequence_length']
-        gpu_type = bmark_entry['gpu_type']
+    ##for i in range(len(timestamps_list)):
+    #    print(j)
+    #    bmark_entry = bmark_entry_list[j]
+    #    model_size = bmark_entry['model_size']
+    #    batch_size = bmark_entry['batch_size']
+    #    max_sequence_length = bmark_entry['max_sequence_length']
+    #    gpu_type = bmark_entry['gpu_type']
 
     #    timestamps = timestamps_list[i]
     #    curr_powers = curr_powers_list[i]
@@ -636,17 +643,12 @@ def main(args):
         bmark_entry['nvsmi_info'] = nvsmi_info
         bmark_entries.append(bmark_entry)
 
-    if args.plot_power_over_time: # TODO: Only one plot can be generated at a time
-        #if not args.plot_sequence_lengths:
-        #    raise ValueError('supply plot_sequence_lengths argument for plot_power_over_time')
-        #if not args.plot_batch_sizes:
-        #    raise ValueError('supply plot_batch_sizes argument for plot_power_over_time')
-        plot_power_over_time(
+    if args.plot_power_or_energy:
+        plot_power_or_energy(
             bmark_entries,
             args.plot_filename,
+            args.plot_name,
             args.gpu_idx
-            #args.plot_sequence_lengths,
-            #args.plot_batch_sizes
         )
     if args.plot_average_batch_latency:
         if not args.plot_sequence_lengths:
@@ -712,7 +714,7 @@ if __name__ == '__main__':
         help='[model size] [batch size] [max sequence length] (specify "X" for any value)'
     )
     parser.add_argument(
-        '--plot_power_over_time',
+        '--plot_power_or_energy',
         default=False,
         action='store_true',
         help='specify this arg to plot power over time'

@@ -977,3 +977,5 @@ python fix_nvsmi_output_timing.py --bmark_output_path "/dev/shm/sustainable-deep
 								  --gpu_idx			  0 \
 								  --nvsmi_start_line  73 \
 								  --nvsmi_end_line    3233
+
+python3 gpu_batch_exp_plotting.py
