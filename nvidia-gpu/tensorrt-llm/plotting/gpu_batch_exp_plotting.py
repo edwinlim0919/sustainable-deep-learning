@@ -133,11 +133,12 @@ def plot_throughput_vs_latency(
         model_size = bmark_param_group_dict['model_size']
         max_sequence_length = bmark_param_group_dict['max_sequence_length']
         gpu_type = bmark_param_group_dict['gpu_type']
+        weight_quantization = bmark_param_group_dict['weight_quantization']
         #plt.plot(bmark_param_group_dict['avg_spts'], bmark_param_group_dict['avg_tpss'], label=f'{model_size} {gpu_type}', marker='o')
         #plt.plot(avg_spts, avg_batch_e2e_times, label=f'{model_size} {gpu_type}', marker='o')
 
         #plt.plot(avg_batch_e2e_times, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
-        plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
+        plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type} {weight_quantization}', marker='o')
 
         #for avg_batch_e2e_time, avg_spt, batch_size in zip(avg_batch_e2e_times, avg_spts, batch_sizes):
         #    plt.annotate(str(batch_size),
