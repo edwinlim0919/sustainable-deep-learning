@@ -626,30 +626,30 @@ python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep
 													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
 													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-2-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
 													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-4-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
-								 --bmark_params       "7B 1 1000 a10040gb" \
-								                      "7B 4 1000 a10040gb" \
-													  "7B 8 1000 a10040gb" \
-													  "7B 12 1000 a10040gb" \
-													  "7B 16 1000 a10040gb" \
-													  "7B 20 1000 a10040gb" \
-													  "7B 22 1000 a10040gb" \
-													  "13B 1 1000 a10040gb" \
-													  "13B 2 1000 a10040gb" \
-													  "13B 4 1000 a10040gb" \
-													  "13B 6 1000 a10040gb" \
-													  "13B 8 1000 a10040gb" \
-													  "7B 1 1000 v10032gb" \
-													  "7B 4 1000 v10032gb" \
-													  "7B 8 1000 v10032gb" \
-													  "7B 12 1000 v10032gb" \
-													  "7B 14 1000 v10032gb" \
-													  "13B 1 1000 v10032gb" \
-													  "13B 2 1000 v10032gb" \
-													  "13B 4 1000 v10032gb" \
-								 --bmark_param_groups "7B X 1000 a10040gb" \
-								 					  "13B X 1000 a10040gb" \
-													  "7B X 1000 v10032gb" \
-													  "13B X 1000 v10032gb" \
+								 --bmark_params       "7B 1 1000 a10040gb nowq" \
+								                      "7B 4 1000 a10040gb nowq" \
+													  "7B 8 1000 a10040gb nowq" \
+													  "7B 12 1000 a10040gb nowq" \
+													  "7B 16 1000 a10040gb nowq" \
+													  "7B 20 1000 a10040gb nowq" \
+													  "7B 22 1000 a10040gb nowq" \
+													  "13B 1 1000 a10040gb nowq" \
+													  "13B 2 1000 a10040gb nowq" \
+													  "13B 4 1000 a10040gb nowq" \
+													  "13B 6 1000 a10040gb nowq" \
+													  "13B 8 1000 a10040gb nowq" \
+													  "7B 1 1000 v10032gb nowq" \
+													  "7B 4 1000 v10032gb nowq" \
+													  "7B 8 1000 v10032gb nowq" \
+													  "7B 12 1000 v10032gb nowq" \
+													  "7B 14 1000 v10032gb nowq" \
+													  "13B 1 1000 v10032gb nowq" \
+													  "13B 2 1000 v10032gb nowq" \
+													  "13B 4 1000 v10032gb nowq" \
+								 --bmark_param_groups "7B X 1000 a10040gb nowq" \
+								 					  "13B X 1000 a10040gb nowq" \
+													  "7B X 1000 v10032gb nowq" \
+													  "13B X 1000 v10032gb nowq" \
 								 --plot_filename      "throughput_vs_latency_llama2_a10040gb_v10032gb.png" \
 								 --plot_name          "Llama2 Throughput-Latency Tradeoff" \
 								 --plot_throughput_vs_latency
@@ -695,29 +695,29 @@ python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep
 													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/2B/fp16/1-gpu-48-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
 													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/2B/fp16/1-gpu-64-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
 													  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/2B/fp16/1-gpu-72-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
-								 --bmark_params       "137M 1 500 v10032gb" \
-								                      "137M 32 500 v10032gb" \
-								                      "137M 64 500 v10032gb" \
-								                      "137M 96 500 v10032gb" \
-								                      "137M 128 500 v10032gb" \
-								                      "137M 256 500 v10032gb" \
-								                      "137M 384 500 v10032gb" \
-								                      "137M 512 500 v10032gb" \
-								                      "137M 544 500 v10032gb" \
-													  "812M 1 500 v10032gb" \
-													  "812M 32 500 v10032gb" \
-													  "812M 64 500 v10032gb" \
-													  "812M 96 500 v10032gb" \
-													  "812M 128 500 v10032gb" \
-													  "2B 1 500 v10032gb" \
-													  "2B 16 500 v10032gb" \
-													  "2B 32 500 v10032gb" \
-													  "2B 48 500 v10032gb" \
-													  "2B 64 500 v10032gb" \
-													  "2B 72 500 v10032gb" \
-								 --bmark_param_groups "137M X 500 v10032gb" \
-								 					  "812M X 500 v10032gb" \
-													  "2B X 500 v10032gb" \
+								 --bmark_params       "137M 1 500 v10032gb nowq" \
+								                      "137M 32 500 v10032gb nowq" \
+								                      "137M 64 500 v10032gb nowq" \
+								                      "137M 96 500 v10032gb nowq" \
+								                      "137M 128 500 v10032gb nowq" \
+								                      "137M 256 500 v10032gb nowq" \
+								                      "137M 384 500 v10032gb nowq" \
+								                      "137M 512 500 v10032gb nowq" \
+								                      "137M 544 500 v10032gb nowq" \
+													  "812M 1 500 v10032gb nowq" \
+													  "812M 32 500 v10032gb nowq" \
+													  "812M 64 500 v10032gb nowq" \
+													  "812M 96 500 v10032gb nowq" \
+													  "812M 128 500 v10032gb nowq" \
+													  "2B 1 500 v10032gb nowq" \
+													  "2B 16 500 v10032gb nowq" \
+													  "2B 32 500 v10032gb nowq" \
+													  "2B 48 500 v10032gb nowq" \
+													  "2B 64 500 v10032gb nowq" \
+													  "2B 72 500 v10032gb nowq" \
+								 --bmark_param_groups "137M X 500 v10032gb nowq" \
+								 					  "812M X 500 v10032gb nowq" \
+													  "2B X 500 v10032gb nowq" \
 								 --plot_filename      "throughput_vs_latency_gpt2_v10032gb.png" \
 								 --plot_name          "GPT2 Throughput-Latency Tradeoff" \
 								 --plot_throughput_vs_latency
@@ -794,7 +794,7 @@ python gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep
 													  "7B X 1000 v10032gb wq4" \
 													  "13B X 1000 v10032gb wq4" \
 								 --plot_filename      "throughput_vs_latency_llama2_v10032gb_quantization.png" \
-								 --plot_name          "GPT2 Throughput-Latency Tradeoff w/ Weight Quantization" \
+								 --plot_name          "Llama2 Throughput-Latency Tradeoff w/ Weight Quantization" \
 								 --plot_throughput_vs_latency
 
 
@@ -1066,3 +1066,61 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 								  --plot_name		   "" \
 								  --plot_power_or_energy \
 								  --project_24_hr
+
+# power plots for throughput-optimal vs. latency-optimal gpt2
+python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/137M/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/137M/fp16/1-gpu-544-batch/bmark_numreqsample0_iter100_max500_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/812M/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/812M/fp16/1-gpu-128-batch/bmark_numreqsample0_iter100_max500_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/2B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/2B/fp16/1-gpu-72-batch/bmark_numreqsample0_iter100_max500_v10032gb.out" \
+								  --nvsmi_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/137M/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
+								  					   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/137M/fp16/1-gpu-544-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/812M/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/812M/fp16/1-gpu-128-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/2B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/gpt/2B/fp16/1-gpu-72-batch/nvsmi_numreqsample0_iter100_max500_v10032gb.out" \
+								  --bmark_params       "137M 1 500 v10032gb nowq" \
+								  					   "137M 544 500 v10032gb nowq" \
+													   "812M 1 500 v10032gb nowq" \
+													   "812M 128 500 v10032gb nowq" \
+													   "2B 1 500 v10032gb nowq" \
+													   "2B 72 500 v10032gb nowq" \
+								  --gpu_idx			   0 \
+								  --plot_filename      "gpt_energy_per_token.png" \
+								  --plot_name		   "GPT2 Joules Per Token" \
+								  --plot_power_or_energy \
+								  --plot_token_energy
+
+
+
+# power plots for throughput-optimal vs. latency-optimal llama2
+python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-22-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-8-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-14-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-4-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-22-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-8-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-14-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-4-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --bmark_params       "7B 1 1000 a10040gb nowq" \
+								  					   "7B 22 1000 a10040gb nowq" \
+													   "13B 1 1000 a10040gb nowq" \
+													   "13B 8 1000 a10040gb nowq" \
+													   "7B 1 1000 v10032gb nowq" \
+													   "7B 14 1000 v10032gb nowq" \
+													   "13B 1 1000 v10032gb nowq" \
+													   "13b 4 1000 v10032gb nowq" \
+								  --gpu_idx			   0 \
+								  --plot_filename      "llama_energy_per_token.png" \
+								  --plot_name		   "Llama2 Joules Per Token" \
+								  --plot_power_or_energy \
+								  --plot_token_energy

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import math
 from pathlib import Path
 
+import numpy as np
 import transformer_model_scaling
 import gpu_batch_exp_utils
 
@@ -86,8 +87,6 @@ def plot_throughput_vs_latency(
         avg_tps = batch_tps_sum / num_iterations
         avg_spt = batch_spt_sum / num_iterations
         avg_batch_e2e_time = batch_e2e_time_sum / num_iterations
-        #bmark_entry['avg_tps'] = avg_tps
-        #bmark_entry['avg_spt'] = avg_spt
         print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_spt} {avg_batch_e2e_time}')
 
         # group plotting points into the group_dicts
@@ -121,7 +120,7 @@ def plot_throughput_vs_latency(
         # For each bmark_entry, should at least match to one of the plotting groups
         assert(bmark_param_match_found)
 
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(8, 3))
     for bmark_param_group_dict in bmark_param_group_dicts:
         for key, val in bmark_param_group_dict.items():
             print(f'{key}, {val}')
@@ -139,7 +138,10 @@ def plot_throughput_vs_latency(
         #plt.plot(avg_spts, avg_batch_e2e_times, label=f'{model_size} {gpu_type}', marker='o')
 
         #plt.plot(avg_batch_e2e_times, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
-        plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type} {weight_quantization}', marker='o')
+        if weight_quantization != 'nowq':
+            plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type} {weight_quantization}', marker='o')
+        else:
+            plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
 
         #for avg_batch_e2e_time, avg_spt, batch_size in zip(avg_batch_e2e_times, avg_spts, batch_sizes):
         #    plt.annotate(str(batch_size),
@@ -158,19 +160,13 @@ def plot_throughput_vs_latency(
     plt.ylabel('Avg. Request Token Latency')
     plt.title(plot_name)
     plt.grid(True)
-    plt.legend()
+    legend = plt.legend()
+    legend._legend_box.sep = 3
+    legend._legend_box.align = "right"
+    plt.setp(legend.get_texts(), fontsize='small')
+    plt.setp(legend.get_patches(), scalex=0.5, scaley=0.5)
+    plt.tight_layout()
     plt.savefig(plot_filename)
-
-
-    #plt.figure(figsize=(10, 5))
-    #plt.plot(plot_batch_sizes, plot_gpu_utilization, marker='o', linestyle='-', color='blue')
-    #plt.xlabel('Batch Size')
-    #plt.ylabel('GPU Utilization (%)')
-    #plt.title('V100 32GB PCIE Utilization w/ Llama 7B')
-    #plt.xticks(plot_batch_sizes)
-    #plt.grid(True)
-    #plt.savefig('v10032gb_llama7b_utilization.png')
-
 
 
 # Normalized token latency
@@ -194,9 +190,6 @@ def plot_normalized_token_latency(
         bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
         bmark_param_group_dict['batch_sweep_info'] = []
         bmark_param_group_dicts.append(bmark_param_group_dict)
-
-    # holds dictionaries for holding just the plotting info
-    #batch_sweep_infos = []
 
     for bmark_entry in bmark_entries:
         model_size = bmark_entry['model_size']
@@ -371,18 +364,30 @@ def plot_normalized_token_latency(
     #for key, value in batch_dict.items():
     #    print(f'{key}: {value}')
 
+def joules_to_pittsburgh_carbon(joules):
+    pittsburgh_carbon_intensity = 413
+
+    kWh = joules / 3600000
+    grams_co2_eq = kWh * pittsburgh_carbon_intensity
+    return grams_co2_eq
+
 
 def plot_power_or_energy(
     bmark_entries,
     plot_filename,
     plot_name,
     gpu_idx,
-    project_24_hr
+    project_24_hr,
+    plot_token_energy
 ):
     plot_a100_max_power = False
     plot_v100_max_power = False
 
-    plt.figure(figsize=(10, 3))
+    plt.figure(figsize=(10, 4))
+
+    joules_per_token_list = []
+    joules_label_list = []
+
     for bmark_entry in bmark_entries:
         model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
@@ -407,6 +412,7 @@ def plot_power_or_energy(
             bmark_timestamps.append(batch_end_time)
         bmark_entry['bmark_timestamps'] = bmark_timestamps
 
+        bmark_info = bmark_entry['bmark_info']
         # Extract timestamps and power usage from nvsmi_info
         nvsmi_info = bmark_entry['nvsmi_info']
         # each entry is (timestamp_raw, curr_power_usage, max_power_usage)
@@ -428,10 +434,17 @@ def plot_power_or_energy(
                len(nvsmi_curr_powers) == len(nvsmi_max_powers))
         new_nvsmi_timestamps, new_nvsmi_curr_powers, new_nvsmi_max_powers = [], [], []
         initial_bmark_timestamp = bmark_timestamps[0]
+        last_bmark_timestamp = bmark_timestamps[-1]
         for i in range(len(nvsmi_timestamps)):
             # leave a 10 second buffer
-            if (initial_bmark_timestamp - nvsmi_timestamps[i]) > 10:
+            #if (initial_bmark_timestamp - nvsmi_timestamps[i]) > 10:
+            #    continue
+
+            # only include nvsmi timestamps that are contained within the batch mark timestamps
+            if (nvsmi_timestamps[i] < initial_bmark_timestamp or
+                nvsmi_timestamps[i] > last_bmark_timestamp):
                 continue
+
             # if close enough, then add to plotting lists
             new_nvsmi_timestamps.append(nvsmi_timestamps[i])
             new_nvsmi_curr_powers.append(nvsmi_curr_powers[i])
@@ -440,6 +453,30 @@ def plot_power_or_energy(
         initial_timestamp = new_nvsmi_timestamps[0]
         for i in range(len(new_nvsmi_timestamps)):
             new_nvsmi_timestamps[i] = new_nvsmi_timestamps[i] - initial_timestamp
+
+        if plot_token_energy:
+            # calculate all tokens computed during the entire benchmark
+            total_bmark_generated_tokens = 0
+
+            for batch_iteration, batch_dict in bmark_info.items():
+                batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
+                for batch_input_length_index, batch_input_lengths in batch_dict['batch_input_lengths'].items():
+                    batch_input_lengths_sum += batch_input_lengths
+                for batch_output_length_index, batch_output_lengths in batch_dict['batch_output_lengths'].items():
+                    batch_output_lengths_sum += batch_output_lengths
+                total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+                total_bmark_generated_tokens += total_batch_generated_tokens
+
+            # calculate the total energy consumed during the entire benchmark
+            total_bmark_joules = np.trapz(new_nvsmi_curr_powers, new_nvsmi_timestamps)
+            joules_per_token = total_bmark_joules / total_bmark_generated_tokens
+
+            joules_per_token_list.append(joules_per_token)
+            if weight_quantization != 'nowq':
+                joules_label_list.append(f'{model_size} {batch_size} {gpu_type} {weight_quantization}')
+            else:
+                joules_label_list.append(f'{model_size} {batch_size} {gpu_type}')
+
 
         # project power measurements over a 24 hour period
         if project_24_hr:
@@ -493,23 +530,40 @@ def plot_power_or_energy(
                     new_nvsmi_curr_powers.append(curr_powers_slice[j])
                 #new_nvsmi_curr_powers.append(curr_powers_slice[j])
 
-        # no groupings necessary for these plots
-        print(f'new_nvsmi_timestamps: {new_nvsmi_timestamps}')
-        print(f'new_nvsmi_curr_powers: {new_nvsmi_curr_powers}')
-        plt.plot(new_nvsmi_timestamps, new_nvsmi_curr_powers, label=f'{model_size} {batch_size} {gpu_type}')
+            # no groupings necessary for these plots
+            print(f'new_nvsmi_timestamps: {new_nvsmi_timestamps}')
+            print(f'new_nvsmi_curr_powers: {new_nvsmi_curr_powers}')
+            plt.plot(new_nvsmi_timestamps, new_nvsmi_curr_powers, label=f'{model_size} {batch_size} {gpu_type}')
 
-    #if plot_a100_max_power:
-    #    plt.axhline(y=400, color='red', linestyle='--', label='Peak A100 Power')
-    if plot_v100_max_power:
-        plt.axhline(y=250, color='orange', linestyle='--', label='Peak V100 Power')
-    plt.xlabel('Time (seconds)')
-    plt.ylabel('Power Usage (W)')
-    plt.title(plot_name)
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    #plt.ylim(100, 260)
-    plt.savefig(plot_filename)
+    if plot_token_energy:
+        gcarb_per_token_list = []
+        for jtok in joules_per_token_list:
+            gcarb_per_token_list.append(joules_to_pittsburgh_carbon(jtok))
+
+        #plt.bar(range(len(joules_per_token_list)), joules_per_token_list, tick_label=joules_label_list)
+        plt.bar(range(len(gcarb_per_token_list)), gcarb_per_token_list, tick_label=joules_label_list)
+        plt.xlabel('Data Point')
+        plt.ylabel('Grams Carbon Per Token')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.grid(True)
+        plt.title(plot_name)
+        #plt.legend()
+        plt.savefig(plot_filename)
+
+    if project_24_hr:
+        #if plot_a100_max_power:
+        #    plt.axhline(y=400, color='red', linestyle='--', label='Peak A100 Power')
+        if plot_v100_max_power:
+            plt.axhline(y=250, color='orange', linestyle='--', label='Peak V100 Power')
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('Power Usage (W)')
+        plt.title(plot_name)
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        #plt.ylim(100, 260)
+        plt.savefig(plot_filename)
 
 
 def plot_average_batch_latency(
@@ -642,7 +696,8 @@ def main(args):
             args.plot_filename,
             args.plot_name,
             args.gpu_idx,
-            args.project_24_hr
+            args.project_24_hr,
+            args.plot_token_energy
         )
     if args.plot_average_batch_latency:
         if not args.plot_sequence_lengths:
@@ -659,10 +714,6 @@ def main(args):
             args.bmark_param_groups
         )
     if args.plot_normalized_token_latency:
-        #if not args.plot_sequence_lengths:
-        #    raise ValueError('supply plot_sequence_lengths argument for plot_average_batch_latency')
-        #if not args.plot_batch_sizes:
-        #    raise ValueError('supply plot_batch_sizes argument for plot_average_batch_latency')
         plot_normalized_token_latency(
             bmark_entries,
             args.plot_filename,
@@ -771,6 +822,12 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
         help='specify this for power plots to project power measurements over a 24 hour period'
+    )
+    parser.add_argument(
+        '--plot_token_energy',
+        default=False,
+        action='store_true',
+        help='specify this for energy-per-token plots of the provided data points'
     )
     args = parser.parse_args()
     main(args)
