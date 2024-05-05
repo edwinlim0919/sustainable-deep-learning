@@ -166,7 +166,7 @@ def plot_throughput_vs_latency(
     plt.setp(legend.get_texts(), fontsize='small')
     plt.setp(legend.get_patches(), scalex=0.5, scaley=0.5)
     plt.tight_layout()
-    plt.savefig(plot_filename)
+    plt.savefig('plots/' + plot_filename)
 
 
 # Normalized token latency
@@ -350,7 +350,7 @@ def plot_normalized_token_latency(
     plt.title('V100 32GB PCIE Utilization w/ Llama 7B')
     plt.xticks(plot_batch_sizes)
     plt.grid(True)
-    plt.savefig('v10032gb_llama7b_utilization.png')
+    plt.savefig('plots/' + 'v10032gb_llama7b_utilization.png')
 
     # sanity prints
     #for batch_sweep_info in batch_sweep_infos:
@@ -549,7 +549,7 @@ def plot_power_or_energy(
         plt.grid(True)
         plt.title(plot_name)
         #plt.legend()
-        plt.savefig(plot_filename)
+        plt.savefig('plots/' + plot_filename)
 
     if project_24_hr:
         #if plot_a100_max_power:
@@ -563,7 +563,7 @@ def plot_power_or_energy(
         plt.grid(True)
         plt.tight_layout()
         #plt.ylim(100, 260)
-        plt.savefig(plot_filename)
+        plt.savefig('plots/' + plot_filename)
 
 
 def plot_average_batch_latency(
@@ -658,7 +658,7 @@ def plot_average_batch_latency(
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(plot_filename)
+    plt.savefig('plots/' + plot_filename)
 
 
 
