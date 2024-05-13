@@ -8,9 +8,51 @@ from calflops import calculate_flops_hf
 
 def plot_model_flops_scaling(
     sequence_lengths: list[int],
-
+    model_names = list[str],
+    plot_name: str,
+    plot_filename: stz
 ):
+    
 
+
+def main(args):
+    # TODO: specify different args for different FLOPs
+    if args.generate_plot == 'flops_scaling_gpt2_llama2_128_4096':
+        sequence_lengths = [
+            128,
+            256,
+            512,
+            1024,
+            2048,
+            4096
+        ]
+        model_names = [
+            'openai-community/gpt2',
+            'openai-community/gpt2-medium',
+            'openai-community/gpt2-large',
+            'openai-community/gpt2-xl',
+            'meta-llama/Llama-2-7b-chat-hf',
+            'meta-llama/Llama-2-13b-chat-hf',
+            'meta-llama/Llama-2-70b-chat-hf'
+        ]
+        plot_model_flops_scaling(
+            sequence_lengths,
+            model_names,
+            'Inference FLOPs Scaling',
+            'llm_inference_flops_scaling.png'
+        )
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--generate_plot',
+        type=str,
+        required=True,
+        help='specify the name of the plot to generate'
+    )
+    args = parser.parse_args()
+    main(args)
 
 #llama2_model_params = {
 #    '7B': {

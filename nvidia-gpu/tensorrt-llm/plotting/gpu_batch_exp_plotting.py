@@ -40,12 +40,6 @@ def plot_throughput_vs_latency(
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
         weight_quantization = bmark_entry['weight_quantization']
-        #batch_sweep_info = {
-        #    'model_size': model_size,
-        #    'batch_size': batch_size,
-        #    'max_sequence_length': max_sequence_length,
-        #    'gpu_type': gpu_type
-        #}
         print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
 
         bmark_info = bmark_entry['bmark_info']
