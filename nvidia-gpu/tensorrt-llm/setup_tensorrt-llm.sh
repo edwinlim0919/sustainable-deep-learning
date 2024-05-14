@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
-# TODO: This installation may conflict with the official nvidia installer installation
-# Installing the NVIDIA container toolkit
+# Create conda environment with correct Python version
+conda create --name tensorrt-llm python=3.10
+conda activate tensorrt-llm
+
+
+# Setting up environment for NVIDIA Docker containers
+# Setup instructions from https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
 && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
   sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
@@ -12,28 +17,22 @@ sudo apt-get install -y nvidia-container-toolkit
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 
-#sudo apt-get update
-#sudo apt install openmpi-bin openmpi-common libopenmpi-dev
 
+# Building from source code
 #sudo apt-get update
 #sudo apt-get -y install git git-lfs
-#git lfs install
+#
+#git clone https://github.com/NVIDIA/TensorRT-LLM.git
+#cd TensorRT-LLM
+#git submodule update --init --recursive
+#git lfs pull
 
-conda create --name tensorrt-llm python=3.10
-conda activate tensorrt-llm
-pip install -r requirements.txt
-#conda install mpi4py
+
+# Installing through pip
+apt-get update
+apt-get -y install python3.10 python3-pip openmpi-bin libopenmpi-dev git
+pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com
+python3 -c "import tensorrt_llm"
 
 git clone https://github.com/NVIDIA/TensorRT-LLM.git
 cd TensorRT-LLM
-git submodule update --init --recursive
-git lfs pull
-sudo make -C docker release_build
-
-sudo nvidia-persistenced --user root
-# Starting the container
-#sudo make -C docker release_run
-
-# TODO: check if nvidia-smi can run
-#       if conflict, then run below command
-# sudo apt-get --purge remove "*nvidia*"
