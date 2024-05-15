@@ -3,6 +3,7 @@ import argparse
 import re
 import aiofiles
 import asyncio
+import time
 
 from pathlib import Path
 from datetime import datetime
@@ -30,19 +31,19 @@ def get_nvsmi_loop_running(
 # TODO: Need to take a look at nvsmi output parsing again
 #       - more explicit timestamp matching
 #       - make sure some of the matches have surrounding spaces
-temp_celsius_pattern = r"\d+C"
-power_usage_pattern = r"\d+W / \d+W"
-memory_usage_pattern = r"\d+MiB / \d+MiB"
-gpu_utilization_pattern = r"\d+%"
-timestamp_pattern = r"(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d"
+temp_celsius_pattern = r"\s\d+C\s"
+power_usage_pattern = r"\s\d+W / \d+W\s"
+memory_usage_pattern = r"\s\d+MiB / \d+MiB\s"
+gpu_utilization_pattern = r"\s\d+%\s"
+#timestamp_pattern = r"\s(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d\s"
+timestamp_pattern = r"\s([01]?[0-9]|2[0-3]):([0-5]?[0-9]):([0-5]?[0-9])\s"
 
-#async def get_nvsmi_info_V100S_PCIE_32GB():
 async def get_nvsmi_info(gpu_type: str):
     output = subprocess.check_output(['nvidia-smi'])
     decoded_output = output.decode('utf-8')
     nvsmi_dict = {}
     curr_GPU = -1 # TODO: this is janky
-    timestamp_found = False
+    timestamp_found = False # TODO: this is also kinda janky
 
     for line in decoded_output.split('\n'):
         temp_celsius_match = re.search(temp_celsius_pattern, line)
@@ -53,8 +54,8 @@ async def get_nvsmi_info(gpu_type: str):
 
         # Timestamp only happens once and is not correlated with a specific GPU
         if timestamp_match and not timestamp_found:
-            nvsmi_dict['timestamp_readable'] = timestamp_match.group()
-            time_string = timestamp_match.group()
+            time_string = timestamp_match.group().strip()
+            nvsmi_dict['timestamp_readable'] = time_string
             current_date = datetime.now().strftime("%Y-%m-%d")
             datetime_string = f"{current_date} {time_string}"
             datetime_object = datetime.strptime(datetime_string, "%Y-%m-%d %H:%M:%S")
@@ -69,13 +70,13 @@ async def get_nvsmi_info(gpu_type: str):
             nvsmi_dict[curr_GPU] = {}
 
         if temp_celsius_match:
-            nvsmi_dict[curr_GPU]['temp_celsius'] = temp_celsius_match.group()
+            nvsmi_dict[curr_GPU]['temp_celsius'] = temp_celsius_match.group().strip()
         if power_usage_match:
-            nvsmi_dict[curr_GPU]['power_usage'] = power_usage_match.group()
+            nvsmi_dict[curr_GPU]['power_usage'] = power_usage_match.group().strip()
         if memory_usage_match:
-            nvsmi_dict[curr_GPU]['memory_usage'] = memory_usage_match.group()
+            nvsmi_dict[curr_GPU]['memory_usage'] = memory_usage_match.group().strip()
         if gpu_utilization_match:
-            nvsmi_dict[curr_GPU]['gpu_utilization'] = gpu_utilization_match.group()
+            nvsmi_dict[curr_GPU]['gpu_utilization'] = gpu_utilization_match.group().strip()
 
     # make sure a GPU match was found in the nvidia-smi output
     assert(curr_GPU > -1)
@@ -83,7 +84,6 @@ async def get_nvsmi_info(gpu_type: str):
     return nvsmi_dict
 
 
-#async def nvsmi_loop_V100S_PCIE_32GB(
 async def nvsmi_loop(
     nvsmi_filepath: str,
     host_filepath: str,
@@ -96,11 +96,14 @@ async def nvsmi_loop(
         container_filepath,
         container_id
     ):
-        #nvsmi_dict = await get_nvsmi_info_V100S_PCIE_32GB()
+        start_time = time.time()
         nvsmi_dict = await get_nvsmi_info(gpu_type)
         async with aiofiles.open(nvsmi_filepath, 'a') as f:
             await f.write(str(nvsmi_dict) + '\n')
-        await asyncio.sleep(1)
+
+        elapsed_time = time.time() - start_time
+        sleep_duration = max(0, 1 - elapsed_time)
+        await asyncio.sleep(sleep_duration)
 
 
 def container_copy(
@@ -199,8 +202,6 @@ def main(args):
     # make sure gpu_type is supported
     assert((args.gpu_type == 'v10032gb') or
            (args.gpu_type == 'a10040gb'))
-    #if args.gpu_type == 'v10032gb':
-    #asyncio.run(nvsmi_loop_V100S_PCIE_32GB(
     asyncio.run(nvsmi_loop(
         nvsmi_filepath,
         host_filepath,
@@ -208,9 +209,6 @@ def main(args):
         args.container_id,
         args.gpu_type
     ))
-    #elif args.gpu_type == 'a10040gb':
-    #asyncio.run(get_nvsmi_info_A100_SXM4_40GB())
-
 
 
 if __name__ == '__main__':

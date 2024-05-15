@@ -3,6 +3,7 @@
 # Create conda environment with correct Python version
 conda create --name tensorrt-llm python=3.10
 conda activate tensorrt-llm
+pip3 install -r requirements.txt
 
 
 # Setting up environment for NVIDIA Docker containers
