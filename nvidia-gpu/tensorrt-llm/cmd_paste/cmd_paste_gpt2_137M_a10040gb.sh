@@ -33,8 +33,9 @@ sudo docker cp ../ShareGPT_V3_unfiltered_cleaned_split_top100.json 156096f113ad:
 
 
 ### DEV TESTING
-python benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/137M/fp16/1-gpu-1-batch --output_file nvsmi_dev_testing.out --container_id 156096f113ad --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --gpu_type a10040gb
-
+python3 benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/137M/fp16/1-gpu-1-batch --output_file nvsmi_dev_testing.out --container_id 156096f113ad --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --gpu_type a10040gb
+python3 ../benchmark_trtllm.py --tokenizer_dir gpt2 --engine_dir gpt2/trt_engines/fp16/1-gpu-1-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/137M/fp16/1-gpu-1-batch --output_file bmark_dev_testing.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 10 --no_token_logging
+sudo docker cp 156096f113ad:/TensorRT-LLM/examples/gpt/outputs/gpt/137M/fp16/1-gpu-1-batch/bmark_dev_testing.out ../outputs/gpt/137M/fp16/1-gpu-1-batch/bmark_dev_testing.out
 
 ### EXPERIMENT COMMANDS
 # TODO: is this a fair comparison against Llama2? max sequence length for gpt2 is 1024
