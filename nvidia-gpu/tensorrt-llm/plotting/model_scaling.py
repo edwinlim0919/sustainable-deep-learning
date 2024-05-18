@@ -1,9 +1,12 @@
 import argparse
 import ast
 import matplotlib.pyplot as plt
-
 import numpy as np
+
+from calflops import calculate_flops
 from calflops import calculate_flops_hf
+from transformers import LlamaTokenizer
+from transformers import LlamaForCausalLM
 
 
 def plot_model_flops_scaling(
@@ -14,11 +17,14 @@ def plot_model_flops_scaling(
     hf_access_token: str
 ):
     for model_name in model_names:
+        model = LlamaForCausalLM.from_pretrained(model_name)
+        tokenizer = LlamaTokenizer.from_pretrained(model_name)
+
         for sequence_length in sequence_lengths:
-            flops, macs, params = calculate_flops_hf(
-                model_name,
-                access_token=hf_access_token,
-                input_shape=(1, sequence_length) # for FLOPs scaling, just consider single sequence
+            flops, macs, params = calculate_flops(
+                model=model,
+                input_shape=(1, sequence_length), # for FLOPs scaling, just consider single sequence
+                transformer_tokenizer=tokenizer
             )
             print(f'{model_name} {sequence_length}: {flops}, {macs}, {params}')
 
@@ -48,6 +54,16 @@ def main(args):
             model_names,
             'Inference FLOPs Scaling',
             'llm_inference_flops_scaling.png',
+            args.hf_access_token
+        )
+    elif args.generate_plot == 'calflops_testing':
+        sequence_lengths = [256]
+        model_names = ['meta-llama/Llama-2-7b-chat-hf']
+        plot_model_flops_scaling(
+            sequence_lengths,
+            model_names,
+            'Calflops Testing',
+            'calflops_testing.png',
             args.hf_access_token
         )
 

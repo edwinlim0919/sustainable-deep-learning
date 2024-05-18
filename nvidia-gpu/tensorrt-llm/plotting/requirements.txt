@@ -2,3 +2,5 @@ matplotlib
 numpy
 calflops
 transformers
+sentencepiece
+protobuf
