@@ -8,11 +8,19 @@ from calflops import calculate_flops_hf
 
 def plot_model_flops_scaling(
     sequence_lengths: list[int],
-    model_names = list[str],
+    model_names: list[str],
     plot_name: str,
-    plot_filename: stz
+    plot_filename: str,
+    hf_access_token: str
 ):
-    
+    for model_name in model_names:
+        for sequence_length in sequence_lengths:
+            flops, macs, params = calculate_flops_hf(
+                model_name,
+                access_token=hf_access_token,
+                input_shape=(1, sequence_length) # for FLOPs scaling, just consider single sequence
+            )
+            print(f'{model_name} {sequence_length}: {flops}, {macs}, {params}')
 
 
 def main(args):
@@ -39,7 +47,8 @@ def main(args):
             sequence_lengths,
             model_names,
             'Inference FLOPs Scaling',
-            'llm_inference_flops_scaling.png'
+            'llm_inference_flops_scaling.png',
+            args.hf_access_token
         )
 
 
@@ -50,6 +59,12 @@ if __name__ == '__main__':
         type=str,
         required=True,
         help='specify the name of the plot to generate'
+    )
+    parser.add_argument(
+        '--hf_access_token',
+        type=str,
+        required=True,
+        help='specify huggingface access token'
     )
     args = parser.parse_args()
     main(args)
