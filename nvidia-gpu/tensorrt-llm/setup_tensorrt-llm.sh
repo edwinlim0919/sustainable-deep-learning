@@ -6,6 +6,13 @@ sudo apt-get update
 sudo apt-get install openmpi-bin openmpi-common libopenmpi-dev
 
 
+# Install NVIDIA drivers
+sudo apt-get update
+sudo apt-get install nvidia-driver-535
+sudo nvidia-persistenced  --user root
+nvidia-smi
+
+
 # Create conda environment with correct Python version
 conda create --name tensorrt-llm python=3.10
 conda activate tensorrt-llm
