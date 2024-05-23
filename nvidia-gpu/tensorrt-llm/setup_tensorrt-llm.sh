@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+
+# Install OpenMPI
+sudo apt-get update
+sudo apt-get install openmpi-bin openmpi-common libopenmpi-dev
+
+
 # Create conda environment with correct Python version
 conda create --name tensorrt-llm python=3.10
 conda activate tensorrt-llm
@@ -30,7 +36,7 @@ sudo systemctl restart docker
 
 
 # Installing through pip
-docker run --rm --runtime=nvidia --gpus all --entrypoint /bin/bash -it nvidia/cuda:12.2.0-devel-ubuntu22.04
+sudo docker run --rm --runtime=nvidia --gpus all --entrypoint /bin/bash -it nvidia/cuda:12.2.0-devel-ubuntu22.04
 apt-get update
 apt-get -y install python3.10 python3-pip openmpi-bin libopenmpi-dev git
 pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com
