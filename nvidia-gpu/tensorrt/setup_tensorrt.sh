@@ -27,6 +27,3 @@ sudo systemctl restart docker
 
 # Installing through pip and NVIDIA docker containers
 sudo docker run --gpus all -it --rm nvcr.io/nvidia/pytorch:24.04-py3
-
-
-#python -m pip install torch torch-tensorrt tensorrt --extra-index-url https://download.pytorch.org/whl/cu122

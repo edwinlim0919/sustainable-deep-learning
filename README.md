@@ -54,7 +54,7 @@ sudo ./nvidia-setup.sh https://developer.download.nvidia.com/compute/cuda/12.2.0
 First, follow the instructions from the link below to increase the size of your Linux root filesystem partition (~200 GB recommended).
 https://www.privex.io/articles/how-to-resize-partition/
 
-Then, run the following script to setup TensorRT-LLM.
+Then, run the following script to set up TensorRT-LLM.
 Do not install CUDA manually when setting up TensorRT-LLM (container is pre-packaged with CUDA).
 ```bash
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
@@ -62,8 +62,12 @@ source ./setup_tensorrt-llm.sh
 ```
 
 # NVIDIA TensorRT setup
-Manual CUDA installation (12.2) is required for the TensorRT setup script.
-
+Run the following script to set up TensorRT.
+Do not install CUDA manually when setting up TensorRT (container is pre-packaged with CUDA).
+```bash
+cd /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt
+source ./setup_tensorrt.sh
+```
 
 # Running Llama2 7B Experiments
 Start the nvidia-persistenced daemon, and then start the NVIDIA docker container.
