@@ -55,6 +55,7 @@ First, follow the instructions from the link below to increase the size of your 
 https://www.privex.io/articles/how-to-resize-partition/
 
 Then, run the following script to setup TensorRT-LLM.
+Do not install CUDA manually when setting up TensorRT-LLM (container is pre-packaged with CUDA).
 ```bash
 cd /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 source ./setup_tensorrt-llm.sh
