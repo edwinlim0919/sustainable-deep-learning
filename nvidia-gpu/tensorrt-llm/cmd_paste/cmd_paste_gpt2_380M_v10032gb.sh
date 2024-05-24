@@ -18,7 +18,7 @@ nvidia-smi
 ### GPT2 SETUP COMMANDS
 # container "/TensorRT-LLM/examples/gpt"
 pip3 install -r requirements.txt
-rm -rf gpt2-medium && git clone https://huggingface.co/gpt2-medium gpt-medium
+rm -rf gpt2-medium && git clone https://huggingface.co/gpt2-medium gpt2-medium
 pushd gpt2-medium && rm pytorch_model.bin model.safetensors && wget -q https://huggingface.co/gpt2-medium/resolve/main/pytorch_model.bin && popd
 
 # 1-gpu fp16 nowq
@@ -34,6 +34,6 @@ sudo docker cp ../ShareGPT_V3_unfiltered_cleaned_split_top100.json 75005fc8bfdc:
 
 ### EXPERIMENT COMMANDS
 # fp16 nowq batch 1
-python3 benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/137M/fp16/1-gpu-1-batch --output_file nvsmi_numreqsample0_iter100_max500_a10040gb.out --container_id 75005fc8bfdc --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --gpu_type a10040gb
-python3 ../benchmark_trtllm.py --tokenizer_dir gpt2 --engine_dir gpt2/trt_engines/fp16/1-gpu-1-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/137M/fp16/1-gpu-1-batch --output_file bmark_numreqsample0_iter100_max500_a10040gb.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
-sudo docker cp 75005fc8bfdc:/TensorRT-LLM/examples/gpt/outputs/gpt/137M/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_a10040gb.out ../outputs/gpt/137M/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_a10040gb.out
+python3 benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/380M/fp16/1-gpu-1-batch --output_file nvsmi_numreqsample0_iter100_max500_v10032gb.out --container_id 75005fc8bfdc --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --gpu_type v10032gb
+python3 ../benchmark_trtllm.py --tokenizer_dir gpt2-medium --engine_dir gpt2-medium/trt_engines/fp16/1-gpu-1-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1-batch --output_file bmark_numreqsample0_iter100_max500_v10032gb.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
+sudo docker cp 75005fc8bfdc:/TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_v10032gb.out ../outputs/gpt/380M/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_v10032gb.out
