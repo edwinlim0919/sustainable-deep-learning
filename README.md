@@ -61,6 +61,10 @@ cd /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 source ./setup_tensorrt-llm.sh
 ```
 
+# NVIDIA TensorRT setup
+Manual CUDA installation (12.2) is required for the TensorRT setup script.
+
+
 # Running Llama2 7B Experiments
 Start the nvidia-persistenced daemon, and then start the NVIDIA docker container.
 ```bash
