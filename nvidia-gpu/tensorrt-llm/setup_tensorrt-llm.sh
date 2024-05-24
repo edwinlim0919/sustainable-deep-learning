@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 
-# Install OpenMPI
-#sudo apt-get update
-#sudo apt-get install openmpi-bin openmpi-common libopenmpi-dev
-
-
 # Install NVIDIA drivers
 sudo apt-get update
-sudo apt-get install nvidia-driver-535
+sudo apt-get install -y nvidia-driver-535
 sudo nvidia-persistenced  --user root
 nvidia-smi
 
