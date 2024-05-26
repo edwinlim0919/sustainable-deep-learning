@@ -1,0 +1,53 @@
+------------------------------------- Calculate Flops Results -------------------------------------
+Notations:
+number of parameters (Params), number of multiply-accumulate operations(MACs),
+number of floating-point operations (FLOPs), floating-point operations per second (FLOPS),
+fwd FLOPs (model forward propagation FLOPs), bwd FLOPs (model backward propagation FLOPs),
+default model backpropagation takes 2.00 times as much computation as forward propagation.
+
+Total Training Params:                                                  6.74 B
+fwd MACs:                                                               1.69 TMACs
+fwd FLOPs:                                                              3.38 TFLOPS
+fwd+bwd MACs:                                                           5.07 TMACs
+fwd+bwd FLOPs:                                                          10.15 TFLOPS
+
+-------------------------------- Detailed Calculated FLOPs Results --------------------------------
+Each module caculated is listed after its name in the following order:
+params, percentage of total params, MACs, percentage of total MACs, FLOPS, percentage of total FLOPs
+
+Note: 1. A module can have torch.nn.module or torch.nn.functional to compute logits (e.g. CrossEntropyLoss).
+ They are not counted as submodules in calflops and not to be printed out. However they make up the difference between a parent's MACs and the sum of its submodules'.
+2. Number of floating-point operations is a theoretical estimation, thus FLOPS computed using that could be larger than the maximum system throughput.
+
+LlamaForCausalLM(
+  6.74 B = 100% Params, 1.69 TMACs = 100% MACs, 3.38 TFLOPS = 50% FLOPs
+  (model): LlamaModel(
+    6.61 B = 98.05% Params, 1.66 TMACs = 98.02% MACs, 3.32 TFLOPS = 49.01% FLOPs
+    (embed_tokens): Embedding(131.07 M = 1.95% Params, 0 MACs = 0% MACs, 0 FLOPS = 0% FLOPs, 32000, 4096)
+    (layers): ModuleList(
+      (0-31): 32 x LlamaDecoderLayer(
+        202.38 M = 3% Params, 51.81 GMACs = 3.06% MACs, 103.62 GFLOPS = 1.53% FLOPs
+        (self_attn): LlamaSdpaAttention(
+          67.11 M = 1% Params, 17.18 GMACs = 1.02% MACs, 34.36 GFLOPS = 0.51% FLOPs
+          (q_proj): Linear(16.78 M = 0.25% Params, 4.29 GMACs = 0.25% MACs, 8.59 GFLOPS = 0.13% FLOPs, in_features=4096, out_features=4096, bias=False)
+          (k_proj): Linear(16.78 M = 0.25% Params, 4.29 GMACs = 0.25% MACs, 8.59 GFLOPS = 0.13% FLOPs, in_features=4096, out_features=4096, bias=False)
+          (v_proj): Linear(16.78 M = 0.25% Params, 4.29 GMACs = 0.25% MACs, 8.59 GFLOPS = 0.13% FLOPs, in_features=4096, out_features=4096, bias=False)
+          (o_proj): Linear(16.78 M = 0.25% Params, 4.29 GMACs = 0.25% MACs, 8.59 GFLOPS = 0.13% FLOPs, in_features=4096, out_features=4096, bias=False)
+          (rotary_emb): LlamaRotaryEmbedding(0 = 0% Params, 0 MACs = 0% MACs, 0 FLOPS = 0% FLOPs)
+        )
+        (mlp): LlamaMLP(
+          135.27 M = 2.01% Params, 34.63 GMACs = 2.05% MACs, 69.26 GFLOPS = 1.02% FLOPs
+          (gate_proj): Linear(45.09 M = 0.67% Params, 11.54 GMACs = 0.68% MACs, 23.09 GFLOPS = 0.34% FLOPs, in_features=4096, out_features=11008, bias=False)
+          (up_proj): Linear(45.09 M = 0.67% Params, 11.54 GMACs = 0.68% MACs, 23.09 GFLOPS = 0.34% FLOPs, in_features=4096, out_features=11008, bias=False)
+          (down_proj): Linear(45.09 M = 0.67% Params, 11.54 GMACs = 0.68% MACs, 23.09 GFLOPS = 0.34% FLOPs, in_features=11008, out_features=4096, bias=False)
+          (act_fn): SiLU(0 = 0% Params, 0 MACs = 0% MACs, 2.82 MFLOPS = 0% FLOPs)
+        )
+        (input_layernorm): LlamaRMSNorm(4.1 K = 0% Params, 0 MACs = 0% MACs, 0 FLOPS = 0% FLOPs)
+        (post_attention_layernorm): LlamaRMSNorm(4.1 K = 0% Params, 0 MACs = 0% MACs, 0 FLOPS = 0% FLOPs)
+      )
+    )
+    (norm): LlamaRMSNorm(4.1 K = 0% Params, 0 MACs = 0% MACs, 0 FLOPS = 0% FLOPs)
+  )
+  (lm_head): Linear(131.07 M = 1.95% Params, 33.55 GMACs = 1.98% MACs, 67.11 GFLOPS = 0.99% FLOPs, in_features=4096, out_features=32000, bias=False)
+)
+---------------------------------------------------------------------------------------------------

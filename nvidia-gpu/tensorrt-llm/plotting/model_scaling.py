@@ -2,31 +2,65 @@ import argparse
 import ast
 import matplotlib.pyplot as plt
 import numpy as np
+import io
+import contextlib
 
-from calflops import calculate_flops
-from calflops import calculate_flops_hf
-from transformers import LlamaTokenizer
-from transformers import LlamaForCausalLM
+from calflops import calculate_flops, calculate_flops_hf
+from transformers import LlamaTokenizer, LlamaForCausalLM
 
 
-def plot_model_flops_scaling(
+# TODO: not great since we have to download model weights to run calflops locally, but only thing that works ATM
+def plot_model_flops_scaling_local(
     sequence_lengths: list[int],
     model_names: list[str],
     plot_name: str,
-    plot_filename: str,
-    hf_access_token: str
+    plot_filename: str
 ):
     for model_name in model_names:
         model = LlamaForCausalLM.from_pretrained(model_name)
         tokenizer = LlamaTokenizer.from_pretrained(model_name)
 
         for sequence_length in sequence_lengths:
-            flops, macs, params = calculate_flops(
-                model=model,
-                input_shape=(1, sequence_length), # for FLOPs scaling, just consider single sequence
-                transformer_tokenizer=tokenizer
-            )
-            print(f'{model_name} {sequence_length}: {flops}, {macs}, {params}')
+            # capture stdout of calculate_flops function
+            stdout_capture = io.StringIO()
+
+            with contextlib.redirect_stdout(stdout_capture):
+                flops, macs, params = calculate_flops(
+                    model=model,
+                    input_shape=(1, sequence_length), # for FLOPs scaling, just consider single sequence
+                    transformer_tokenizer=tokenizer
+                )
+                print(f'RETURNED: {model_name} {sequence_length}: {flops}, {macs}, {params}')
+
+            output = stdout_capture.getvalue()
+            print(f'PRINTED: {output}')
+
+
+# This version uses huggingface to calculate FLOPs
+# TODO: don't know why this doesn't work
+#def plot_model_flops_scaling_hf(
+#    sequence_lengths: list[int],
+#    model_names: list[str],
+#    plot_name: str,
+#    plot_filename: str,
+#    hf_access_token: str
+#):
+#    for model_name in model_names:
+#        for sequence_length in sequence_lengths:
+#            batch_size = 1 # for FLOPs scaling, just consider a single sequence
+#            #flops, macs, params = calculate_flops_hf(
+#            #    model_name=model_name,
+#            #    access_token=hf_access_token,
+#            #    input_shape=(batch_size, sequence_length)
+#            #)
+#            flops, macs, params = calculate_flops_hf(
+#                model_name,
+#                access_token=hf_access_token,
+#                print_results=False,
+#                print_detailed=False,
+#                input_shape=(batch_size, sequence_length)
+#            )
+#            print(f'{model_name} {sequence_length}: {flops}, {macs}, {params}')
 
 
 def main(args):
@@ -49,22 +83,21 @@ def main(args):
             'meta-llama/Llama-2-13b-chat-hf',
             'meta-llama/Llama-2-70b-chat-hf'
         ]
-        plot_model_flops_scaling(
+        plot_model_flops_scaling_local(
             sequence_lengths,
             model_names,
             'Inference FLOPs Scaling',
-            'llm_inference_flops_scaling.png',
-            args.hf_access_token
+            'llm_inference_flops_scaling.png'
         )
     elif args.generate_plot == 'calflops_testing':
+        # compare calflops empirical results from calculations based on "Scaling Laws for Neural Language Models"
         sequence_lengths = [256]
         model_names = ['meta-llama/Llama-2-7b-chat-hf']
-        plot_model_flops_scaling(
+        plot_model_flops_scaling_local(
             sequence_lengths,
             model_names,
             'Calflops Testing',
-            'calflops_testing.png',
-            args.hf_access_token
+            'calflops_testing.png'
         )
 
 
