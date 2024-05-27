@@ -12,10 +12,11 @@ from transformers import LlamaTokenizer, LlamaForCausalLM
 def parse_calflops_stdout(calflops_output):
     calflops_lines = calflops_output.split('\n')
     calflops_section, detailed_calflops_section = False, False
-    calflops_info = {}
+    calflops_info, detailed_calflops_info = {}, {}
 
     for line in calflops_lines:
         stripped = line.strip()
+        stripped_split = stripped.split()
         
         if 'Calculate Flops Results' in stripped:
             calflops_section = True
@@ -24,10 +25,8 @@ def parse_calflops_stdout(calflops_output):
             detailed_calflops_section = True
 
         if calflops_section:
-            #print(f'CALFLOPS_SECTION: {stripped}')
-            stripped_split = stripped.split()
-
-            # parse data in calfops section
+            # Parse data in calfops section
+            # TODO: This data should be consistently formatted across different models, but not 100% sure
             if 'Total Training Params: ' in stripped:
                 calflops_info['total_training_params'] = stripped_split[-2]
                 calflops_info['total_training_params_units'] = stripped_split[-1]
@@ -44,11 +43,15 @@ def parse_calflops_stdout(calflops_output):
                 calflops_info['fwd_bwd_FLOPs'] = stripped_split[-2]
                 calflops_info['fwd_bwd_FLOPs_units'] = stripped_split[-1]
 
-        #if detailed_calflops_section:
-            #print(f'DETAILED_CALFLOPS_SECTION: {stripped}')
+        print(line)
 
-    for key, val in calflops_info.items():
-        print(f'CALFLOPS_INFO {key}: {val}')
+        #if detailed_calflops_section:
+            #print(f'DETAILED_CALFLOPS_SECTION: {line}')
+            # This data is model-specific, so need custom parsing
+
+
+    #for key, val in calflops_info.items():
+    #    print(f'CALFLOPS_INFO {key}: {val}')
 
 
 
@@ -80,33 +83,6 @@ def plot_model_flops_scaling_local(
             #print(f'RETURNED: {model_name} {sequence_length}: {flops}, {macs}, {params}')
 
 
-# This version uses huggingface to calculate FLOPs
-# TODO: don't know why this doesn't work
-#def plot_model_flops_scaling_hf(
-#    sequence_lengths: list[int],
-#    model_names: list[str],
-#    plot_name: str,
-#    plot_filename: str,
-#    hf_access_token: str
-#):
-#    for model_name in model_names:
-#        for sequence_length in sequence_lengths:
-#            batch_size = 1 # for FLOPs scaling, just consider a single sequence
-#            #flops, macs, params = calculate_flops_hf(
-#            #    model_name=model_name,
-#            #    access_token=hf_access_token,
-#            #    input_shape=(batch_size, sequence_length)
-#            #)
-#            flops, macs, params = calculate_flops_hf(
-#                model_name,
-#                access_token=hf_access_token,
-#                print_results=False,
-#                print_detailed=False,
-#                input_shape=(batch_size, sequence_length)
-#            )
-#            print(f'{model_name} {sequence_length}: {flops}, {macs}, {params}')
-
-
 def main(args):
     # TODO: specify different args for different FLOPs
     if args.generate_plot == 'flops_scaling_gpt2_llama2_128_4096':
@@ -133,15 +109,28 @@ def main(args):
             'Inference FLOPs Scaling',
             'llm_inference_flops_scaling.png'
         )
-    elif args.generate_plot == 'calflops_testing':
+    elif args.generate_plot == 'calflops_dev_1':
         # compare calflops empirical results from calculations based on "Scaling Laws for Neural Language Models"
         sequence_lengths = [256]
         model_names = ['meta-llama/Llama-2-7b-chat-hf']
         plot_model_flops_scaling_local(
             sequence_lengths,
             model_names,
-            'Calflops Testing',
-            'calflops_testing.png'
+            'Calflops Dev 1',
+            'calflops_dev_1.png'
+        )
+    elif args.generate_plot == 'calflops_dev_2':
+        sequence_lengths = [256]
+        model_names = [
+            #'meta-llama/Llama-2-7b-chat-hf',
+            #'meta-llama/Llama-2-13b-chat-hf',
+            'meta-llama/Llama-2-70b-chat-hf'
+        ]
+        plot_model_flops_scaling_local(
+            sequence_lengths,
+            model_names,
+            'Calflops Dev 2',
+            'calflops_dev_2.png'
         )
 
 
