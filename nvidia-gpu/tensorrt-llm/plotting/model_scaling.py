@@ -11,11 +11,45 @@ from transformers import LlamaTokenizer, LlamaForCausalLM
 
 def parse_calflops_stdout(calflops_output):
     calflops_lines = calflops_output.split('\n')
-    print('PARSE_CALFLOPS_STDOUT START')
+    calflops_section, detailed_calflops_section = False, False
+    calflops_info = {}
+
     for line in calflops_lines:
         stripped = line.strip()
-        print(stripped)
-    print('PARSE_CALFLOPS_STDOUT END')
+        
+        if 'Calculate Flops Results' in stripped:
+            calflops_section = True
+        if 'Detailed Calculated FLOPs Results' in stripped:
+            calflops_section = False
+            detailed_calflops_section = True
+
+        if calflops_section:
+            #print(f'CALFLOPS_SECTION: {stripped}')
+            stripped_split = stripped.split()
+
+            # parse data in calfops section
+            if 'Total Training Params: ' in stripped:
+                calflops_info['total_training_params'] = stripped_split[-2]
+                calflops_info['total_training_params_units'] = stripped_split[-1]
+            if 'fwd MACs: ' in stripped:
+                calflops_info['fwd_MACs'] = stripped_split[-2]
+                calflops_info['fwd_MACs_units'] = stripped_split[-1]
+            if 'fwd FLOPs: ' in stripped:
+                calflops_info['fwd_FLOPs'] = stripped_split[-2]
+                calflops_info['fwd_FLOPs_units'] = stripped_split[-1]
+            if 'fwd+bwd MACs: ' in stripped:
+                calflops_info['fwd_bwd_MACs'] = stripped_split[-2]
+                calflops_info['fwd_bwd_MACs_units'] = stripped_split[-1]
+            if 'fwd+bwd FLOPs: ' in stripped:
+                calflops_info['fwd_bwd_FLOPs'] = stripped_split[-2]
+                calflops_info['fwd_bwd_FLOPs_units'] = stripped_split[-1]
+
+        #if detailed_calflops_section:
+            #print(f'DETAILED_CALFLOPS_SECTION: {stripped}')
+
+    for key, val in calflops_info.items():
+        print(f'CALFLOPS_INFO {key}: {val}')
+
 
 
 # TODO: not great since we have to download model weights to run calflops locally, but only thing that works ATM
