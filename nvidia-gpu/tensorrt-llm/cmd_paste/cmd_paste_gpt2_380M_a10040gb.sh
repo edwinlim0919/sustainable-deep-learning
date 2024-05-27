@@ -28,8 +28,8 @@ trtllm-build --checkpoint_dir gpt2-medium/trt_ckpt/fp16/1-gpu/ --gemm_plugin flo
 trtllm-build --checkpoint_dir gpt2-medium/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2-medium/trt_engines/fp16/1-gpu-512-batch/ --max_batch_size 512
 trtllm-build --checkpoint_dir gpt2-medium/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2-medium/trt_engines/fp16/1-gpu-768-batch/ --max_batch_size 768
 trtllm-build --checkpoint_dir gpt2-medium/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2-medium/trt_engines/fp16/1-gpu-1024-batch/ --max_batch_size 1024
-trtllm-build --checkpoint_dir gpt2-medium/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2-medium/trt_engines/fp16/1-gpu-1088-batch/ --max_batch_size 1088
 trtllm-build --checkpoint_dir gpt2-medium/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2-medium/trt_engines/fp16/1-gpu-1152-batch/ --max_batch_size 1152
+trtllm-build --checkpoint_dir gpt2-medium/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2-medium/trt_engines/fp16/1-gpu-1216-batch/ --max_batch_size 1216
 
 # OOM
 trtllm-build --checkpoint_dir gpt2-medium/trt_ckpt/fp16/1-gpu/ --gemm_plugin float16 --output_dir gpt2-medium/trt_engines/fp16/1-gpu-1280-batch/ --max_batch_size 1280
@@ -67,15 +67,15 @@ python3 benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/380M/fp16/1-gpu-1
 python3 ../benchmark_trtllm.py --tokenizer_dir gpt2-medium --engine_dir gpt2-medium/trt_engines/fp16/1-gpu-1024-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1024 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1024-batch --output_file bmark_numreqsample0_iter100_max500_a10040gb.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
 sudo docker cp dec7beecb269:/TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1024-batch/bmark_numreqsample0_iter100_max500_a10040gb.out ../outputs/gpt/380M/fp16/1-gpu-1024-batch/bmark_numreqsample0_iter100_max500_a10040gb.out
 
-# fp16 nowq batch 1088
-python3 benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/380M/fp16/1-gpu-1088-batch --output_file nvsmi_numreqsample0_iter100_max500_a10040gb.out --container_id dec7beecb269 --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --gpu_type a10040gb
-python3 ../benchmark_trtllm.py --tokenizer_dir gpt2-medium --engine_dir gpt2-medium/trt_engines/fp16/1-gpu-1088-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1088 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1088-batch --output_file bmark_numreqsample0_iter100_max500_a10040gb.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
-sudo docker cp dec7beecb269:/TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1088-batch/bmark_numreqsample0_iter100_max500_a10040gb.out ../outputs/gpt/380M/fp16/1-gpu-1088-batch/bmark_numreqsample0_iter100_max500_a10040gb.out
-
 # fp16 nowq batch 1152
 python3 benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/380M/fp16/1-gpu-1152-batch --output_file nvsmi_numreqsample0_iter100_max500_a10040gb.out --container_id dec7beecb269 --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --gpu_type a10040gb
 python3 ../benchmark_trtllm.py --tokenizer_dir gpt2-medium --engine_dir gpt2-medium/trt_engines/fp16/1-gpu-1152-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1152 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1152-batch --output_file bmark_numreqsample0_iter100_max500_a10040gb.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
 sudo docker cp dec7beecb269:/TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1152-batch/bmark_numreqsample0_iter100_max500_a10040gb.out ../outputs/gpt/380M/fp16/1-gpu-1152-batch/bmark_numreqsample0_iter100_max500_a10040gb.out
+
+# fp16 nowq batch 1216
+python3 benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/380M/fp16/1-gpu-1216-batch --output_file nvsmi_numreqsample0_iter100_max500_a10040gb.out --container_id dec7beecb269 --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --gpu_type a10040gb
+python3 ../benchmark_trtllm.py --tokenizer_dir gpt2-medium --engine_dir gpt2-medium/trt_engines/fp16/1-gpu-1216-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1216 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1216-batch --output_file bmark_numreqsample0_iter100_max500_a10040gb.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
+sudo docker cp dec7beecb269:/TensorRT-LLM/examples/gpt/outputs/gpt/380M/fp16/1-gpu-1216-batch/bmark_numreqsample0_iter100_max500_a10040gb.out ../outputs/gpt/380M/fp16/1-gpu-1216-batch/bmark_numreqsample0_iter100_max500_a10040gb.out
 
 # OOM
 # fp16 nowq batch 1280
