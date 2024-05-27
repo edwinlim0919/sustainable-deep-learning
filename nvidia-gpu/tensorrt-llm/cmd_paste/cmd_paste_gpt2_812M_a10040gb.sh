@@ -1,13 +1,15 @@
 # TensorRT-LLM standalone
 
 
-# gpt2-large setup commands
+# HELPER COMMANDS
 sed -i "s/dec7beecb269/dec7beecb269/g" cmd_paste_gpt2_812M_a10040gb.sh # replace docker container id in cmd_paste.sh with the current one
 
 # Flushing GPU memory
 sudo fuser -v /dev/nvidia*
 sudo kill -9 <PID>
 
+
+# GPT2 SETUP COMMANDS
 # container "/TensorRT-LLM/examples/gpt"
 pip install -r requirements.txt
 rm -rf gpt2-large && git clone https://huggingface.co/gpt2-large gpt2-large
@@ -26,9 +28,13 @@ sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json dec7beecb269:/TensorRT-
 sudo docker cp ShareGPT_V3_unfiltered_cleaned_split_top100.json dec7beecb269:/TensorRT-LLM/tensorrt_llm/examples/ShareGPT_V3_unfiltered_cleaned_split_top100.json
 
 
-# experiments TODO: is this a fair comparison against Llama2? max sequence length for gpt2 is 1024
+# EXPERIMENT COMMANDS
 # 1 gpu 1 batch 500 max
-# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 python3 benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/812M/fp16/1-gpu-1-batch --output_file nvsmi_numreqsample0_iter100_max500_a10040gb.out --container_id dec7beecb269 --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --gpu_type a10040gb
-python3 ../benchmark_trtllm.py --tokenizer_dir gpt2 --engine_dir gpt2-large/trt_engines/fp16/1-gpu-1-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/812M/fp16/1-gpu-1-batch --output_file bmark_numreqsample0_iter100_max500_a10040gb.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
+python3 ../benchmark_trtllm.py --tokenizer_dir gpt2-large --engine_dir gpt2-large/trt_engines/fp16/1-gpu-1-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/812M/fp16/1-gpu-1-batch --output_file bmark_numreqsample0_iter100_max500_a10040gb.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
 sudo docker cp dec7beecb269:/TensorRT-LLM/examples/gpt/outputs/gpt/812M/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_a10040gb.out ../outputs/gpt/812M/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max500_a10040gb.out
+
+# 1 gpu 64 batch 500 max
+python3 benchmarking/nvsmi_monitor.py --output_dir outputs/gpt/812M/fp16/1-gpu-64-batch --output_file nvsmi_numreqsample0_iter100_max500_a10040gb.out --container_id dec7beecb269 --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --gpu_type a10040gb
+python3 ../benchmark_trtllm.py --tokenizer_dir gpt2-large --engine_dir gpt2-large/trt_engines/fp16/1-gpu-64-batch --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 64 --max_input_tokens 500 --max_output_tokens 500 --output_dir /TensorRT-LLM/examples/gpt/outputs/gpt/812M/fp16/1-gpu-64-batch --output_file bmark_numreqsample0_iter100_max500_a10040gb.out --container_output_dir /TensorRT-LLM/examples/gpt --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100 --no_token_logging
+sudo docker cp dec7beecb269:/TensorRT-LLM/examples/gpt/outputs/gpt/812M/fp16/1-gpu-64-batch/bmark_numreqsample0_iter100_max500_a10040gb.out ../outputs/gpt/812M/fp16/1-gpu-64-batch/bmark_numreqsample0_iter100_max500_a10040gb.out
