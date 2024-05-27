@@ -9,6 +9,15 @@ from calflops import calculate_flops, calculate_flops_hf
 from transformers import LlamaTokenizer, LlamaForCausalLM
 
 
+def parse_calflops_stdout(calflops_output):
+    calflops_lines = calflops_output.split('\n')
+    print('PARSE_CALFLOPS_STDOUT START')
+    for line in calflops_lines:
+        stripped = line.strip()
+        print(stripped)
+    print('PARSE_CALFLOPS_STDOUT END')
+
+
 # TODO: not great since we have to download model weights to run calflops locally, but only thing that works ATM
 def plot_model_flops_scaling_local(
     sequence_lengths: list[int],
@@ -30,10 +39,11 @@ def plot_model_flops_scaling_local(
                     input_shape=(1, sequence_length), # for FLOPs scaling, just consider single sequence
                     transformer_tokenizer=tokenizer
                 )
-                print(f'RETURNED: {model_name} {sequence_length}: {flops}, {macs}, {params}')
 
             output = stdout_capture.getvalue()
-            print(f'PRINTED: {output}')
+            parse_calflops_stdout(output)
+            #print(f'PRINTED: {output}')
+            #print(f'RETURNED: {model_name} {sequence_length}: {flops}, {macs}, {params}')
 
 
 # This version uses huggingface to calculate FLOPs
@@ -117,6 +127,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     main(args)
+
 
 #llama2_model_params = {
 #    '7B': {
