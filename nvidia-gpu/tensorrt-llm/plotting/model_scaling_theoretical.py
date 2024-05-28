@@ -9,11 +9,19 @@ all_model_info = {
         'd_embd'        : 4096,  # hidden_size
         'd_ff'          : 11008, # intermediate_size
         'n_layer'       : 32,    # num_hidden_layers
-        'n_vocab'       : 32000  # vocab_size
-        'model_size_GB' : 13.48
+        'n_vocab'       : 32000, # vocab_size
+        'model_size_GB' : 13.48,
+        'attn_comp'     : 'MHA'
     },
     'meta-llama/Llama-2-13b-chat-hf': {
-
+        'd_model'       : 5120,  # hidden_size
+        'd_attn'        : 5120,  # hidden_size
+        'd_embd'        : 5120,  # hidden_size
+        'd_ff'          : 13824, # intermediate_size
+        'n_layer'       : 40,    # num_hidden_layers
+        'n_vocab'       : 32000, # vocab_size
+        'model_size_GB' : 26.03,
+        'attn_comp'     : 'MHA'
     }
 }
 
