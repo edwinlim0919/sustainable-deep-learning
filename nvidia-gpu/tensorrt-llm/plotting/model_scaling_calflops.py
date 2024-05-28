@@ -9,54 +9,55 @@ from calflops import calculate_flops, calculate_flops_hf
 from transformers import LlamaTokenizer, LlamaForCausalLM
 
 
-def parse_calflops_stdout(calflops_output):
-    calflops_lines = calflops_output.split('\n')
-    calflops_section, detailed_calflops_section = False, False
-    calflops_info, detailed_calflops_info = {}, {}
-
-    for line in calflops_lines:
-        stripped = line.strip()
-        stripped_split = stripped.split()
-        
-        if 'Calculate Flops Results' in stripped:
-            calflops_section = True
-        if 'Detailed Calculated FLOPs Results' in stripped:
-            calflops_section = False
-            detailed_calflops_section = True
-
-        if calflops_section:
-            # Parse data in calfops section
-            # TODO: This data should be consistently formatted across different models, but not 100% sure
-            if 'Total Training Params: ' in stripped:
-                calflops_info['total_training_params'] = stripped_split[-2]
-                calflops_info['total_training_params_units'] = stripped_split[-1]
-            if 'fwd MACs: ' in stripped:
-                calflops_info['fwd_MACs'] = stripped_split[-2]
-                calflops_info['fwd_MACs_units'] = stripped_split[-1]
-            if 'fwd FLOPs: ' in stripped:
-                calflops_info['fwd_FLOPs'] = stripped_split[-2]
-                calflops_info['fwd_FLOPs_units'] = stripped_split[-1]
-            if 'fwd+bwd MACs: ' in stripped:
-                calflops_info['fwd_bwd_MACs'] = stripped_split[-2]
-                calflops_info['fwd_bwd_MACs_units'] = stripped_split[-1]
-            if 'fwd+bwd FLOPs: ' in stripped:
-                calflops_info['fwd_bwd_FLOPs'] = stripped_split[-2]
-                calflops_info['fwd_bwd_FLOPs_units'] = stripped_split[-1]
-
-        print(line)
-
-        #if detailed_calflops_section:
-            #print(f'DETAILED_CALFLOPS_SECTION: {line}')
-            # This data is model-specific, so need custom parsing
-
-
-    #for key, val in calflops_info.items():
-    #    print(f'CALFLOPS_INFO {key}: {val}')
+# No point in hardcoding parsing, just look at the output and record relevant info
+#def parse_calflops_stdout(calflops_output):
+#    calflops_lines = calflops_output.split('\n')
+#    calflops_section, detailed_calflops_section = False, False
+#    calflops_info, detailed_calflops_info = {}, {}
+#
+#    for line in calflops_lines:
+#        stripped = line.strip()
+#        stripped_split = stripped.split()
+#        
+#        if 'Calculate Flops Results' in stripped:
+#            calflops_section = True
+#        if 'Detailed Calculated FLOPs Results' in stripped:
+#            calflops_section = False
+#            detailed_calflops_section = True
+#
+#        if calflops_section:
+#            # Parse data in calfops section
+#            # TODO: This data should be consistently formatted across different models, but not 100% sure
+#            if 'Total Training Params: ' in stripped:
+#                calflops_info['total_training_params'] = stripped_split[-2]
+#                calflops_info['total_training_params_units'] = stripped_split[-1]
+#            if 'fwd MACs: ' in stripped:
+#                calflops_info['fwd_MACs'] = stripped_split[-2]
+#                calflops_info['fwd_MACs_units'] = stripped_split[-1]
+#            if 'fwd FLOPs: ' in stripped:
+#                calflops_info['fwd_FLOPs'] = stripped_split[-2]
+#                calflops_info['fwd_FLOPs_units'] = stripped_split[-1]
+#            if 'fwd+bwd MACs: ' in stripped:
+#                calflops_info['fwd_bwd_MACs'] = stripped_split[-2]
+#                calflops_info['fwd_bwd_MACs_units'] = stripped_split[-1]
+#            if 'fwd+bwd FLOPs: ' in stripped:
+#                calflops_info['fwd_bwd_FLOPs'] = stripped_split[-2]
+#                calflops_info['fwd_bwd_FLOPs_units'] = stripped_split[-1]
+#
+#        print(line)
+#
+#        #if detailed_calflops_section:
+#            #print(f'DETAILED_CALFLOPS_SECTION: {line}')
+#            # This data is model-specific, so need custom parsing
+#
+#
+#    #for key, val in calflops_info.items():
+#    #    print(f'CALFLOPS_INFO {key}: {val}')
 
 
 
 # TODO: not great since we have to download model weights to run calflops locally, but only thing that works ATM
-def plot_model_flops_scaling_local(
+def calculate_model_flops_local(
     sequence_lengths: list[int],
     model_names: list[str],
     plot_name: str,
@@ -78,7 +79,7 @@ def plot_model_flops_scaling_local(
                 )
 
             output = stdout_capture.getvalue()
-            parse_calflops_stdout(output)
+            #parse_calflops_stdout(output)
             #print(f'PRINTED: {output}')
             #print(f'RETURNED: {model_name} {sequence_length}: {flops}, {macs}, {params}')
 
@@ -103,7 +104,7 @@ def main(args):
             'meta-llama/Llama-2-13b-chat-hf',
             'meta-llama/Llama-2-70b-chat-hf'
         ]
-        plot_model_flops_scaling_local(
+        calculate_model_flops_local(
             sequence_lengths,
             model_names,
             'Inference FLOPs Scaling',
@@ -113,7 +114,7 @@ def main(args):
         # compare calflops empirical results from calculations based on "Scaling Laws for Neural Language Models"
         sequence_lengths = [256]
         model_names = ['meta-llama/Llama-2-7b-chat-hf']
-        plot_model_flops_scaling_local(
+        calculate_model_flops_local(
             sequence_lengths,
             model_names,
             'Calflops Dev 1',
@@ -122,11 +123,11 @@ def main(args):
     elif args.generate_plot == 'calflops_dev_2':
         sequence_lengths = [256]
         model_names = [
-            #'meta-llama/Llama-2-7b-chat-hf',
-            #'meta-llama/Llama-2-13b-chat-hf',
-            'meta-llama/Llama-2-70b-chat-hf'
+            'meta-llama/Llama-2-7b-chat-hf',
+            'meta-llama/Llama-2-13b-chat-hf',
+            #'meta-llama/Llama-2-70b-chat-hf'
         ]
-        plot_model_flops_scaling_local(
+        calculate_model_flops_local(
             sequence_lengths,
             model_names,
             'Calflops Dev 2',
