@@ -34,7 +34,6 @@ def calculate_model_flops(
     use_kv_cache: bool
 ):
     assert(output_sequence_length >= input_sequence_length)
-
     model_info = all_model_info[model_name]
     d_model = model_info['d_model']
     d_attn = model_info['d_attn']
@@ -46,6 +45,8 @@ def calculate_model_flops(
     total_sequence_flops = 0
     per_token_flops_list = []
     for i in range(output_sequence_length - input_sequence_length):
+        # TODO: add support for GQA (currently calculates FLOPs for MHA)
+
         # Context includes original input sequence and any generate output tokens
         n_ctx = input_sequence_length + i
         # Calculate the number of FLOPs for each stage of inference
@@ -101,9 +102,23 @@ def flops_scaling(
             print(f'{model_name} {input_sequence_length} {output_sequence_length}: {total_sequence_flops}')
 
 
-#def calculate_model_params(
-#    model_name
-#):
+# estimate inference memory requirements based on size of kv-cache (if used), weights, and activations
+def calculate_model_memory(
+    model_name: str,
+    input_sequence_length: int,
+    output_sequence_length: int,
+    use_kv_cache: bool
+):
+    # TODO: add support for GQA (currently calculates memory for MHA)
+    assert(output_sequence_length >= input_sequence_length)
+    model_info = all_model_info[model_name]
+    d_model = model_info['d_model']
+    d_attn = model_info['d_attn']
+    d_embd = model_info['d_embd']
+    d_ff = model_info['d_ff']
+    n_layer = model_info['n_layer']
+    n_vocab = model_info['n_vocab']
+    model_size_GB = model_info['model_size_GB']
 
 
 def main(args):
