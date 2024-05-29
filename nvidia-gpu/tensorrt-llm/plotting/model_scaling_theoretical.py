@@ -46,6 +46,9 @@ def calculate_model_flops(
     assert(attn_comp == 'MHA' or
            attn_comp == 'GQA')
 
+    # PREFILL
+
+    # AUTO-REGRESSIVE DECODING
     total_sequence_flops = 0
     per_token_flops_list = []
     for i in range(output_sequence_length - input_sequence_length):
@@ -55,11 +58,10 @@ def calculate_model_flops(
 
         # Multi-Head Attention
         if attn_comp == 'MHA':
-            # Positional embeddings (TODO: or rotary embeddings? Zhihao said it should be negligible)
+            # Positional embeddings (TODO: or rotary embeddings (RoPE)? Zhihao said it should be negligible)
             # Assume embedding vector for entire sequence is stored on GPU memory w/o KV-caching
             # Assume only new input token needs to be present in GPU memory w/ KV-caching
-            # - w/o KV-cache: 2 * n_ctx * d_model B
-            # - w/ KV-cache: 2 * n_ctx * d_model B
+            # - This means embeddings vectors only have to be calculated for a newly generated token
             embedding_flops = 4 * d_model
 
             if use_kv_cache:
