@@ -4,29 +4,36 @@ import matplotlib.pyplot as plt
 
 all_model_info = {
     'meta-llama/Llama-2-7b-chat-hf': {
-        'd_model'       : 4096,  # hidden_size
-        'd_attn'        : 4096,  # hidden_size
-        'd_embd'        : 4096,  # hidden_size
-        'd_ff'          : 11008, # intermediate_size
-        'n_layer'       : 32,    # num_hidden_layers
-        'n_vocab'       : 32000, # vocab_size
-        'model_size_GB' : 13.48,
-        'attn_comp'     : 'MHA'
+        'd_model'       : 4096,   # hidden_size
+        'd_attn'        : 4096,   # hidden_size
+        'd_embd'        : 4096,   # hidden_size
+        'd_ff'          : 11008,  # intermediate_size
+        'n_layer'       : 32,     # num_hidden_layers
+        'n_vocab'       : 32000,  # vocab_size
+        'model_size_GB' : 13.48,  # GB
+        'attn_comp'     : 'MHA',  # multi head attention
+        'embd_comp'     : 'RoPE'  # rotary positional embeddings
     },
     'meta-llama/Llama-2-13b-chat-hf': {
-        'd_model'       : 5120,  # hidden_size
-        'd_attn'        : 5120,  # hidden_size
-        'd_embd'        : 5120,  # hidden_size
-        'd_ff'          : 13824, # intermediate_size
-        'n_layer'       : 40,    # num_hidden_layers
-        'n_vocab'       : 32000, # vocab_size
-        'model_size_GB' : 26.03,
-        'attn_comp'     : 'MHA'
+        'd_model'       : 5120,   # hidden_size
+        'd_attn'        : 5120,   # hidden_size
+        'd_embd'        : 5120,   # hidden_size
+        'd_ff'          : 13824,  # intermediate_size
+        'n_layer'       : 40,     # num_hidden_layers
+        'n_vocab'       : 32000,  # vocab_size
+        'model_size_GB' : 26.03,  # GB
+        'attn_comp'     : 'MHA',  # multi head attention
+        'embd_comp'     : 'RoPE'  # rotary posisional embeddings
     }
 }
 
 
-# calculations based on "Scaling Laws for Neural Language Models"
+# Calculations based on "Scaling Laws for Neural Language Models" and various blog posts
+# - Scaling Laws for Neural Language Models (https://arxiv.org/abs/2001.08361)
+# - Transformer Inference Arithmetic        (https://kipp.ly/transformer-inference-arithmetic/)
+# TODO: Add support for RoPE embeddings
+# TODO: Add support for KV-cache vs. non-KV-cache
+# TODO: Add support for GQA
 def calculate_model_flops(
     model_name: str,
     input_sequence_length: int,
@@ -50,9 +57,10 @@ def calculate_model_flops(
 
     # PREFILL FLOPs
     # Calculate embeddings for each token in the input sequence
+    # TODO: Why is it 4 instead of 3? Thought we only needed to calculate embeddings for QKV
     embedding_flops_prefill = 4 * d_model * n_ctx
     # Calculate attention for input sequence
-    attention_qkv_flops_prefill = 
+    attention_qkv_flops_prefill = 2 * n_layer * d_model * 3 * d_attn * n_ctx
 
     # AUTO-REGRESSIVE DECODING FLOPs
     for i in range(output_sequence_length - input_sequence_length):
