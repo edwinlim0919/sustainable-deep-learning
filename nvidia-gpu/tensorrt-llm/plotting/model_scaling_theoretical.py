@@ -34,6 +34,7 @@ def calculate_model_flops(
     use_kv_cache: bool
 ):
     assert(output_sequence_length >= input_sequence_length)
+
     model_info = all_model_info[model_name]
     d_model = model_info['d_model']
     d_attn = model_info['d_attn']
@@ -41,32 +42,50 @@ def calculate_model_flops(
     d_ff = model_info['d_ff']
     n_layer = model_info['n_layer']
     n_vocab = model_info['n_vocab']
+    attn_comp = model_info['attn_comp']
+    assert(attn_comp == 'MHA' or
+           attn_comp == 'GQA')
 
     total_sequence_flops = 0
     per_token_flops_list = []
     for i in range(output_sequence_length - input_sequence_length):
-        # TODO: add support for GQA (currently calculates FLOPs for MHA)
-
+        # For each token, calculate the number of FLOPs for each stage of inference
         # Context includes original input sequence and any generate output tokens
         n_ctx = input_sequence_length + i
-        # Calculate the number of FLOPs for each stage of inference
-        embedding_flops = 4 * d_model
 
-        if use_kv_cache:
-            # w/ kv-cache, only need to compute q tensor
-            attention_qkv_flops = 2 * n_layer * d_model * d_attn
-        else:
-            # w/o kv-cache, compute k, q, v tensors for each token
-            attention_qkv_flops = 2 * n_layer * d_model * 3 * d_attn
+        # Multi-Head Attention
+        if attn_comp == 'MHA':
+            # Positional embeddings (TODO: or rotary embeddings? Zhihao said it should be negligible)
+            embedding_flops = 4 * d_model
 
-        # Masking and final attention calculation still required
-        attention_mask_flops = 2 * n_layer * n_ctx * d_attn
-        attention_project_flops = 2 * n_layer * d_attn * d_embd
+            if use_kv_cache:
+                # w/ kv-cache, only need to compute q tensor
+                attention_qkv_flops = 2 * n_layer * d_model * d_attn
+            else:
+                # w/o kv-cache, compute k, q, v tensors for each token
+                attention_qkv_flops = 2 * n_layer * d_model * 3 * d_attn
 
-        # Feedforward
-        feedforward_flops = 2 * n_layer * 2 * d_model * d_ff
-        # De-embed
-        deembed_flops = 2 * d_model * n_vocab
+            # Masking and final attention calculation still required
+            attention_mask_flops = 2 * n_layer * n_ctx * d_attn
+            attention_project_flops = 2 * n_layer * d_attn * d_embd
+
+            # Feedforward
+            feedforward_flops = 2 * n_layer * 2 * d_model * d_ff
+            # De-embed
+            deembed_flops = 2 * d_model * n_vocab
+
+        # Grouped-Query Attention
+        elif attn_comp == 'GQA':
+            # Same as MHA
+            embedding_flops = 4 * d_model
+
+            if use_kv_cache:
+                # TODO
+                # w/ kv-cache...
+            else:
+                # w/o kv-cache, compute k, q, v tensors for each token
+                attention_qkv_flops =
+
 
         per_token_flops = embedding_flops + \
                           attention_qkv_flops + \
@@ -111,6 +130,7 @@ def calculate_model_memory(
 ):
     # TODO: add support for GQA (currently calculates memory for MHA)
     assert(output_sequence_length >= input_sequence_length)
+
     model_info = all_model_info[model_name]
     d_model = model_info['d_model']
     d_attn = model_info['d_attn']
