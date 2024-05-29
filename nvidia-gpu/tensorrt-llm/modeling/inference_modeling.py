@@ -34,7 +34,6 @@ def calculate_model_flops(
     use_kv_cache: bool
 ):
     assert(output_sequence_length >= input_sequence_length)
-
     model_info = all_model_info[model_name]
     d_model = model_info['d_model']
     d_attn = model_info['d_attn']
@@ -46,11 +45,16 @@ def calculate_model_flops(
     assert(attn_comp == 'MHA' or
            attn_comp == 'GQA')
 
-    # PREFILL
-
-    # AUTO-REGRESSIVE DECODING
     total_sequence_flops = 0
     per_token_flops_list = []
+
+    # PREFILL FLOPs
+    # Calculate embeddings for each token in the input sequence
+    embedding_flops_prefill = 4 * d_model * n_ctx
+    # Calculate attention for input sequence
+    attention_qkv_flops_prefill = 
+
+    # AUTO-REGRESSIVE DECODING FLOPs
     for i in range(output_sequence_length - input_sequence_length):
         # For each token, calculate the number of FLOPs for each stage of inference
         # Context includes original input sequence and any generate output tokens
@@ -62,23 +66,23 @@ def calculate_model_flops(
             # Assume embedding vector for entire sequence is stored on GPU memory w/o KV-caching
             # Assume only new input token needs to be present in GPU memory w/ KV-caching
             # - This means embeddings vectors only have to be calculated for a newly generated token
-            embedding_flops = 4 * d_model
+            embedding_flops_decode = 4 * d_model
 
             if use_kv_cache:
                 # w/ kv-cache, only need to compute q tensor
-                attention_qkv_flops = 2 * n_layer * d_model * d_attn
+                attention_qkv_flops_decode = 2 * n_layer * d_model * d_attn
             else:
                 # w/o kv-cache, compute k, q, v tensors for each token
-                attention_qkv_flops = 2 * n_layer * d_model * 3 * d_attn
+                attention_qkv_flops_decode = 2 * n_layer * d_model * 3 * d_attn
 
             # Masking and final attention calculation still required
-            attention_mask_flops = 2 * n_layer * n_ctx * d_attn
-            attention_project_flops = 2 * n_layer * d_attn * d_embd
+            attention_mask_flops_decode = 2 * n_layer * n_ctx * d_attn
+            attention_project_flops_decode = 2 * n_layer * d_attn * d_embd
 
             # Feedforward
-            feedforward_flops = 2 * n_layer * 2 * d_model * d_ff
+            feedforward_flops_decode = 2 * n_layer * 2 * d_model * d_ff
             # De-embed
-            deembed_flops = 2 * d_model * n_vocab
+            deembed_flops_decode = 2 * d_model * n_vocab
 
         # Grouped-Query Attention
         #elif attn_comp == 'GQA':
@@ -93,16 +97,15 @@ def calculate_model_flops(
         #        attention_qkv_flops =
 
 
-        per_token_flops = embedding_flops + \
-                          attention_qkv_flops + \
-                          attention_mask_flops + \
-                          attention_project_flops + \
-                          feedforward_flops + \
-                          deembed_flops
-        total_sequence_flops += per_token_flops
-        per_token_flops_list.append((n_ctx, per_token_flops))
+        per_token_flops_decode = embedding_flops_decode + \
+                                 attention_qkv_flops_decode + \
+                                 attention_mask_flops_decode + \
+                                 attention_project_flops_decode + \
+                                 feedforward_flops_decode + \
+                                 deembed_flops_decode
+        total_sequence_flops += per_token_flops_decode
+        per_token_flops_list.append((n_ctx, per_token_flops_decode))
 
-        #print(f'n_ctx: {n_ctx}, per_token_flops: {per_token_flops}')
     return total_sequence_flops, per_token_flops_list
 
 
@@ -113,7 +116,6 @@ def flops_scaling(
     use_kv_cache: bool
 ):
     assert(len(input_sequence_lengths) == len(output_sequence_lengths))
-
     for model_name in model_names:
         for i in range(len(input_sequence_lengths)):
             input_sequence_length = input_sequence_lengths[i]
@@ -136,7 +138,6 @@ def calculate_model_memory(
 ):
     # TODO: add support for GQA (currently calculates memory for MHA)
     assert(output_sequence_length >= input_sequence_length)
-
     model_info = all_model_info[model_name]
     d_model = model_info['d_model']
     d_attn = model_info['d_attn']
