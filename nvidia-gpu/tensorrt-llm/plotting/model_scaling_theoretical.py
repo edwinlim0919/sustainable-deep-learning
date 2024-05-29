@@ -56,6 +56,10 @@ def calculate_model_flops(
         # Multi-Head Attention
         if attn_comp == 'MHA':
             # Positional embeddings (TODO: or rotary embeddings? Zhihao said it should be negligible)
+            # Assume embedding vector for entire sequence is stored on GPU memory w/o KV-caching
+            # Assume only new input token needs to be present in GPU memory w/ KV-caching
+            # - w/o KV-cache: 2 * n_ctx * d_model B
+            # - w/ KV-cache: 2 * n_ctx * d_model B
             embedding_flops = 4 * d_model
 
             if use_kv_cache:
@@ -75,16 +79,16 @@ def calculate_model_flops(
             deembed_flops = 2 * d_model * n_vocab
 
         # Grouped-Query Attention
-        elif attn_comp == 'GQA':
-            # Same as MHA
-            embedding_flops = 4 * d_model
+        #elif attn_comp == 'GQA':
+        #    # Same as MHA
+        #    embedding_flops = 4 * d_model
 
-            if use_kv_cache:
-                # TODO
-                # w/ kv-cache...
-            else:
-                # w/o kv-cache, compute k, q, v tensors for each token
-                attention_qkv_flops =
+        #    if use_kv_cache:
+        #        # TODO
+        #        # w/ kv-cache...
+        #    else:
+        #        # w/o kv-cache, compute k, q, v tensors for each token
+        #        attention_qkv_flops =
 
 
         per_token_flops = embedding_flops + \
