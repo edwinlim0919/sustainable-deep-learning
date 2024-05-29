@@ -49,6 +49,10 @@ def calculate_model_flops(
     per_token_flops_list = []
 
     # PREFILL FLOPs
+    # Calculate embeddings for each token in the input sequence
+    embedding_flops_prefill = 4 * d_model * n_ctx
+    # Calculate attention for input sequence
+    attention_qkv_flops_prefill = 
 
     # AUTO-REGRESSIVE DECODING FLOPs
     for i in range(output_sequence_length - input_sequence_length):
