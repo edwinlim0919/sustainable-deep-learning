@@ -10,6 +10,11 @@ import transformer_model_scaling
 import gpu_batch_exp_utils
 
 
+# TODO: - This is theoretical user-perceived latency to provide a bound for TBT (time between tokens).
+#       - Actual user-perceived latency depends on how quickly the new tokens actually make it to the user.
+#       - TTFT (time to first token) is also an important metric, but is not taken into account with these experiments.
+# throughput : tokens per second
+# latency    : theoretical user-perceived seconds per token (TBT)
 def plot_throughput_vs_latency(
     bmark_entries,
     bmark_param_groups,
