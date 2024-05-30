@@ -15,13 +15,13 @@ import gpu_batch_exp_utils
 #       - TTFT (time to first token) is also an important metric, but is not taken into account with these experiments.
 # throughput : tokens per second
 # latency    : theoretical user-perceived seconds per token (TBT)
-def plot_throughput_vs_latency(
+def plot_throughput_vs_token_latency(
     bmark_entries,
     bmark_param_groups,
     plot_filename,
     plot_name
 ):
-    # This is just for grouping different bmark data points into lines
+    # Organizing different bmark data points for the line plot
     bmark_param_group_dicts = []
     for bmark_param_group in bmark_param_groups:
         group_split = bmark_param_group.split()
@@ -30,7 +30,6 @@ def plot_throughput_vs_latency(
         bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
         bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
         bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
-        bmark_param_group_dict['weight_quantization'] = group_split[4] if group_split[4] != 'X' else 'X'
 
         # For latency vs. throughput plots, track batch_sizes + avg tps + avg spt
         bmark_param_group_dict['batch_sizes'] = []
@@ -719,8 +718,8 @@ def main(args):
             args.bmark_param_groups,
             args.excluded_tokens
         )
-    if args.plot_throughput_vs_latency:
-        plot_throughput_vs_latency(
+    if args.plot_throughput_vs_token_latency:
+        plot_throughput_vs_token_latency(
             bmark_entries,
             args.bmark_param_groups,
             args.plot_filename,
@@ -776,7 +775,7 @@ if __name__ == '__main__':
         help='specify this arg to plot normalized token latency'
     )
     parser.add_argument(
-        '--plot_throughput_vs_latency',
+        '--plot_throughput_vs_token_latency',
         default=False,
         action='store_true',
         help='specify this arg to plot throughput vs latency'
