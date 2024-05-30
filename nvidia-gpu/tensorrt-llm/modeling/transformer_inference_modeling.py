@@ -60,6 +60,10 @@ def calculate_model_flops(
     # TODO: Why is it 4 instead of 3? Thought we only needed to calculate embeddings for QKV
     embedding_flops_prefill = 4 * d_model * n_ctx
     # Calculate attention for input sequence
+    # For each of the QKV (3)...
+    # - QKV   : [n_ctx, d_model]
+    # - W_qkv : [d_model, d_model]
+    # - QKV * W_qkv : 
     attention_qkv_flops_prefill = 2 * n_layer * d_model * 3 * d_attn * n_ctx
 
     # AUTO-REGRESSIVE DECODING FLOPs
