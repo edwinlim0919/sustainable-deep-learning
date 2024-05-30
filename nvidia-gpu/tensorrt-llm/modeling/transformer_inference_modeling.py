@@ -24,6 +24,10 @@ all_model_info = {
         'model_size_GB' : 26.03,  # GB
         'attn_comp'     : 'MHA',  # multi head attention
         'embd_comp'     : 'RoPE'  # rotary posisional embeddings
+    },
+    'meta-llama/Llama-2-70b-chat-hf': {
+        'd_model'       : 8192,   # hidden_size
+        'd_attn'
     }
 }
 
@@ -31,9 +35,9 @@ all_model_info = {
 # Calculations based on "Scaling Laws for Neural Language Models" and various blog posts
 # - Scaling Laws for Neural Language Models (https://arxiv.org/abs/2001.08361)
 # - Transformer Inference Arithmetic        (https://kipp.ly/transformer-inference-arithmetic/)
-# TODO: Add support for RoPE embeddings
-# TODO: Add support for KV-cache vs. non-KV-cache
-# TODO: Add support for GQA
+# TODO: Add support for RoPE embeddings (low priority)
+# TODO: Add support for KV-cache vs. non-KV-cache (in progress)
+# TODO: Add support for GQA (in progress)
 def calculate_model_flops(
     model_name: str,
     input_sequence_length: int,
@@ -60,10 +64,12 @@ def calculate_model_flops(
     # TODO: Why is it 4 instead of 3? Thought we only needed to calculate embeddings for QKV
     embedding_flops_prefill = 4 * d_model * n_ctx
     # Calculate attention for input sequence
-    # For each of the QKV (3)...
-    # - QKV   : [n_ctx, d_model]
-    # - W_qkv : [d_model, d_model]
-    # - QKV * W_qkv : 
+    # for each layer of the model (n_layer):
+    #   for each of the QKV (3):
+    #     - QKV         : [n_ctx, d_model]
+    #     - W_qkv       : [d_model, d_attn]
+    #     - QKV x W_qkv : 2 * n_ctx * d_model * d_attn
+    # Total: n_layer * 3 * 2 * n_ctx * d_model * d_attn
     attention_qkv_flops_prefill = 2 * n_layer * d_model * 3 * d_attn * n_ctx
 
     # AUTO-REGRESSIVE DECODING FLOPs
