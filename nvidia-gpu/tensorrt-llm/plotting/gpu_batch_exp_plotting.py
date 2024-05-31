@@ -17,7 +17,6 @@ def group_experiment_data(
     plotting_metrics
 ):
     bmark_param_group_dicts = []
-
     for bmark_param_group in bmark_param_groups:
         group_split = bmark_param_group.split()
         bmark_param_group_dict = {}
@@ -28,7 +27,6 @@ def group_experiment_data(
 
         for plotting_metric in plotting_metrics:
             bmark_param_group_dict[plotting_metric] = []
-
         bmark_param_group_dicts.append(bmark_param_group_dict)
 
     return bmark_param_group_dicts
