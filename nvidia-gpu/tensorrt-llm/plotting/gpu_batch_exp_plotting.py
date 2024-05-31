@@ -6,7 +6,7 @@ import math
 from pathlib import Path
 
 import numpy as np
-import transformer_model_scaling
+#import transformer_model_scaling
 import gpu_batch_exp_utils
 
 
@@ -17,7 +17,6 @@ def group_experiment_data(
     plotting_metrics
 ):
     bmark_param_group_dicts = []
-
     for bmark_param_group in bmark_param_groups:
         group_split = bmark_param_group.split()
         bmark_param_group_dict = {}
@@ -28,7 +27,6 @@ def group_experiment_data(
 
         for plotting_metric in plotting_metrics:
             bmark_param_group_dict[plotting_metric] = []
-
         bmark_param_group_dicts.append(bmark_param_group_dict)
 
     return bmark_param_group_dicts
@@ -64,9 +62,9 @@ def plot_throughput_vs_token_latency(
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
+        bmark_info = bmark_entry['bmark_info']
         print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
 
-        bmark_info = bmark_entry['bmark_info']
         # tps = tokens per second
         batch_tps_sum = 0
         batch_spt_sum = 0
@@ -148,18 +146,8 @@ def plot_throughput_vs_token_latency(
         model_size = bmark_param_group_dict['model_size']
         max_sequence_length = bmark_param_group_dict['max_sequence_length']
         gpu_type = bmark_param_group_dict['gpu_type']
-        #plt.plot(bmark_param_group_dict['avg_spts'], bmark_param_group_dict['avg_tpss'], label=f'{model_size} {gpu_type}', marker='o')
-        #plt.plot(avg_spts, avg_batch_e2e_times, label=f'{model_size} {gpu_type}', marker='o')
-
-        #plt.plot(avg_batch_e2e_times, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
         plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
 
-        #for avg_batch_e2e_time, avg_spt, batch_size in zip(avg_batch_e2e_times, avg_spts, batch_sizes):
-        #    plt.annotate(str(batch_size),
-        #                 (avg_batch_e2e_time, avg_spt),
-        #                 textcoords='offset points',
-        #                 xytext=(0, 10),
-        #                 ha='center')
         for avg_tps, avg_spt, batch_size in zip(avg_tpss, avg_spts, batch_sizes):
             plt.annotate(str(batch_size),
                          (avg_tps, avg_spt),
