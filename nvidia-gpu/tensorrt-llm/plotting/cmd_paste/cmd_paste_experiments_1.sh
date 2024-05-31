@@ -64,4 +64,4 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 								  --gpu_idx			   0 \
 								  --plot_filename      "llama2_throughput_vs_token_latency_tradeoff.png" \
 								  --plot_name		   "Llama2 Throughput-Latency Tradeoff" \
-								  --plot_throughput_vs_token_latency \
+								  --plot_throughput_vs_token_latency
