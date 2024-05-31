@@ -10,6 +10,30 @@ import transformer_model_scaling
 import gpu_batch_exp_utils
 
 
+# Group experiment data based on the parameter groups passed
+def group_experiment_data(
+    bmark_entries,
+    bmark_param_groups,
+    plotting_metrics
+):
+    bmark_param_group_dicts = []
+
+    for bmark_param_group in bmark_param_groups:
+        group_split = bmark_param_group.split()
+        bmark_param_group_dict = {}
+        bmark_param_group_dict['model_size'] = group_split[0] if group_split[0] != 'X' else 'X'
+        bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
+        bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
+        bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
+
+        for plotting_metric in plotting_metrics:
+            bmark_param_group_dict[plotting_metric] = []
+
+        bmark_param_group_dicts.append(bmark_param_group_dict)
+
+    return bmark_param_group_dicts
+
+
 # TODO: - This is theoretical user-perceived latency to provide a bound for TBT (time between tokens).
 #       - Actual user-perceived latency depends on how quickly the new tokens actually make it to the user.
 #       - TTFT (time to first token) is also an important metric, but is not taken into account with these experiments.
@@ -22,28 +46,24 @@ def plot_throughput_vs_token_latency(
     plot_name
 ):
     # Organizing different bmark data points for the line plot
-    bmark_param_group_dicts = []
-    for bmark_param_group in bmark_param_groups:
-        group_split = bmark_param_group.split()
-        bmark_param_group_dict = {}
-        bmark_param_group_dict['model_size'] = group_split[0] if group_split[0] != 'X' else 'X'
-        bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
-        bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
-        bmark_param_group_dict['gpu_type'] = group_split[3] if group_split[3] != 'X' else 'X'
-
-        # For latency vs. throughput plots, track batch_sizes + avg tps + avg spt
-        bmark_param_group_dict['batch_sizes'] = []
-        bmark_param_group_dict['avg_tpss'] = []
-        bmark_param_group_dict['avg_spts'] = []
-        bmark_param_group_dict['avg_batch_e2e_times'] = []
-        bmark_param_group_dicts.append(bmark_param_group_dict)
+    # For latency vs. throughput plots, track batch_sizes + avg tps + avg spt
+    plotting_metrics = [
+        'batch_sizes',
+        'avg_tpss',
+        'avg_spts',
+        'avg_batch_e2e_times'
+    ]
+    bmark_param_group_dicts = group_experiment_data(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_metrics
+    )
 
     for bmark_entry in bmark_entries:
         model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
-        weight_quantization = bmark_entry['weight_quantization']
         print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
 
         bmark_info = bmark_entry['bmark_info']
@@ -102,9 +122,6 @@ def plot_throughput_vs_token_latency(
             if (bmark_param_group_dict['gpu_type'] != 'X' and
                 bmark_param_group_dict['gpu_type'] != gpu_type):
                 continue
-            if (bmark_param_group_dict['weight_quantization'] != 'X' and
-                bmark_param_group_dict['weight_quantization'] != weight_quantization):
-                continue
 
             # Only reach this point if a match is found
             bmark_param_match_found = True
@@ -131,15 +148,11 @@ def plot_throughput_vs_token_latency(
         model_size = bmark_param_group_dict['model_size']
         max_sequence_length = bmark_param_group_dict['max_sequence_length']
         gpu_type = bmark_param_group_dict['gpu_type']
-        weight_quantization = bmark_param_group_dict['weight_quantization']
         #plt.plot(bmark_param_group_dict['avg_spts'], bmark_param_group_dict['avg_tpss'], label=f'{model_size} {gpu_type}', marker='o')
         #plt.plot(avg_spts, avg_batch_e2e_times, label=f'{model_size} {gpu_type}', marker='o')
 
         #plt.plot(avg_batch_e2e_times, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
-        if weight_quantization != 'nowq':
-            plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type} {weight_quantization}', marker='o')
-        else:
-            plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
+        plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
 
         #for avg_batch_e2e_time, avg_spt, batch_size in zip(avg_batch_e2e_times, avg_spts, batch_sizes):
         #    plt.annotate(str(batch_size),
@@ -391,8 +404,7 @@ def plot_power_or_energy(
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
-        weight_quantization = bmark_entry['weight_quantization']
-        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type} {weight_quantization}')
+        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
 
         if gpu_type == 'a10040gb':
             plot_a100_max_power = True
@@ -470,10 +482,7 @@ def plot_power_or_energy(
             joules_per_token = total_bmark_joules / total_bmark_generated_tokens
 
             joules_per_token_list.append(joules_per_token)
-            if weight_quantization != 'nowq':
-                joules_label_list.append(f'{model_size} {batch_size} {gpu_type} {weight_quantization}')
-            else:
-                joules_label_list.append(f'{model_size} {batch_size} {gpu_type}')
+            joules_label_list.append(f'{model_size} {batch_size} {gpu_type}')
 
 
         # project power measurements over a 24 hour period
@@ -675,7 +684,6 @@ def main(args):
         batch_size = int(curr_bmark_params[1])
         max_sequence_length = int(curr_bmark_params[2])
         gpu_type = curr_bmark_params[3]
-        weight_quantization = curr_bmark_params[4]
         bmark_info = gpu_batch_exp_utils.parse_bmark_output(bmark_output_paths[i])
         nvsmi_info = gpu_batch_exp_utils.parse_nvsmi_output(nvsmi_output_paths[i])
 
@@ -683,7 +691,6 @@ def main(args):
         bmark_entry['batch_size'] = batch_size
         bmark_entry['max_sequence_length'] = max_sequence_length
         bmark_entry['gpu_type'] = gpu_type
-        bmark_entry['weight_quantization'] = weight_quantization
         bmark_entry['bmark_info'] = bmark_info
         bmark_entry['nvsmi_info'] = nvsmi_info
         bmark_entries.append(bmark_entry)
