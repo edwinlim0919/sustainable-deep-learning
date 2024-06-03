@@ -1,11 +1,9 @@
 import torch
 import torchvision.models as models
-import torch_tensorrt
-import time
-
 from torchvision import transforms
-from PIL import image
-
+from PIL import Image
+from torch_tensorrt import TRTModule
+import time
 
 # loads pre-trained resnet50 model
 def load_model():
@@ -28,11 +26,30 @@ def preprocess_image(image_path):
     return image
 
 # performs inference 
-def benchmark(model, image_path)
+def benchmark(model, image_path):
     model_trt = TRTModule(model)
     image = preprocess_image(image_path)
     with torch.no_grad():
         output = model_trt(image)
     return output
 
+if __name__ == '__main__':
+    model = load_model()
+    image_path = 'path_to_your_image.jpg'  # TODO: replace with my image path
+    num_iterations = 100
+
+    # Warmup
+    output = benchmark(model, image_path)
+
+    # Start benchmarking
+    start_time = time.time()
+    for _ in range(num_iterations):
+        output = benchmark(model, image_path)
+    end_time = time.time()
+
+    # TODO: add nvsmi reading functionality
+
+    # Output results
+    print(f'Total time for {num_iterations} iterations: {elapsed_time:.4f} seconds')
+    print(f'Average time per iteration: {elapsed_time / num_iterations:.4f} seconds')
 
