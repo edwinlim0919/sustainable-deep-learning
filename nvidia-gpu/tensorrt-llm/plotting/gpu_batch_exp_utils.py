@@ -89,6 +89,7 @@ def parse_nvsmi_output(nvsmi_output_path):
 
     nvsmi_info = []
     for line in nvsmi_output_lines[1:]:
+        #print(line)
         nvsmi_dict = ast.literal_eval(line)
         num_gpus = nvsmi_dict['num_gpus']
 
