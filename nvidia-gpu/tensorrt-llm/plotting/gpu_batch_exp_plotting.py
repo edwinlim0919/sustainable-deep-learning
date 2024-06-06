@@ -44,11 +44,10 @@ def plot_throughput_vs_tbt(
     plot_name
 ):
     # Organizing different bmark data points for the line plot
-    # For latency vs. throughput plots, track batch_sizes + avg tps + avg spt
     plotting_metrics = [
         'batch_sizes',
         'avg_tpss',
-        'avg_spts',
+        'avg_tbts',
         'avg_batch_e2e_times'
     ]
     bmark_param_group_dicts = group_experiment_data(
@@ -82,22 +81,19 @@ def plot_throughput_vs_tbt(
             batch_output_lengths_items = batch_dict['batch_output_lengths'].items()
             assert(len(batch_input_lengths_items) == len(batch_output_lengths_items))
 
-            for i in range(len(batch_input_lengths_items)):
-                batch_input_length_index, batch_input_length = batch_input_lengths_items[i]
-                batch_output_length_index, batch_output_length = batch_output_lengths_items[i]
-                batch_tbt = batch_e2e_time / (batch_output_length - batch_input_length)
-
+            for (batch_input_length_index, batch_input_length), (batch_output_length_index, batch_output_length) in zip(batch_input_lengths_items, batch_output_lengths_items):
                 batch_input_lengths_sum += batch_input_length
                 batch_output_lengths_sum += batch_output_length
+
+                # Skip iteration if no tokens were generated
+                if batch_output_length == batch_input_length:
+                    continue
+                batch_tbt = batch_e2e_time / (batch_output_length - batch_input_length)
                 batch_tbt_sum += batch_tbt
 
             assert(batch_size == len(batch_input_lengths_items))
             total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
             batch_tbt_avg = batch_tbt_sum / batch_size
-
-            # In the off case that there were no generated tokens in this batch, skip this iteration
-            if avg_batch_generated_tokens == 0:
-                continue
 
             # tps = tokens per second
             batch_tps_avg = total_batch_generated_tokens / batch_e2e_time
