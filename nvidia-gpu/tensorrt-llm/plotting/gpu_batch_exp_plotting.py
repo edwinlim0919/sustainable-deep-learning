@@ -69,6 +69,7 @@ def plot_throughput_vs_tbt(
         # tbt = time between tokens (theoretically achievable user-perceived latency)
         tbt_sum = 0
         e2e_time_sum = 0
+        avg_generated_tokens_sum = 0
         num_iterations = 0
 
         for batch_iteration, batch_dict in bmark_info.items():
@@ -76,7 +77,8 @@ def plot_throughput_vs_tbt(
             batch_end_time = batch_dict['batch_end_time']
             batch_e2e_time = batch_end_time - batch_start_time
 
-            batch_input_lengths_sum, batch_output_lengths_sum, batch_tbt_sum = 0, 0, 0
+            #batch_input_lengths_sum, batch_output_lengths_sum, batch_tbt_sum = 0, 0, 0
+            batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
             batch_input_lengths_items = batch_dict['batch_input_lengths'].items()
             batch_output_lengths_items = batch_dict['batch_output_lengths'].items()
             assert(len(batch_input_lengths_items) == len(batch_output_lengths_items))
@@ -86,14 +88,22 @@ def plot_throughput_vs_tbt(
                 batch_output_lengths_sum += batch_output_length
 
                 # Skip iteration if no tokens were generated
-                if batch_output_length == batch_input_length:
-                    continue
-                batch_tbt = batch_e2e_time / (batch_output_length - batch_input_length)
-                batch_tbt_sum += batch_tbt
+                #if batch_output_length == batch_input_length:
+                #    continue
+                #batch_tbt = batch_e2e_time / (batch_output_length - batch_input_length)
+                #batch_tbt_sum += batch_tbt
 
             assert(batch_size == len(batch_input_lengths_items))
             total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
-            batch_tbt_avg = batch_tbt_sum / batch_size
+            avg_batch_generated_tokens = total_batch_generated_tokens / batch_size
+            #batch_tbt_avg = batch_tbt_sum / batch_size
+
+            # if no tokens generated, skip this iteration
+            if avg_batch_generated_tokens == 0:
+                continue
+
+            avg_generated_tokens_sum += avg_batch_generated_tokens
+            batch_tbt_avg = batch_e2e_time / avg_batch_generated_tokens
 
             # tps = tokens per second
             batch_tps_avg = total_batch_generated_tokens / batch_e2e_time
@@ -104,8 +114,9 @@ def plot_throughput_vs_tbt(
 
         avg_tps = tps_sum / num_iterations
         avg_tbt = tbt_sum / num_iterations
+        avg_generated_tokens = avg_generated_tokens_sum / num_iterations
         avg_e2e_time = e2e_time_sum / num_iterations
-        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_tbt} {avg_e2e_time}')
+        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_tbt} {avg_e2e_time} {avg_generated_tokens}')
 
         # group plotting points into the group_dicts
         bmark_param_match_found = False
