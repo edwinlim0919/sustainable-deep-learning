@@ -41,7 +41,8 @@ def plot_throughput_vs_tbt(
     bmark_entries,
     bmark_param_groups,
     plot_filename,
-    plot_name
+    plot_name,
+    excluded_tokens
 ):
     # Organizing different bmark data points for the line plot
     plotting_metrics = [
@@ -79,11 +80,22 @@ def plot_throughput_vs_tbt(
 
             #batch_input_lengths_sum, batch_output_lengths_sum, batch_tbt_sum = 0, 0, 0
             batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-            batch_input_lengths_items = batch_dict['batch_input_lengths'].items()
-            batch_output_lengths_items = batch_dict['batch_output_lengths'].items()
-            assert(len(batch_input_lengths_items) == len(batch_output_lengths_items))
+            #batch_input_lengths_items = batch_dict['batch_input_lengths'].items()
+            #batch_output_lengths_items = batch_dict['batch_output_lengths'].items()
 
-            for (batch_input_length_index, batch_input_length), (batch_output_length_index, batch_output_length) in zip(batch_input_lengths_items, batch_output_lengths_items):
+            batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
+            batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
+            assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
+
+            for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
+                batch_input_length, batch_output_length = 0, 0
+                for token in batch_input_tokens:
+                    if token not in excluded_tokens:
+                        batch_input_length += 1
+                for token in batch_output_tokens:
+                    if token not in excluded_tokens:
+                        batch_output_length += 1
+
                 batch_input_lengths_sum += batch_input_length
                 batch_output_lengths_sum += batch_output_length
 
@@ -93,7 +105,7 @@ def plot_throughput_vs_tbt(
                 #batch_tbt = batch_e2e_time / (batch_output_length - batch_input_length)
                 #batch_tbt_sum += batch_tbt
 
-            assert(batch_size == len(batch_input_lengths_items))
+            assert(batch_size == len(batch_input_tokens_items))
             total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
             avg_batch_generated_tokens = total_batch_generated_tokens / batch_size
             #batch_tbt_avg = batch_tbt_sum / batch_size
@@ -731,7 +743,8 @@ def main(args):
             bmark_entries,
             args.bmark_param_groups,
             args.plot_filename,
-            args.plot_name
+            args.plot_name,
+            args.excluded_tokens
         )
 
 
