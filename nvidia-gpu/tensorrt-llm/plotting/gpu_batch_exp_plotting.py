@@ -32,22 +32,17 @@ def group_experiment_data(
     return bmark_param_group_dicts
 
 
-# TODO: - This is theoretical user-perceived latency to provide a bound for TBT (time between tokens).
+# TODO: - This is theoretical user-perceived latency to provide a bound for tbt (time between tokens).
 #       - Actual user-perceived latency depends on how quickly the new tokens actually make it to the user.
 #       - TTFT (time to first token) is also an important metric, but is not taken into account with these experiments.
 # throughput : tokens per second
-# latency    : theoretical user-perceived seconds per token (TBT)
-def plot_throughput_vs_token_latency(
+# latency    : theoretical user-perceived seconds per token (tbt)
+def plot_throughput_vs_tbt(
     bmark_entries,
     bmark_param_groups,
     plot_filename,
     plot_name
 ):
-    #print('plot_throughput_vs_token_latency DEBUG START')
-    #for bmark_param_group in bmark_param_groups:
-    #    print(bmark_param_group)
-    #print('plot_throughput_vs_token_latency DEBUG END')
-
     # Organizing different bmark data points for the line plot
     # For latency vs. throughput plots, track batch_sizes + avg tps + avg spt
     plotting_metrics = [
@@ -70,10 +65,11 @@ def plot_throughput_vs_token_latency(
         bmark_info = bmark_entry['bmark_info']
         print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
 
-        # tps = tokens per second
-        batch_tps_sum = 0
-        batch_spt_sum = 0
-        batch_e2e_time_sum = 0
+        # tps = tokens per second (throughput)
+        tps_sum = 0
+        # tbt = time between tokens (theoretically achievable user-perceived latency)
+        tbt_sum = 0
+        e2e_time_sum = 0
         num_iterations = 0
 
         for batch_iteration, batch_dict in bmark_info.items():
@@ -81,34 +77,38 @@ def plot_throughput_vs_token_latency(
             batch_end_time = batch_dict['batch_end_time']
             batch_e2e_time = batch_end_time - batch_start_time
 
-            batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-            for batch_input_length_index, batch_input_lengths in batch_dict['batch_input_lengths'].items():
-                batch_input_lengths_sum += batch_input_lengths
-            for batch_output_length_index, batch_output_lengths in batch_dict['batch_output_lengths'].items():
-                batch_output_lengths_sum += batch_output_lengths
-            total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+            batch_input_lengths_sum, batch_output_lengths_sum, batch_tbt_sum = 0, 0, 0
+            batch_input_lengths_items = batch_dict['batch_input_lengths'].items()
+            batch_output_lengths_items = batch_dict['batch_output_lengths'].items()
+            assert(len(batch_input_lengths_items) == len(batch_output_lengths_items))
 
-            # The average number of generated tokens for a single prompt in the batch
-            avg_batch_generated_tokens = total_batch_generated_tokens / batch_size
+            for i in range(len(batch_input_lengths_items)):
+                batch_input_length_index, batch_input_length = batch_input_lengths_items[i]
+                batch_output_length_index, batch_output_length = batch_output_lengths_items[i]
+                batch_tbt = batch_e2e_time / (batch_output_length - batch_input_length)
+
+                batch_input_lengths_sum += batch_input_length
+                batch_output_lengths_sum += batch_output_length
+                batch_tbt_sum += batch_tbt
+
+            assert(batch_size == len(batch_input_lengths_items))
+            total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+            batch_tbt_avg = batch_tbt_sum / batch_size
 
             # In the off case that there were no generated tokens in this batch, skip this iteration
             if avg_batch_generated_tokens == 0:
                 continue
 
-            # The average seconds per token for a single prompt in the batch
-            batch_spt = batch_e2e_time / avg_batch_generated_tokens
-            batch_spt_sum += batch_spt
-
             # tps = tokens per second
-            batch_tps = total_batch_generated_tokens / batch_e2e_time
-            batch_tps_sum += batch_tps
-            batch_e2e_time_sum += batch_e2e_time
+            batch_tps_avg = total_batch_generated_tokens / batch_e2e_time
+            tps_sum += batch_tps_avg
+            tbt_sum += batch_tbt_avg
+            e2e_time_sum += batch_e2e_time
             num_iterations += 1
 
-        avg_tps = batch_tps_sum / num_iterations
-        avg_spt = batch_spt_sum / num_iterations
-        avg_batch_e2e_time = batch_e2e_time_sum / num_iterations
-        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_spt} {avg_batch_e2e_time}')
+        avg_tps = tps_sum / num_iterations
+        avg_tbt = tbt_sum / num_iterations
+        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_tbt}')
 
         # group plotting points into the group_dicts
         bmark_param_match_found = False
@@ -131,7 +131,7 @@ def plot_throughput_vs_token_latency(
             #bmark_param_group_dict['batch_sweep_info'].append(batch_sweep_info)
             bmark_param_group_dict['batch_sizes'].append(batch_size)
             bmark_param_group_dict['avg_tpss'].append(avg_tps)
-            bmark_param_group_dict['avg_spts'].append(avg_spt)
+            bmark_param_group_dict['avg_tbts'].append(avg_tbt)
             bmark_param_group_dict['avg_batch_e2e_times'].append(avg_batch_e2e_time)
             break
 
@@ -144,18 +144,18 @@ def plot_throughput_vs_token_latency(
             print(f'{key}, {val}')
 
         avg_tpss = bmark_param_group_dict['avg_tpss']
-        avg_spts = bmark_param_group_dict['avg_spts']
+        avg_tbts = bmark_param_group_dict['avg_tbts']
         avg_batch_e2e_times = bmark_param_group_dict['avg_batch_e2e_times']
         batch_sizes = bmark_param_group_dict['batch_sizes']
 
         model_size = bmark_param_group_dict['model_size']
         max_sequence_length = bmark_param_group_dict['max_sequence_length']
         gpu_type = bmark_param_group_dict['gpu_type']
-        plt.plot(avg_tpss, avg_spts, label=f'{model_size} {gpu_type}', marker='o')
+        plt.plot(avg_tpss, avg_tbts, label=f'{model_size} {gpu_type}', marker='o')
 
-        for avg_tps, avg_spt, batch_size in zip(avg_tpss, avg_spts, batch_sizes):
+        for avg_tps, avg_tbt, batch_size in zip(avg_tpss, avg_tbts, batch_sizes):
             plt.annotate(str(batch_size),
-                         (avg_tps, avg_spt),
+                         (avg_tps, avg_tbt),
                          textcoords='offset points',
                          xytext=(0, 10),
                          ha='center')
@@ -718,8 +718,8 @@ def main(args):
             args.bmark_param_groups,
             args.excluded_tokens
         )
-    if args.plot_throughput_vs_token_latency:
-        plot_throughput_vs_token_latency(
+    if args.plot_throughput_vs_tbt:
+        plot_throughput_vs_tbt(
             bmark_entries,
             args.bmark_param_groups,
             args.plot_filename,
@@ -775,10 +775,10 @@ if __name__ == '__main__':
         help='specify this arg to plot normalized token latency'
     )
     parser.add_argument(
-        '--plot_throughput_vs_token_latency',
+        '--plot_throughput_vs_tbt',
         default=False,
         action='store_true',
-        help='specify this arg to plot throughput vs latency'
+        help='specify this arg to plot throughput vs tbt (time between tokens)'
     )
     parser.add_argument(
         '--plot_filename',

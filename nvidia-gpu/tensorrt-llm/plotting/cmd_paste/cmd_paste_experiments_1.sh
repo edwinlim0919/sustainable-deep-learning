@@ -61,10 +61,14 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 													   "13B 1 1000 v10032gb" \
 													   "13B 2 1000 v10032gb" \
 													   "13B 4 1000 v10032gb" \
+								  --bmark_param_groups "7B X 1000 a10040gb" \
+								  					   "7B X 1000 v10032gb" \
+													   "13B X 1000 a10040gb" \
+													   "13B X 1000 v10032gb" \
 								  --gpu_idx			   0 \
-								  --plot_filename      "llama2_throughput_vs_token_latency_tradeoff.png" \
-								  --plot_name		   "Llama2 Throughput-Latency Tradeoff" \
-								  --plot_throughput_vs_token_latency
+								  --plot_filename      "llama2_throughput_vs_tbt_tradeoff.png" \
+								  --plot_name		   "Llama2 Throughput-TBT Tradeoff" \
+								  --plot_throughput_vs_tbt
 
 python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
 													   "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-2-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
