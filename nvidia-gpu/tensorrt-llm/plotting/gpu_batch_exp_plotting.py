@@ -48,7 +48,7 @@ def plot_throughput_vs_tbt(
         'batch_sizes',
         'avg_tpss',
         'avg_tbts',
-        'avg_batch_e2e_times'
+        'avg_e2e_times'
     ]
     bmark_param_group_dicts = group_experiment_data(
         bmark_entries,
@@ -104,7 +104,8 @@ def plot_throughput_vs_tbt(
 
         avg_tps = tps_sum / num_iterations
         avg_tbt = tbt_sum / num_iterations
-        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_tbt}')
+        avg_e2e_time = e2e_time_sum / num_iterations
+        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_tbt} {avg_e2e_time}')
 
         # group plotting points into the group_dicts
         bmark_param_match_found = False
@@ -128,7 +129,7 @@ def plot_throughput_vs_tbt(
             bmark_param_group_dict['batch_sizes'].append(batch_size)
             bmark_param_group_dict['avg_tpss'].append(avg_tps)
             bmark_param_group_dict['avg_tbts'].append(avg_tbt)
-            bmark_param_group_dict['avg_batch_e2e_times'].append(avg_batch_e2e_time)
+            bmark_param_group_dict['avg_e2e_times'].append(avg_e2e_time)
             break
 
         # For each bmark_entry, should at least match to one of the plotting groups
@@ -141,7 +142,7 @@ def plot_throughput_vs_tbt(
 
         avg_tpss = bmark_param_group_dict['avg_tpss']
         avg_tbts = bmark_param_group_dict['avg_tbts']
-        avg_batch_e2e_times = bmark_param_group_dict['avg_batch_e2e_times']
+        avg_e2e_times = bmark_param_group_dict['avg_e2e_times']
         batch_sizes = bmark_param_group_dict['batch_sizes']
 
         model_size = bmark_param_group_dict['model_size']
