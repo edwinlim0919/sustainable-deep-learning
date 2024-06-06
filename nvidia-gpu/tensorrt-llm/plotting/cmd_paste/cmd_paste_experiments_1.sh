@@ -81,6 +81,7 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 													   "13B 4 1000 a10040gb" \
 													   "13B 6 1000 a10040gb" \
 													   "13B 8 1000 a10040gb" \
+								  --bmark_param_groups "13B X 1000 a10040gb" \
 								  --gpu_idx			   0 \
 								  --plot_filename      "dev_testing_llama2_13b.png" \
 								  --plot_name		   "Dev Testing Llama2 13B" \
