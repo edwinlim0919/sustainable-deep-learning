@@ -91,4 +91,6 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 								  --gpu_idx			   0 \
 								  --plot_filename      "dev_testing_llama2_13b.png" \
 								  --plot_name		   "Dev Testing Llama2 13B" \
-								  --plot_throughput_vs_token_latency
+								  --excluded_tokens    32000 \
+								  					   2 \
+								  --plot_throughput_vs_tbt

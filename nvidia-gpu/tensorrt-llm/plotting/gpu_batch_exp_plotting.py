@@ -882,15 +882,15 @@ def main(args):
         plot_throughput_vs_tbt(
             bmark_entries,
             args.bmark_param_groups,
+            args.excluded_tokens,
             args.plot_filename,
-            args.plot_name,
-            args.excluded_tokens
+            args.plot_name
         )
-    if args.plot_energy_vs_tbt: # TODO
-        plot_energy_vs_tbt(
-            bmark_entries,
-            ...
-        )
+    #if args.plot_energy_vs_tbt: # TODO
+    #    plot_energy_vs_tbt(
+    #        bmark_entries,
+    #        ...
+    #    )
 
 
 if __name__ == '__main__':
