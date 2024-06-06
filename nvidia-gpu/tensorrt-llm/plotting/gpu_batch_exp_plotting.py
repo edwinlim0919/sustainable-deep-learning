@@ -6,7 +6,6 @@ import math
 from pathlib import Path
 
 import numpy as np
-#import transformer_model_scaling
 import gpu_batch_exp_utils
 
 
@@ -78,10 +77,9 @@ def calculate_avg_tbt(
             # if no tokens generated, skip this iteration
             if total_batch_generated_tokens == 0:
                 continue
+
             avg_batch_generated_tokens = total_batch_generated_tokens / batch_size
-
             batch_tbt_avg = batch_e2e_time / avg_batch_generated_tokens
-
             tbt_sum += batch_tbt_avg
             num_iterations += 1
 
@@ -105,7 +103,7 @@ def calculate_avg_tbt(
 
             # Only reach this point if a match is found
             bmark_param_match_found = True
-            bmark_param_group_dict['avg_tbts'].append(avg_tbt)
+            bmark_param_group_dict['avg_tbt'].append(avg_tbt)
             break
 
         # For each bmark_entry, should at least match to one of the plotting groups
@@ -126,7 +124,6 @@ def calculate_avg_tps(
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
         bmark_info = bmark_entry['bmark_info']
-        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
 
         # tps = tokens per second (throughput)
         tps_sum = 0
@@ -186,7 +183,7 @@ def calculate_avg_tps(
 
             # Only reach this point if a match is found
             bmark_param_match_found = True
-            bmark_param_group_dict['avg_tpss'].append(avg_tps)
+            bmark_param_group_dict['avg_tps'].append(avg_tps)
             break
 
         # For each bmark_entry, should at least match to one of the plotting groups
@@ -201,147 +198,110 @@ def calculate_avg_tps(
 def plot_throughput_vs_tbt(
     bmark_entries,
     bmark_param_groups,
+    excluded_tokens,
     plot_filename,
-    plot_name,
-    excluded_tokens
+    plot_name
 ):
     # Organizing different bmark data points for the line plot
     plotting_metrics = [
-        'batch_sizes',
-        'avg_tpss',
-        'avg_tbts'
+        'batch_size',
+        'avg_tps',
+        'avg_tbt'
     ]
     bmark_param_group_dicts = group_experiment_data(
         bmark_entries,
         bmark_param_groups,
         plotting_metrics
     )
+    plotting_knob = 'batch_size'
 
     # Populate bmark_param_group_dicts with the plotting knob lists
-
-    # Calculate TBT
-
-    # Calculate TPS
-
-    # Plot results
-
+    # For this graph, batch_size is the plotting knob
     for bmark_entry in bmark_entries:
         model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
         bmark_info = bmark_entry['bmark_info']
-        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
-
-        # tps = tokens per second (throughput)
-        tps_sum = 0
-        # tbt = time between tokens (theoretically achievable user-perceived latency)
-        tbt_sum = 0
-        avg_generated_tokens_sum = 0
-        num_iterations = 0
-
-        for batch_iteration, batch_dict in bmark_info.items():
-            batch_start_time = batch_dict['batch_start_time']
-            batch_end_time = batch_dict['batch_end_time']
-            batch_e2e_time = batch_end_time - batch_start_time
-
-            batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-            batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
-            batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
-            assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
-
-            for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
-                batch_input_length, batch_output_length = 0, 0
-                for token in batch_input_tokens:
-                    if token not in excluded_tokens:
-                        batch_input_length += 1
-                for token in batch_output_tokens:
-                    if token not in excluded_tokens:
-                        batch_output_length += 1
-
-                batch_input_lengths_sum += batch_input_length
-                batch_output_lengths_sum += batch_output_length
-
-            assert(batch_size == len(batch_input_tokens_items))
-            total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
-            avg_batch_generated_tokens = total_batch_generated_tokens / batch_size
-
-            # if no tokens generated, skip this iteration
-            if avg_batch_generated_tokens == 0:
-                continue
-
-            avg_generated_tokens_sum += avg_batch_generated_tokens
-            batch_tbt_avg = batch_e2e_time / avg_batch_generated_tokens
-
-            # tps = tokens per second
-            batch_tps_avg = total_batch_generated_tokens / batch_e2e_time
-            tps_sum += batch_tps_avg
-            tbt_sum += batch_tbt_avg
-            num_iterations += 1
-
-        avg_tps = tps_sum / num_iterations
-        avg_tbt = tbt_sum / num_iterations
-        avg_generated_tokens = avg_generated_tokens_sum / num_iterations
-        print(f'{model_size} {batch_size} {max_sequence_length} {gpu_type} {avg_tps} {avg_tbt} {avg_e2e_time} {avg_generated_tokens}')
 
         # group plotting points into the group_dicts
+        # populate plotting knob field with all the different data points
         bmark_param_match_found = False
         for bmark_param_group_dict in bmark_param_group_dicts:
-            if (bmark_param_group_dict['model_size'] != 'X' and
+            if (plotting_knob != 'model_size' and
                 bmark_param_group_dict['model_size'] != model_size):
                 continue
-            if (bmark_param_group_dict['batch_size'] != 'X' and
+            if (plotting_knob != 'batch_size' and
                 bmark_param_group_dict['batch_size'] != batch_size):
                 continue
-            if (bmark_param_group_dict['max_sequence_length'] != 'X' and
+            if (plotting_knob != 'max_sequence_length' and
                 bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
                 continue
-            if (bmark_param_group_dict['gpu_type'] != 'X' and
+            if (plotting_knob != 'gpu_type' and
                 bmark_param_group_dict['gpu_type'] != gpu_type):
                 continue
 
             # Only reach this point if a match is found
             bmark_param_match_found = True
-            bmark_param_group_dict['batch_sizes'].append(batch_size)
-            bmark_param_group_dict['avg_tpss'].append(avg_tps)
-            bmark_param_group_dict['avg_tbts'].append(avg_tbt)
+            bmark_param_group_dict[plotting_knob].append(batch_size)
             break
 
         # For each bmark_entry, should at least match to one of the plotting groups
         assert(bmark_param_match_found)
 
-    plt.figure(figsize=(8, 3))
-    for bmark_param_group_dict in bmark_param_group_dicts:
-        for key, val in bmark_param_group_dict.items():
-            print(f'{key}, {val}')
+    # Calculate TBT
+    calculate_avg_tbt(
+        bmark_entries,
+        bmark_param_groups,
+        excluded_tokens,
+        plotting_knob,
+        bmark_param_group_dicts
+    )
 
-        avg_tpss = bmark_param_group_dict['avg_tpss']
-        avg_tbts = bmark_param_group_dict['avg_tbts']
-        batch_sizes = bmark_param_group_dict['batch_sizes']
+    # Calculate TPS
+    calculate_avg_tps(
+        bmark_entries,
+        bmark_param_groups,
+        excluded_tokens,
+        plotting_knob,
+        bmark_param_group_dicts
+    )
 
-        model_size = bmark_param_group_dict['model_size']
-        max_sequence_length = bmark_param_group_dict['max_sequence_length']
-        gpu_type = bmark_param_group_dict['gpu_type']
-        plt.plot(avg_tpss, avg_tbts, label=f'{model_size} {gpu_type}', marker='o')
+    # Plot results
+    print('WHAT AM I DOING WITH MY LIFE')
 
-        for avg_tps, avg_tbt, batch_size in zip(avg_tpss, avg_tbts, batch_sizes):
-            plt.annotate(str(batch_size),
-                         (avg_tps, avg_tbt),
-                         textcoords='offset points',
-                         xytext=(0, 10),
-                         ha='center')
+    #plt.figure(figsize=(8, 3))
+    #for bmark_param_group_dict in bmark_param_group_dicts:
+    #    for key, val in bmark_param_group_dict.items():
+    #        print(f'{key}, {val}')
 
-    plt.xlabel('Tokens Per Second')
-    plt.ylabel('Avg. Request Token Latency')
-    plt.title(plot_name)
-    plt.grid(True)
-    legend = plt.legend()
-    legend._legend_box.sep = 3
-    legend._legend_box.align = "right"
-    plt.setp(legend.get_texts(), fontsize='small')
-    plt.setp(legend.get_patches(), scalex=0.5, scaley=0.5)
-    plt.tight_layout()
-    plt.savefig('plots/' + plot_filename)
+    #    avg_tpss = bmark_param_group_dict['avg_tpss']
+    #    avg_tbts = bmark_param_group_dict['avg_tbts']
+    #    batch_sizes = bmark_param_group_dict['batch_sizes']
+
+    #    model_size = bmark_param_group_dict['model_size']
+    #    max_sequence_length = bmark_param_group_dict['max_sequence_length']
+    #    gpu_type = bmark_param_group_dict['gpu_type']
+    #    plt.plot(avg_tpss, avg_tbts, label=f'{model_size} {gpu_type}', marker='o')
+
+    #    for avg_tps, avg_tbt, batch_size in zip(avg_tpss, avg_tbts, batch_sizes):
+    #        plt.annotate(str(batch_size),
+    #                     (avg_tps, avg_tbt),
+    #                     textcoords='offset points',
+    #                     xytext=(0, 10),
+    #                     ha='center')
+
+    #plt.xlabel('Tokens Per Second')
+    #plt.ylabel('Avg. Request Token Latency')
+    #plt.title(plot_name)
+    #plt.grid(True)
+    #legend = plt.legend()
+    #legend._legend_box.sep = 3
+    #legend._legend_box.align = "right"
+    #plt.setp(legend.get_texts(), fontsize='small')
+    #plt.setp(legend.get_patches(), scalex=0.5, scaley=0.5)
+    #plt.tight_layout()
+    #plt.savefig('plots/' + plot_filename)
 
 
 # TODO: I think this has been haphazardly converted to a GPU utilization plotter
