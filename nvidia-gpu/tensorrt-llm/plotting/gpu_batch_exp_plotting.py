@@ -257,7 +257,6 @@ def plot_throughput_vs_tbt(
         plotting_knob,
         bmark_param_group_dicts
     )
-
     # Calculate TPS
     calculate_avg_tps(
         bmark_entries,
@@ -267,41 +266,38 @@ def plot_throughput_vs_tbt(
         bmark_param_group_dicts
     )
 
-    # Plot results
-    print('WHAT AM I DOING WITH MY LIFE')
+    plt.figure(figsize=(8, 3))
+    for bmark_param_group_dict in bmark_param_group_dicts:
+        for key, val in bmark_param_group_dict.items():
+            print(f'{key}, {val}')
 
-    #plt.figure(figsize=(8, 3))
-    #for bmark_param_group_dict in bmark_param_group_dicts:
-    #    for key, val in bmark_param_group_dict.items():
-    #        print(f'{key}, {val}')
+        avg_tps = bmark_param_group_dict['avg_tps']
+        avg_tbt = bmark_param_group_dict['avg_tbt']
+        batch_sizes = bmark_param_group_dict['batch_size']
 
-    #    avg_tpss = bmark_param_group_dict['avg_tpss']
-    #    avg_tbts = bmark_param_group_dict['avg_tbts']
-    #    batch_sizes = bmark_param_group_dict['batch_sizes']
+        model_size = bmark_param_group_dict['model_size']
+        max_sequence_length = bmark_param_group_dict['max_sequence_length']
+        gpu_type = bmark_param_group_dict['gpu_type']
+        plt.plot(avg_tps, avg_tbt, label=f'{model_size} {gpu_type}', marker='o')
 
-    #    model_size = bmark_param_group_dict['model_size']
-    #    max_sequence_length = bmark_param_group_dict['max_sequence_length']
-    #    gpu_type = bmark_param_group_dict['gpu_type']
-    #    plt.plot(avg_tpss, avg_tbts, label=f'{model_size} {gpu_type}', marker='o')
+        for avg_tps_val, avg_tbt_val, batch_size in zip(avg_tps, avg_tbt, batch_sizes):
+            plt.annotate(str(batch_size),
+                         (avg_tps_val, avg_tbt_val),
+                         textcoords='offset points',
+                         xytext=(0, 10),
+                         ha='center')
 
-    #    for avg_tps, avg_tbt, batch_size in zip(avg_tpss, avg_tbts, batch_sizes):
-    #        plt.annotate(str(batch_size),
-    #                     (avg_tps, avg_tbt),
-    #                     textcoords='offset points',
-    #                     xytext=(0, 10),
-    #                     ha='center')
-
-    #plt.xlabel('Tokens Per Second')
-    #plt.ylabel('Avg. Request Token Latency')
-    #plt.title(plot_name)
-    #plt.grid(True)
-    #legend = plt.legend()
-    #legend._legend_box.sep = 3
-    #legend._legend_box.align = "right"
-    #plt.setp(legend.get_texts(), fontsize='small')
-    #plt.setp(legend.get_patches(), scalex=0.5, scaley=0.5)
-    #plt.tight_layout()
-    #plt.savefig('plots/' + plot_filename)
+    plt.xlabel('Tokens Per Second')
+    plt.ylabel('Avg. Request Token Latency')
+    plt.title(plot_name)
+    plt.grid(True)
+    legend = plt.legend()
+    legend._legend_box.sep = 3
+    legend._legend_box.align = "right"
+    plt.setp(legend.get_texts(), fontsize='small')
+    plt.setp(legend.get_patches(), scalex=0.5, scaley=0.5)
+    plt.tight_layout()
+    plt.savefig('plots/' + plot_filename)
 
 
 # TODO: I think this has been haphazardly converted to a GPU utilization plotter
