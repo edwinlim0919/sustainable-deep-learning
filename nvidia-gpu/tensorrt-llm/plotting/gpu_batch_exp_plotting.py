@@ -43,6 +43,11 @@ def plot_throughput_vs_token_latency(
     plot_filename,
     plot_name
 ):
+    print('plot_throughput_vs_token_latency DEBUG START')
+    for bmark_param_group in bmark_param_groups:
+        print(bmark_param_group)
+    print('plot_throughput_vs_token_latency DEBUG END')
+
     # Organizing different bmark data points for the line plot
     # For latency vs. throughput plots, track batch_sizes + avg tps + avg spt
     plotting_metrics = [
