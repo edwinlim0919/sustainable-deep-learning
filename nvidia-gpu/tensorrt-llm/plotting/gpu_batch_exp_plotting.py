@@ -32,10 +32,12 @@ def group_experiment_data(
     return bmark_param_group_dicts
 
 
-def calculate_avg_tbts(
+# Calcaulates TBT (Time Between Tokens) for different bmark data points and adds information to plotting dicts
+def calculate_avg_tbt(
     bmark_entries,
     bmark_param_groups,
     excluded_tokens,
+    plotting_knob,
     bmark_param_group_dicts
 ):
     for bmark_entry in bmark_entries:
@@ -50,7 +52,145 @@ def calculate_avg_tbts(
         # Manually track the number of parsed iterations for edge cases
         num_iterations = 0
 
-        for batch_iteration, batch_dict
+        for batch_iteration, batch_dict in bmark_info.items():
+            batch_start_time = batch_dict['batch_start_time']
+            batch_end_time = batch_dict['batch_end_time']
+            batch_e2e_time = batch_end_time - batch_start_time
+
+            batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
+            batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
+            batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
+            assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
+
+            for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
+                batch_input_length, batch_output_length = 0, 0
+                for token in batch_input_tokens:
+                    if token not in excluded_tokens:
+                        batch_input_length += 1
+                for token in batch_output_tokens:
+                    if token not in excluded_tokens:
+                        batch_output_length += 1
+                batch_input_lengths_sum += batch_input_length
+                batch_output_lengths_sum += batch_output_length
+
+            assert(batch_size == len(batch_input_tokens_items))
+            total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+            # if no tokens generated, skip this iteration
+            if total_batch_generated_tokens == 0:
+                continue
+            avg_batch_generated_tokens = total_batch_generated_tokens / batch_size
+
+            batch_tbt_avg = batch_e2e_time / avg_batch_generated_tokens
+
+            tbt_sum += batch_tbt_avg
+            num_iterations += 1
+
+        avg_tbt = tbt_sum / num_iterations
+
+        # group plotting points into the group_dicts
+        bmark_param_match_found = False
+        for bmark_param_group_dict in bmark_param_group_dicts:
+            if (plotting_knob != 'model_size' and
+                bmark_param_group_dict['model_size'] != model_size):
+                continue
+            if (plotting_knob != 'batch_size' and
+                bmark_param_group_dict['batch_size'] != batch_size):
+                continue
+            if (plotting_knob != 'max_sequence_length' and
+                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
+                continue
+            if (plotting_knob != 'gpu_type' and
+                bmark_param_group_dict['gpu_type'] != gpu_type):
+                continue
+
+            # Only reach this point if a match is found
+            bmark_param_match_found = True
+            bmark_param_group_dict['avg_tbts'].append(avg_tbt)
+            break
+
+        # For each bmark_entry, should at least match to one of the plotting groups
+        assert(bmark_param_match_found)
+
+
+# Calcaulates TPS (Tokens Per Second) for different bmark data points and adds information to plotting dicts
+def calculate_avg_tps(
+    bmark_entries,
+    bmark_param_groups,
+    excluded_tokens,
+    plotting_knob,
+    bmark_param_group_dicts
+):
+    for bmark_entry in bmark_entries:
+        model_size = bmark_entry['model_size']
+        batch_size = bmark_entry['batch_size']
+        max_sequence_length = bmark_entry['max_sequence_length']
+        gpu_type = bmark_entry['gpu_type']
+        bmark_info = bmark_entry['bmark_info']
+        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
+
+        # tps = tokens per second (throughput)
+        tps_sum = 0
+        # Manually track the number of parsed iterations for edge cases
+        num_iterations = 0
+
+        for batch_iteration, batch_dict in bmark_info.items():
+            batch_start_time = batch_dict['batch_start_time']
+            batch_end_time = batch_dict['batch_end_time']
+            batch_e2e_time = batch_end_time - batch_start_time
+
+            batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
+            batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
+            batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
+            assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
+
+            for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
+                batch_input_length, batch_output_length = 0, 0
+                for token in batch_input_tokens:
+                    if token not in excluded_tokens:
+                        batch_input_length += 1
+                for token in batch_output_tokens:
+                    if token not in excluded_tokens:
+                        batch_output_length += 1
+
+                batch_input_lengths_sum += batch_input_length
+                batch_output_lengths_sum += batch_output_length
+
+            assert(batch_size == len(batch_input_tokens_items))
+            total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+            # if no tokens generated, skip this iteration
+            if total_batch_generated_tokens == 0:
+                continue
+
+            # tps = tokens per second
+            batch_tps_avg = total_batch_generated_tokens / batch_e2e_time
+            tps_sum += batch_tps_avg
+            num_iterations += 1
+
+        avg_tps = tps_sum / num_iterations
+
+        # group plotting points into the group_dicts
+        bmark_param_match_found = False
+        for bmark_param_group_dict in bmark_param_group_dicts:
+            if (plotting_knob != 'model_size' and
+                bmark_param_group_dict['model_size'] != model_size):
+                continue
+            if (plotting_knob != 'batch_size' and
+                bmark_param_group_dict['batch_size'] != batch_size):
+                continue
+            if (plotting_knob != 'max_sequence_length' and
+                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
+                continue
+            if (plotting_knob != 'gpu_type' and
+                bmark_param_group_dict['gpu_type'] != gpu_type):
+                continue
+
+            # Only reach this point if a match is found
+            bmark_param_match_found = True
+            bmark_param_group_dict['avg_tpss'].append(avg_tps)
+            break
+
+        # For each bmark_entry, should at least match to one of the plotting groups
+        assert(bmark_param_match_found)
 
 
 # TODO: - This is theoretical user-perceived latency to provide a bound for tbt (time between tokens).
@@ -76,6 +216,8 @@ def plot_throughput_vs_tbt(
         bmark_param_groups,
         plotting_metrics
     )
+
+    # Populate bmark_param_group_dicts with the plotting knob lists
 
     # Calculate TBT
 
