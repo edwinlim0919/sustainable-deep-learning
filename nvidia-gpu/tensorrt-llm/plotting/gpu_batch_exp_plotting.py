@@ -193,7 +193,6 @@ def calculate_avg_tps(
 def calculate_avg_ept(
     bmark_entries,
     bmark_param_groups,
-    excluded_tokens,
     plotting_knob,
     bmark_param_group_dicts,
     gpu_idx
@@ -283,12 +282,13 @@ def calculate_avg_ept(
         #    joules_per_token = total_bmark_joules / total_bmark_generated_tokens
 
 
-def plot_energy_vs_tbt(
+def plot_ept_vs_tbt(
     bmark_entries,
     bmark_param_groups,
+    excluded_tokens,
+    gpu_idx
     plot_filename,
-    plot_name,
-    excluded_tokens
+    plot_name
 ):
     # Organizing different bmark data points for the line plot
     plotting_metrics = [
@@ -346,6 +346,13 @@ def plot_energy_vs_tbt(
         bmark_param_group_dicts
     )
     # Calculate EPT
+    calculate_avg_ept(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_knob,
+        bmark_param_group_dicts,
+        gpu_idx
+    )
 
 
 # TODO: - This is theoretical user-perceived latency to provide a bound for tbt (time between tokens).
@@ -353,7 +360,7 @@ def plot_energy_vs_tbt(
 #       - TTFT (time to first token) is also an important metric, but is not taken into account with these experiments.
 # throughput : tokens per second
 # latency    : theoretical user-perceived seconds per token (tbt)
-def plot_throughput_vs_tbt(
+def plot_tps_vs_tbt(
     bmark_entries,
     bmark_param_groups,
     excluded_tokens,
@@ -779,7 +786,6 @@ def main(args):
         gpu_type = curr_bmark_params[3]
         bmark_info = gpu_batch_exp_utils.parse_bmark_output(bmark_output_paths[i])
         nvsmi_info = gpu_batch_exp_utils.parse_nvsmi_output(nvsmi_output_paths[i])
-
         bmark_entry['model_size'] = model_size
         bmark_entry['batch_size'] = batch_size
         bmark_entry['max_sequence_length'] = max_sequence_length
@@ -787,19 +793,24 @@ def main(args):
         bmark_entry['bmark_info'] = bmark_info
         bmark_entry['nvsmi_info'] = nvsmi_info
         bmark_entries.append(bmark_entry)
-    if args.plot_throughput_vs_tbt:
-        plot_throughput_vs_tbt(
+
+    if args.plot_tps_vs_tbt:
+        plot_tps_vs_tbt(
             bmark_entries,
             args.bmark_param_groups,
             args.excluded_tokens,
             args.plot_filename,
             args.plot_name
         )
-    #if args.plot_energy_vs_tbt: # TODO
-    #    plot_energy_vs_tbt(
-    #        bmark_entries,
-    #        ...
-    #    )
+    if args.plot_ept_vs_tbt:
+        plot_ept_vs_tbt(
+            bmark_entries,
+            args.bmark_param_groups,
+            args.excluded_tokens,
+            args.gpu_idx
+            args.plot_filename,
+            args.plot_name
+        )
 
 
 if __name__ == '__main__':
@@ -832,28 +843,16 @@ if __name__ == '__main__':
         help='[model size] [batch size] [max sequence length] (specify "X" for any value)'
     )
     parser.add_argument(
-        '--plot_power_or_energy',
+        '--plot_tps_vs_tbt',
         default=False,
         action='store_true',
-        help='specify this arg to plot power over time'
+        help='specify this arg to plot tps (tokens per second) vs tbt (time between tokens)'
     )
     parser.add_argument(
-        '--plot_average_batch_latency',
+        '--plot_ept_vs_tbt',
         default=False,
         action='store_true',
-        help='specify this arg to plot average batch latency'
-    )
-    parser.add_argument(
-        '--plot_normalized_token_latency',
-        default=False,
-        action='store_true',
-        help='specify this arg to plot normalized token latency'
-    )
-    parser.add_argument(
-        '--plot_throughput_vs_tbt',
-        default=False,
-        action='store_true',
-        help='specify this arg to plot throughput vs tbt (time between tokens)'
+        help='specify this arg to plot ept (energy per token) vs tbt (time between tokens)'
     )
     parser.add_argument(
         '--plot_filename',
@@ -868,18 +867,6 @@ if __name__ == '__main__':
         help='title for specified plot'
     )
     parser.add_argument(
-        '--plot_sequence_lengths',
-        type=int,
-        nargs='+',
-        help='specify which sequence length to generate the plot for'
-    )
-    parser.add_argument(
-        '--plot_batch_sizes',
-        type=int,
-        nargs='+',
-        help='specify which batch sizes to generate the plot for'
-    )
-    parser.add_argument(
         '--excluded_tokens',
         type=int,
         nargs='+',
@@ -889,12 +876,6 @@ if __name__ == '__main__':
         '--gpu_idx',
         type=int,
         help='specify which idx of GPU for nvsmi info'
-    )
-    parser.add_argument(
-        '--plot_token_energy',
-        default=False,
-        action='store_true',
-        help='specify this for energy-per-token plots of the provided data points'
     )
     args = parser.parse_args()
     main(args)
