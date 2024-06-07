@@ -31,6 +31,32 @@ def group_experiment_data(
     return bmark_param_group_dicts
 
 
+def calculate_total_batch_generated_tokens(
+    batch_dict,
+    batch_size,
+    excluded_tokens
+):
+    batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
+    batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
+    batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
+    assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
+
+    for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
+        batch_input_length, batch_output_length = 0, 0
+        for token in batch_input_tokens:
+            if token not in excluded_tokens:
+                batch_input_length += 1
+        for token in batch_output_tokens:
+            if token not in excluded_tokens:
+                batch_output_length += 1
+        batch_input_lengths_sum += batch_input_length
+        batch_output_lengths_sum += batch_output_length
+
+    assert(batch_size == len(batch_input_tokens_items))
+    total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+    return total_batch_generated_tokens
+
+
 # Calcaulates TBT (Time Between Tokens) for different bmark data points and adds information to plotting dicts
 def calculate_avg_tbt(
     bmark_entries,
@@ -56,24 +82,11 @@ def calculate_avg_tbt(
             batch_end_time = batch_dict['batch_end_time']
             batch_e2e_time = batch_end_time - batch_start_time
 
-            batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-            batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
-            batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
-            assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
-
-            for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
-                batch_input_length, batch_output_length = 0, 0
-                for token in batch_input_tokens:
-                    if token not in excluded_tokens:
-                        batch_input_length += 1
-                for token in batch_output_tokens:
-                    if token not in excluded_tokens:
-                        batch_output_length += 1
-                batch_input_lengths_sum += batch_input_length
-                batch_output_lengths_sum += batch_output_length
-
-            assert(batch_size == len(batch_input_tokens_items))
-            total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+            total_batch_generated_tokens = calculate_total_batch_generated_tokens(
+                batch_dict,
+                batch_size,
+                excluded_tokens
+            )
             # if no tokens generated, skip this iteration
             if total_batch_generated_tokens == 0:
                 continue
@@ -135,25 +148,11 @@ def calculate_avg_tps(
             batch_end_time = batch_dict['batch_end_time']
             batch_e2e_time = batch_end_time - batch_start_time
 
-            batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-            batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
-            batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
-            assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
-
-            for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
-                batch_input_length, batch_output_length = 0, 0
-                for token in batch_input_tokens:
-                    if token not in excluded_tokens:
-                        batch_input_length += 1
-                for token in batch_output_tokens:
-                    if token not in excluded_tokens:
-                        batch_output_length += 1
-
-                batch_input_lengths_sum += batch_input_length
-                batch_output_lengths_sum += batch_output_length
-
-            assert(batch_size == len(batch_input_tokens_items))
-            total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+            total_batch_generated_tokens = calculate_total_batch_generated_tokens(
+                batch_dict,
+                batch_size,
+                excluded_tokens
+            )
             # if no tokens generated, skip this iteration
             if total_batch_generated_tokens == 0:
                 continue
@@ -193,9 +192,10 @@ def calculate_avg_tps(
 def calculate_avg_ept(
     bmark_entries,
     bmark_param_groups,
+    excluded_tokens,
     plotting_knob,
-    bmark_param_group_dicts,
-    gpu_idx
+    gpu_idx,
+    bmark_param_group_dicts
 ):
     for bmark_entry in bmark_entries:
         model_size = bmark_entry['model_size']
@@ -206,9 +206,18 @@ def calculate_avg_ept(
 
         # Extract timestamps from bmark_info
         batch_start_times, batch_end_times = [], []
+        batch_total_tokens_list = []
         for batch_iteration, batch_dict in bmark_info.items():
             batch_start_times.append(batch_dict['batch_start_time'])
             batch_end_times.append(batch_dict['batch_end_time'])
+
+            # Calculate and record the total tokens decoded during this batch
+            total_batch_generated_tokens = calculate_total_batch_generated_tokens(
+                batch_dict,
+                batch_size,
+                excluded_tokens
+            )
+            batch_total_tokens_list.append(total_batch_generated_tokens)
 
         # Extract timestamps and power usage from nvsmi_info
         nvsmi_info = bmark_entry['nvsmi_info']
@@ -224,6 +233,7 @@ def calculate_avg_ept(
         # Average EPT across every iteration in the bmark
         for i in range(len(batch_start_times)):
             batch_start_time, batch_end_time = batch_start_times[i], batch_end_times[i]
+            total_batch_generated_tokens = batch_total_tokens_list[i]
             
             # Find the nvsmi timestamps and power metrics that correspond to this batch
             # - First nvsmi timestamp before batch starts
@@ -245,7 +255,6 @@ def calculate_avg_ept(
             assert(nvsmi_before_ts <= batch_start_time and
                    batch_start_time <= batch_end_time and
                    batch_end_time <= nvsmi_after_ts)
-            #print(f'nvsmi_before_ts: {nvsmi_before_ts}, batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}, nvsmi_after_ts: {nvsmi_after_ts}')
 
             # Populate all the nvsmi timestamps and power measurements for the bmark
             batch_nvsmi_timestamps, batch_nvsmi_curr_powers = [], []
@@ -257,6 +266,20 @@ def calculate_avg_ept(
                     nvsmi_timestamp <= nvsmi_after_ts):
                     batch_nvsmi_timestamps.append(nvsmi_timestamp)
                     batch_nvsmi_curr_powers.append(nvsmi_curr_power)
+
+            # dev testing sanity checks
+            #print(f'nvsmi_before_ts: {nvsmi_before_ts}, batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}, nvsmi_after_ts: {nvsmi_after_ts}')
+            #for j in range(len(batch_nvsmi_timestamps)):
+            #    print(f'batch_nvsmi_timestamp: {batch_nvsmi_timestamps[j]}, batch_nvsmi_curr_power: {batch_nvsmi_curr_powers[j]}')
+
+            # For calculating energy (area under curve), calculate energy purely for when the batch is being computed
+            # So replace first and last recorded nvsmi timestamps with the start and end time of the batch
+            batch_nvsmi_timestamps[0] = batch_start_time
+            batch_nvsmi_timestamps[-1] = batch_end_time
+
+            energy_joules = np.trapz(batch_nvsmi_curr_powers, batch_nvsmi_timestamps)
+            batch_ept_avg = energy_joules / total_batch_generated_tokens
+            print(f'energy_joules: {energy_joules}, total_batch_generated_tokens: {total_batch_generated_tokens}, batch_ept_avg: {batch_ept_avg}')
 
         ## Make the nvsmi timestamp entries start in the same place as the bmark timestamp entries
         #new_nvsmi_timestamps, new_nvsmi_curr_powers, new_nvsmi_max_powers = [], [], []
@@ -366,9 +389,10 @@ def plot_ept_vs_tbt(
     calculate_avg_ept(
         bmark_entries,
         bmark_param_groups,
+        excluded_tokens,
         plotting_knob,
-        bmark_param_group_dicts,
-        gpu_idx
+        gpu_idx,
+        bmark_param_group_dicts
     )
 
 
