@@ -31,7 +31,8 @@ def group_experiment_data(
     return bmark_param_group_dicts
 
 
-def match_experiment_data(
+# Match data into the right plotting group and update benchmarking info
+def update_experiment_data(
     bmark_param_group_dicts,
     plotting_knob,
     bmark_param_group_dict_key,
@@ -128,30 +129,12 @@ def calculate_avg_tbt(
             num_iterations += 1
 
         avg_tbt = tbt_sum / num_iterations
-
-        # group plotting points into the group_dicts
-        bmark_param_match_found = False
-        for bmark_param_group_dict in bmark_param_group_dicts:
-            if (plotting_knob != 'model_size' and
-                bmark_param_group_dict['model_size'] != model_size):
-                continue
-            if (plotting_knob != 'batch_size' and
-                bmark_param_group_dict['batch_size'] != batch_size):
-                continue
-            if (plotting_knob != 'max_sequence_length' and
-                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
-                continue
-            if (plotting_knob != 'gpu_type' and
-                bmark_param_group_dict['gpu_type'] != gpu_type):
-                continue
-
-            # Only reach this point if a match is found
-            bmark_param_match_found = True
-            bmark_param_group_dict['avg_tbt'].append(avg_tbt)
-            break
-
-        # For each bmark_entry, should at least match to one of the plotting groups
-        assert(bmark_param_match_found)
+        update_experiment_data(
+            bmark_param_group_dicts,
+            plotting_knob,
+            'avg_tbt',
+            avg_tbt
+        )
 
 
 # Calcaulates TPS (Tokens Per Second) for different bmark data points and adds information to plotting dicts
@@ -194,30 +177,12 @@ def calculate_avg_tps(
             num_iterations += 1
 
         avg_tps = tps_sum / num_iterations
-
-        # group plotting points into the group_dicts
-        bmark_param_match_found = False
-        for bmark_param_group_dict in bmark_param_group_dicts:
-            if (plotting_knob != 'model_size' and
-                bmark_param_group_dict['model_size'] != model_size):
-                continue
-            if (plotting_knob != 'batch_size' and
-                bmark_param_group_dict['batch_size'] != batch_size):
-                continue
-            if (plotting_knob != 'max_sequence_length' and
-                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
-                continue
-            if (plotting_knob != 'gpu_type' and
-                bmark_param_group_dict['gpu_type'] != gpu_type):
-                continue
-
-            # Only reach this point if a match is found
-            bmark_param_match_found = True
-            bmark_param_group_dict['avg_tps'].append(avg_tps)
-            break
-
-        # For each bmark_entry, should at least match to one of the plotting groups
-        assert(bmark_param_match_found)
+        update_experiment_data(
+            bmark_param_group_dicts,
+            plotting_knob,
+            'avg_tps',
+            avg_tps
+        )
 
 
 def calculate_avg_ept(
@@ -351,31 +316,12 @@ def plot_ept_vs_tbt(
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
         bmark_info = bmark_entry['bmark_info']
-
-        # group plotting points into the group_dicts
-        # populate plotting knob field with all the different data points
-        bmark_param_match_found = False
-        for bmark_param_group_dict in bmark_param_group_dicts:
-            if (plotting_knob != 'model_size' and
-                bmark_param_group_dict['model_size'] != model_size):
-                continue
-            if (plotting_knob != 'batch_size' and
-                bmark_param_group_dict['batch_size'] != batch_size):
-                continue
-            if (plotting_knob != 'max_sequence_length' and
-                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
-                continue
-            if (plotting_knob != 'gpu_type' and
-                bmark_param_group_dict['gpu_type'] != gpu_type):
-                continue
-
-            # Only reach this point if a match is found
-            bmark_param_match_found = True
-            bmark_param_group_dict[plotting_knob].append(batch_size)
-            break
-
-        # For each bmark_entry, should at least match to one of the plotting groups
-        assert(bmark_param_match_found)
+        update_experiment_data(
+            bmark_param_group_dicts,
+            plotting_knob,
+            plotting_knob,
+            batch_size
+        )
 
     # Calculate TBT
     calculate_avg_tbt(
@@ -429,30 +375,12 @@ def plot_tps_vs_tbt(
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
         bmark_info = bmark_entry['bmark_info']
-
-        # group plotting points into the group_dicts
-        bmark_param_match_found = False
-        for bmark_param_group_dict in bmark_param_group_dicts:
-            if (plotting_knob != 'model_size' and
-                bmark_param_group_dict['model_size'] != model_size):
-                continue
-            if (plotting_knob != 'batch_size' and
-                bmark_param_group_dict['batch_size'] != batch_size):
-                continue
-            if (plotting_knob != 'max_sequence_length' and
-                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
-                continue
-            if (plotting_knob != 'gpu_type' and
-                bmark_param_group_dict['gpu_type'] != gpu_type):
-                continue
-
-            # Only reach this point if a match is found
-            bmark_param_match_found = True
-            bmark_param_group_dict[plotting_knob].append(batch_size)
-            break
-
-        # For each bmark_entry, should at least match to one of the plotting groups
-        assert(bmark_param_match_found)
+        update_experiment_data(
+            bmark_param_group_dicts,
+            plotting_knob,
+            plotting_knob,
+            batch_size
+        )
 
     # Calculate TBT
     calculate_avg_tbt(
