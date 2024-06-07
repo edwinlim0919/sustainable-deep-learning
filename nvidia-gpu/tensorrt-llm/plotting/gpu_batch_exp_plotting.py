@@ -228,11 +228,19 @@ def calculate_avg_ept(
             # Find the nvsmi timestamps and power metrics that correspond to this batch
             # - First nvsmi timestamp before batch starts
             # - First nvsmi timestamp after batch ends
-            before_ts_found = False
+            nvsmi_before_ts, nvsmi_after_ts = -1, -1
             for j in range(len(nvsmi_timestamps) - 1):
-                nvsmi_timestamp_0, nvsmi_timestamp_1, nvsmi_curr_power_0, nvsmi_curr_power_1 = nvsmi_timestamps[j], nvsmi_timestamps[j+1], nvsmi_curr_powers[j], nvsmi_curr_powers[j+1]
+                nvsmi_timestamp_0, nvsmi_timestamp_1 = nvsmi_timestamps[j], nvsmi_timestamps[j+1]
+                nvsmi_curr_power_0, nvsmi_curr_power_1 = nvsmi_curr_powers[j], nvsmi_curr_powers[j+1]
 
-                
+                if (nvsmi_timestamp_0 <= batch_start_time and
+                    nvsmi_timestamp_1 >= batch_start_time):
+                    nvsmi_before_ts = nvsmi_timestamp_0
+                if (nvsmi_timestamp_0 <= batch_end_time and
+                    nvsmi_timestamp_1 >= batch_end_time):
+                    nvsmi_after_ts = nvsmi_timestamp_1
+            assert(nvsmi_before_ts != -1 and nvsmi_after_ts != -1)
+            print(f'nvsmi_before_ts: {nvsmi_before_ts}, batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}, nvsmi_after_ts: {nvmsi_after_ts}')
 
         ## Make the nvsmi timestamp entries start in the same place as the bmark timestamp entries
         #new_nvsmi_timestamps, new_nvsmi_curr_powers, new_nvsmi_max_powers = [], [], []
