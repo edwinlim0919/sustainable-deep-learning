@@ -221,6 +221,7 @@ def calculate_avg_ept(
             nvsmi_curr_powers.append(gpu_idx_dict['curr_power_usage'])
 
         # For each bmark_entry, calculate the average energy per token across the bmark
+        # Average EPT across every iteration in the bmark
         for i in range(len(batch_start_times)):
             batch_start_time, batch_end_time = batch_start_times[i], batch_end_times[i]
             
@@ -238,8 +239,24 @@ def calculate_avg_ept(
                 if (nvsmi_timestamp_0 <= batch_end_time and
                     nvsmi_timestamp_1 >= batch_end_time):
                     nvsmi_after_ts = nvsmi_timestamp_1
+
+            # sanity checks
             assert(nvsmi_before_ts != -1 and nvsmi_after_ts != -1)
-            print(f'nvsmi_before_ts: {nvsmi_before_ts}, batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}, nvsmi_after_ts: {nvsmi_after_ts}')
+            assert(nvsmi_before_ts <= batch_start_time and
+                   batch_start_time <= batch_end_time and
+                   batch_end_time <= nvsmi_after_ts)
+            #print(f'nvsmi_before_ts: {nvsmi_before_ts}, batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}, nvsmi_after_ts: {nvsmi_after_ts}')
+
+            # Populate all the nvsmi timestamps and power measurements for the bmark
+            batch_nvsmi_timestamps, batch_nvsmi_curr_powers = [], []
+            for j in range(len(nvsmi_timestamps)):
+                nvsmi_timestamp = nvsmi_timestamps[j]
+                nvsmi_curr_power = nvsmi_curr_powers[j]
+
+                if (nvsmi_timestamp >= nvsmi_before_ts and
+                    nvsmi_timestamp <= nvsmi_after_ts):
+                    batch_nvsmi_timestamps.append(nvsmi_timestamp)
+                    batch_nvsmi_curr_powers.append(nvsmi_curr_power)
 
         ## Make the nvsmi timestamp entries start in the same place as the bmark timestamp entries
         #new_nvsmi_timestamps, new_nvsmi_curr_powers, new_nvsmi_max_powers = [], [], []
