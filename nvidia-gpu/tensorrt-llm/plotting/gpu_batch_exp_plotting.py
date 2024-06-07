@@ -206,73 +206,73 @@ def calculate_avg_ept(
         bmark_info = bmark_entry['bmark_info']
 
         # Extract timestamps from bmark_info
-        # each entry is (batch_start_time, batch_end_time)
-        bmark_timestamps = []
+        batch_start_times, batch_end_times = [], []
         for batch_iteration, batch_dict in bmark_info.items():
-            batch_start_time = batch_dict['batch_start_time']
-            batch_end_time = batch_dict['batch_end_time']
-            bmark_timestamps.append(batch_start_time)
-            bmark_timestamps.append(batch_end_time)
-        bmark_entry['bmark_timestamps'] = bmark_timestamps
+            batch_start_times.append(batch_dict['batch_start_time'])
+            batch_end_times.append(batch_dict['batch_end_time'])
 
-        bmark_info = bmark_entry['bmark_info']
         # Extract timestamps and power usage from nvsmi_info
         nvsmi_info = bmark_entry['nvsmi_info']
-        # each entry is (timestamp_raw, curr_power_usage, max_power_usage)
-        nvsmi_timestamps = []
-        nvsmi_curr_powers = []
-        nvsmi_max_powers = []
+        nvsmi_timestamps, nvsmi_curr_powers = [], []
         for nvsmi_dict in nvsmi_info:
-            timestamp_raw = nvsmi_dict['timestamp_raw']
-            nvsmi_timestamps.append(timestamp_raw)
-
+            nvsmi_timestamps.append(nvsmi_dict['timestamp_raw'])
+            # nvidia-smi monitor records information for all GPUs, even if unused
+            # get information about the GPU we actually used for inference
             gpu_idx_dict = nvsmi_dict[gpu_idx]
-            curr_power_usage = gpu_idx_dict['curr_power_usage']
-            max_power_usage = gpu_idx_dict['max_power_usage']
-            nvsmi_curr_powers.append(curr_power_usage)
-            nvsmi_max_powers.append(max_power_usage)
+            nvsmi_curr_powers.append(gpu_idx_dict['curr_power_usage'])
 
-        # Make the nvsmi timestamp entries start in the same place as the bmark timestamp entries
-        assert(len(nvsmi_timestamps) == len(nvsmi_curr_powers) and
-               len(nvsmi_curr_powers) == len(nvsmi_max_powers))
-        new_nvsmi_timestamps, new_nvsmi_curr_powers, new_nvsmi_max_powers = [], [], []
-        initial_bmark_timestamp = bmark_timestamps[0]
-        last_bmark_timestamp = bmark_timestamps[-1]
-        for i in range(len(nvsmi_timestamps)):
-            # leave a 10 second buffer
-            #if (initial_bmark_timestamp - nvsmi_timestamps[i]) > 10:
-            #    continue
+        # For each bmark_entry, calculate the average energy per token across the bmark
+        for i in range(len(batch_start_times)):
+            batch_start_time, batch_end_time = batch_start_times[i], batch_end_times[i]
+            
+            # Find the nvsmi timestamps and power metrics that correspond to this batch
+            # - First nvsmi timestamp before batch starts
+            # - First nvsmi timestamp after batch ends
+            before_ts_found = False
+            for j in range(len(nvsmi_timestamps) - 1):
+                nvsmi_timestamp_0, nvsmi_timestamp_1, nvsmi_curr_power_0, nvsmi_curr_power_1 = nvsmi_timestamps[j], nvsmi_timestamps[j+1], nvsmi_curr_powers[j], nvsmi_curr_powers[j+1]
 
-            # only include nvsmi timestamps that are contained within the batch mark timestamps
-            if (nvsmi_timestamps[i] < initial_bmark_timestamp or
-                nvsmi_timestamps[i] > last_bmark_timestamp):
-                continue
+                
 
-            # if close enough, then add to plotting lists
-            new_nvsmi_timestamps.append(nvsmi_timestamps[i])
-            new_nvsmi_curr_powers.append(nvsmi_curr_powers[i])
-            new_nvsmi_max_powers.append(nvsmi_max_powers[i])
+        ## Make the nvsmi timestamp entries start in the same place as the bmark timestamp entries
+        #new_nvsmi_timestamps, new_nvsmi_curr_powers, new_nvsmi_max_powers = [], [], []
+        #initial_bmark_timestamp = bmark_timestamps[0]
+        #last_bmark_timestamp = bmark_timestamps[-1]
+        #for i in range(len(nvsmi_timestamps)):
+        #    # leave a 10 second buffer
+        #    #if (initial_bmark_timestamp - nvsmi_timestamps[i]) > 10:
+        #    #    continue
 
-        initial_timestamp = new_nvsmi_timestamps[0]
-        for i in range(len(new_nvsmi_timestamps)):
-            new_nvsmi_timestamps[i] = new_nvsmi_timestamps[i] - initial_timestamp
+        #    # only include nvsmi timestamps that are contained within the batch mark timestamps
+        #    if (nvsmi_timestamps[i] < initial_bmark_timestamp or
+        #        nvsmi_timestamps[i] > last_bmark_timestamp):
+        #        continue
 
-        if plot_token_energy:
-            # calculate all tokens computed during the entire benchmark
-            total_bmark_generated_tokens = 0
+        #    # if close enough, then add to plotting lists
+        #    new_nvsmi_timestamps.append(nvsmi_timestamps[i])
+        #    new_nvsmi_curr_powers.append(nvsmi_curr_powers[i])
+        #    new_nvsmi_max_powers.append(nvsmi_max_powers[i])
 
-            for batch_iteration, batch_dict in bmark_info.items():
-                batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-                for batch_input_length_index, batch_input_lengths in batch_dict['batch_input_lengths'].items():
-                    batch_input_lengths_sum += batch_input_lengths
-                for batch_output_length_index, batch_output_lengths in batch_dict['batch_output_lengths'].items():
-                    batch_output_lengths_sum += batch_output_lengths
-                total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
-                total_bmark_generated_tokens += total_batch_generated_tokens
+        #initial_timestamp = new_nvsmi_timestamps[0]
+        #for i in range(len(new_nvsmi_timestamps)):
+        #    new_nvsmi_timestamps[i] = new_nvsmi_timestamps[i] - initial_timestamp
 
-            # calculate the total energy consumed during the entire benchmark
-            total_bmark_joules = np.trapz(new_nvsmi_curr_powers, new_nvsmi_timestamps)
-            joules_per_token = total_bmark_joules / total_bmark_generated_tokens
+        #if plot_token_energy:
+        #    # calculate all tokens computed during the entire benchmark
+        #    total_bmark_generated_tokens = 0
+
+        #    for batch_iteration, batch_dict in bmark_info.items():
+        #        batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
+        #        for batch_input_length_index, batch_input_lengths in batch_dict['batch_input_lengths'].items():
+        #            batch_input_lengths_sum += batch_input_lengths
+        #        for batch_output_length_index, batch_output_lengths in batch_dict['batch_output_lengths'].items():
+        #            batch_output_lengths_sum += batch_output_lengths
+        #        total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+        #        total_bmark_generated_tokens += total_batch_generated_tokens
+
+        #    # calculate the total energy consumed during the entire benchmark
+        #    total_bmark_joules = np.trapz(new_nvsmi_curr_powers, new_nvsmi_timestamps)
+        #    joules_per_token = total_bmark_joules / total_bmark_generated_tokens
 
 
 def plot_energy_vs_tbt(
