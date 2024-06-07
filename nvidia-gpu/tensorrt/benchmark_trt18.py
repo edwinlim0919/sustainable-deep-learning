@@ -16,7 +16,6 @@ def load_model():
 
 # preprocesses image for resnet18
 def preprocess_image(image_path):
-    print("Image path: ", image_path)
     preprocess = transforms.Compose([
         transforms.Resize(256),                   # Resize to 256x256
         transforms.CenterCrop(224),               # Crop the center 224x224
@@ -33,41 +32,46 @@ def preprocess_image(image_path):
 
 # Get list of image files from a directory
 def get_image_files(directory):
-    image_files = [f for f in os.listdir(directory) if f.endswith(('.JPEG'))]
+    image_files = [f for f in os.listdir(directory) if f.endswith(('.jpg', '.jpeg', '.png'))]
     return image_files
 
 # performs inference
-def benchmark(model, image_directory, dtype='fp32', nwarmup=50, nruns=100):
+def benchmark(model, image_directory, output_file, dtype='fp32', nwarmup=50, nruns=100):
     image_files = get_image_files(image_directory)
     if not image_files:
         raise ValueError(f"No image files found in {image_directory}")
 
-    print("Warm up ...")
-    with torch.no_grad():
-        for _ in range(nwarmup):
-            # Randomly select an image file for warm-up
-            image_file = random.choice(image_files)
-            image_path = os.path.join(image_directory, image_file)
-            image = preprocess_image(image_path)
-            features = model(image)
-            torch.cuda.synchronize()
+    with open(output_file, 'w') as f_out:
+        f_out.write("Image,Inference Time (ms)\n")
 
-    print("Start timing ...")
-    timings = []
-    with torch.no_grad():
-        for i in range(1, nruns + 1):
-            start_time = time.time()
-            # Randomly select an image file for each iteration
-            image_file = random.choice(image_files)
-            image_path = os.path.join(image_directory, image_file)
-            image = preprocess_image(image_path)
-            features = model(image)
-            torch.cuda.synchronize()
-            end_time = time.time()
-            timings.append(end_time - start_time)
-            if i % 10 == 0:
-                print(f'Iteration {i}/{nruns}, ave batch time {np.mean(timings) * 1000:.2f} ms')
+        print("Warm up ...")
+        with torch.no_grad():
+            for _ in range(nwarmup):
+                # Randomly select an image file for warm-up
+                image_file = random.choice(image_files)
+                image_path = os.path.join(image_directory, image_file)
+                image = preprocess_image(image_path)
+                features = model(image)
+                torch.cuda.synchronize()
 
+        print("Start timing ...")
+        timings = []
+        with torch.no_grad():
+            for i in range(1, nruns + 1):
+                start_time = time.time()
+                # Randomly select an image file for each iteration
+                image_file = random.choice(image_files)
+                image_path = os.path.join(image_directory, image_file)
+                image = preprocess_image(image_path)
+                features = model(image)
+                torch.cuda.synchronize()
+                end_time = time.time()
+                inference_time = (end_time - start_time) * 1000  # in milliseconds
+                timings.append(inference_time)
+                f_out.write(f"{image_file},{inference_time:.2f}\n")
+                if i % 10 == 0:
+                    print(f'Iteration {i}/{nruns}, ave batch time {np.mean(timings):.2f} ms')
+                    
     print("Input shape:", image.size())
     # Check and print the type and size of features
     print("Type of features:", type(features))
@@ -78,8 +82,6 @@ def benchmark(model, image_directory, dtype='fp32', nwarmup=50, nruns=100):
         print("Output features size:", features.size())
     print(f'Average batch time: {np.mean(timings) * 1000:.2f} ms')
     return timings
-   
-    # TODO: add nvsmi reading functionality & save results to a file
 
 if __name__ == '__main__':
     model = load_model()
@@ -88,10 +90,11 @@ if __name__ == '__main__':
                                             enabled_precisions={torch.float32},  # Run with FP32
                                             workspace_size=1 << 22)
 
-    image_directory = '/workspace/tensorrt/images'  # TODO: replace with appropriate image directory
+    image_directory = '/workspace/tensorrt/images'  # TODO: replace with your image directory
+    output_file = 'output.csv'
     num_iterations = 100
 
-    timings = benchmark(trt_model_fp32, image_directory, nruns=num_iterations)
+    timings = benchmark(trt_model_fp32, image_directory, output_file, nruns=num_iterations)
 
     # Output results
     if timings:
@@ -101,5 +104,4 @@ if __name__ == '__main__':
         print(f'Average time per iteration: {avg_time_per_iteration:.4f} seconds')
     else:
         print("No timings recorded during benchmarking.")
-
 
