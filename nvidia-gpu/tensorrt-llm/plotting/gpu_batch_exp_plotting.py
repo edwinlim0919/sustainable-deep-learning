@@ -191,12 +191,6 @@ def calculate_avg_tps(
 
 
 def calculate_avg_ept(
-    #bmark_entries,
-    #plot_filename,
-    #plot_name,
-    #gpu_idx,
-    #project_24_hr,
-    #plot_token_energy
     bmark_entries,
     bmark_param_groups,
     excluded_tokens,
@@ -204,28 +198,14 @@ def calculate_avg_ept(
     bmark_param_group_dicts,
     gpu_idx
 ):
-    plot_a100_max_power = False
-    plot_v100_max_power = False
-
-    plt.figure(figsize=(10, 4))
-
-    joules_per_token_list = []
-    joules_label_list = []
-
     for bmark_entry in bmark_entries:
         model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
         max_sequence_length = bmark_entry['max_sequence_length']
         gpu_type = bmark_entry['gpu_type']
-        print(f'bmark_entry: {model_size} {batch_size} {max_sequence_length} {gpu_type}')
-
-        if gpu_type == 'a10040gb':
-            plot_a100_max_power = True
-        if gpu_type == 'v10032gb':
-            plot_v100_max_power = True
+        bmark_info = bmark_entry['bmark_info']
 
         # Extract timestamps from bmark_info
-        bmark_info = bmark_entry['bmark_info']
         # each entry is (batch_start_time, batch_end_time)
         bmark_timestamps = []
         for batch_iteration, batch_dict in bmark_info.items():
@@ -293,97 +273,6 @@ def calculate_avg_ept(
             # calculate the total energy consumed during the entire benchmark
             total_bmark_joules = np.trapz(new_nvsmi_curr_powers, new_nvsmi_timestamps)
             joules_per_token = total_bmark_joules / total_bmark_generated_tokens
-
-            joules_per_token_list.append(joules_per_token)
-            joules_label_list.append(f'{model_size} {batch_size} {gpu_type}')
-
-
-        # project power measurements over a 24 hour period
-        if project_24_hr:
-            # take the inner slice of timestamps and power
-            timestamp_slice = new_nvsmi_timestamps[15:-15].copy()
-            curr_powers_slice = new_nvsmi_curr_powers[15:-15].copy()
-            timestamp_slice_copy = timestamp_slice.copy()
-            curr_powers_slice_copy = curr_powers_slice.copy()
-            timestamp_offset = timestamp_slice[-1] + 1
-
-            # Take the average of the curr_powers_slice
-            curr_powers_sum = 0
-            for curr_power in curr_powers_slice:
-                curr_powers_sum += curr_power
-            curr_powers_avg = curr_powers_sum / len(curr_powers_slice)
-            curr_powers_avg_portion = 0.25 * curr_powers_avg
-            lower_bound = curr_powers_avg - curr_powers_avg_portion
-            upper_bound = curr_powers_avg + curr_powers_avg_portion
-
-            timestamp_slice_duration = timestamp_slice[-1] - timestamp_slice[0]
-            print(f'timestamp_slice_duration: {timestamp_slice_duration}')
-            # find how many slices fit into a day (ceil)
-            slice_multiplier = math.ceil((24 * 60 * 60) / timestamp_slice_duration)
-            print(f'slice_multiplier: {slice_multiplier}')
-
-            # append slices until 24 hours is reached
-            for j in range(slice_multiplier):
-                # add offset to timestamp_slice_copy
-                for k in range(len(timestamp_slice_copy)):
-                    timestamp_slice_copy[k] += timestamp_offset
-
-                for i in range(len(timestamp_slice_copy)):
-                    timestamp_slice.append(timestamp_slice_copy[i])
-                    curr_powers_slice.append(curr_powers_slice_copy[i])
-
-            # cut off entries that go past 24 hours
-            new_nvsmi_timestamps = []
-            new_nvsmi_curr_powers = []
-            assert(len(timestamp_slice) == len(curr_powers_slice))
-            for j in range(len(timestamp_slice)):
-                # only show 5 minutes of power trace to make plot legible
-                if timestamp_slice[j] > (10 * 60):
-                    break
-                new_nvsmi_timestamps.append(timestamp_slice[j])
-
-                # avg-based smoothing so that the plot is legible
-                if (curr_powers_slice[j] < lower_bound or
-                    curr_powers_slice[j] > upper_bound):
-                    new_nvsmi_curr_powers.append(curr_powers_avg)
-                else:
-                    new_nvsmi_curr_powers.append(curr_powers_slice[j])
-                #new_nvsmi_curr_powers.append(curr_powers_slice[j])
-
-            # no groupings necessary for these plots
-            print(f'new_nvsmi_timestamps: {new_nvsmi_timestamps}')
-            print(f'new_nvsmi_curr_powers: {new_nvsmi_curr_powers}')
-            plt.plot(new_nvsmi_timestamps, new_nvsmi_curr_powers, label=f'{model_size} {batch_size} {gpu_type}')
-
-    if plot_token_energy:
-        gcarb_per_token_list = []
-        for jtok in joules_per_token_list:
-            gcarb_per_token_list.append(joules_to_pittsburgh_carbon(jtok))
-
-        #plt.bar(range(len(joules_per_token_list)), joules_per_token_list, tick_label=joules_label_list)
-        plt.bar(range(len(gcarb_per_token_list)), gcarb_per_token_list, tick_label=joules_label_list)
-        plt.xlabel('Data Point')
-        plt.ylabel('Grams Carbon Per Token')
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-        plt.grid(True)
-        plt.title(plot_name)
-        #plt.legend()
-        plt.savefig('plots/' + plot_filename)
-
-    if project_24_hr:
-        #if plot_a100_max_power:
-        #    plt.axhline(y=400, color='red', linestyle='--', label='Peak A100 Power')
-        if plot_v100_max_power:
-            plt.axhline(y=250, color='orange', linestyle='--', label='Peak V100 Power')
-        plt.xlabel('Time (seconds)')
-        plt.ylabel('Power Usage (W)')
-        plt.title(plot_name)
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        #plt.ylim(100, 260)
-        plt.savefig('plots/' + plot_filename)
 
 
 def plot_energy_vs_tbt(
@@ -890,37 +779,6 @@ def main(args):
         bmark_entry['bmark_info'] = bmark_info
         bmark_entry['nvsmi_info'] = nvsmi_info
         bmark_entries.append(bmark_entry)
-
-    #if args.plot_power_or_energy:
-    #    plot_power_or_energy(
-    #        bmark_entries,
-    #        args.plot_filename,
-    #        args.plot_name,
-    #        args.gpu_idx,
-    #        args.project_24_hr,
-    #        args.plot_token_energy
-    #    )
-    #if args.plot_average_batch_latency:
-    #    if not args.plot_sequence_lengths:
-    #        raise ValueError('supply plot_sequence_lengths argument for plot_average_batch_latency')
-    #    if not args.plot_batch_sizes:
-    #        raise ValueError('supply plot_batch_sizes argument for plot_average_batch_latency')
-    #    if not args.bmark_param_groups:
-    #        raise ValueError('supply bmark_param_groups for plot_average_batch_latency')
-    #    plot_average_batch_latency(
-    #        bmark_entries,
-    #        args.plot_filename,
-    #        args.plot_sequence_lengths,
-    #        args.plot_batch_sizes,
-    #        args.bmark_param_groups
-    #    )
-    #if args.plot_normalized_token_latency:
-    #    plot_normalized_token_latency(
-    #        bmark_entries,
-    #        args.plot_filename,
-    #        args.bmark_param_groups,
-    #        args.excluded_tokens
-    #    )
     if args.plot_throughput_vs_tbt:
         plot_throughput_vs_tbt(
             bmark_entries,
@@ -1023,12 +881,6 @@ if __name__ == '__main__':
         '--gpu_idx',
         type=int,
         help='specify which idx of GPU for nvsmi info'
-    )
-    parser.add_argument(
-        '--project_24_hr',
-        default=False,
-        action='store_true',
-        help='specify this for power plots to project power measurements over a 24 hour period'
     )
     parser.add_argument(
         '--plot_token_energy',
