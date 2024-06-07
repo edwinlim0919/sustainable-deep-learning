@@ -78,6 +78,8 @@ def benchmark(model, image_directory, dtype='fp32', nwarmup=50, nruns=100):
         print("Output features size:", features.size())
     print(f'Average batch time: {np.mean(timings) * 1000:.2f} ms')
     return timings
+   
+    # TODO: add nvsmi reading functionality & save results to a file
 
 if __name__ == '__main__':
     model = load_model()
@@ -86,7 +88,7 @@ if __name__ == '__main__':
                                             enabled_precisions={torch.float32},  # Run with FP32
                                             workspace_size=1 << 22)
 
-    image_directory = '/workspace/tensorrt/images'  # TODO: replace with your image directory
+    image_directory = '/workspace/tensorrt/images'  # TODO: replace with appropriate image directory
     num_iterations = 100
 
     timings = benchmark(trt_model_fp32, image_directory, nruns=num_iterations)
