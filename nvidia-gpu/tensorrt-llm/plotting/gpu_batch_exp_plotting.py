@@ -229,12 +229,20 @@ def calculate_avg_ept(
             gpu_idx_dict = nvsmi_dict[gpu_idx]
             nvsmi_curr_powers.append(gpu_idx_dict['curr_power_usage'])
 
+        # For this given bmark data point, keep track of running tbt sum to calculate avg at the end
+        ept_sum = 0
+        # Manually track the number of parsed iterations for edge cases
+        num_iterations = 0
+
         # For each bmark_entry, calculate the average energy per token across the bmark
         # Average EPT across every iteration in the bmark
         for i in range(len(batch_start_times)):
             batch_start_time, batch_end_time = batch_start_times[i], batch_end_times[i]
             total_batch_generated_tokens = batch_total_tokens_list[i]
-            
+
+            if total_batch_generated_tokens == 0:
+                continue
+
             # Find the nvsmi timestamps and power metrics that correspond to this batch
             # - First nvsmi timestamp before batch starts
             # - First nvsmi timestamp after batch ends
@@ -267,11 +275,6 @@ def calculate_avg_ept(
                     batch_nvsmi_timestamps.append(nvsmi_timestamp)
                     batch_nvsmi_curr_powers.append(nvsmi_curr_power)
 
-            # dev testing sanity checks
-            #print(f'nvsmi_before_ts: {nvsmi_before_ts}, batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}, nvsmi_after_ts: {nvsmi_after_ts}')
-            #for j in range(len(batch_nvsmi_timestamps)):
-            #    print(f'batch_nvsmi_timestamp: {batch_nvsmi_timestamps[j]}, batch_nvsmi_curr_power: {batch_nvsmi_curr_powers[j]}')
-
             # For calculating energy (area under curve), calculate energy purely for when the batch is being computed
             # So replace first and last recorded nvsmi timestamps with the start and end time of the batch
             batch_nvsmi_timestamps[0] = batch_start_time
@@ -279,47 +282,13 @@ def calculate_avg_ept(
 
             energy_joules = np.trapz(batch_nvsmi_curr_powers, batch_nvsmi_timestamps)
             batch_ept_avg = energy_joules / total_batch_generated_tokens
-            print(f'energy_joules: {energy_joules}, total_batch_generated_tokens: {total_batch_generated_tokens}, batch_ept_avg: {batch_ept_avg}')
+            ept_sum += batch_ept_avg
+            num_iterations += 1
 
-        ## Make the nvsmi timestamp entries start in the same place as the bmark timestamp entries
-        #new_nvsmi_timestamps, new_nvsmi_curr_powers, new_nvsmi_max_powers = [], [], []
-        #initial_bmark_timestamp = bmark_timestamps[0]
-        #last_bmark_timestamp = bmark_timestamps[-1]
-        #for i in range(len(nvsmi_timestamps)):
-        #    # leave a 10 second buffer
-        #    #if (initial_bmark_timestamp - nvsmi_timestamps[i]) > 10:
-        #    #    continue
+            #print(f'energy_joules: {energy_joules}, total_batch_generated_tokens: {total_batch_generated_tokens}, batch_ept_avg: {batch_ept_avg}')
 
-        #    # only include nvsmi timestamps that are contained within the batch mark timestamps
-        #    if (nvsmi_timestamps[i] < initial_bmark_timestamp or
-        #        nvsmi_timestamps[i] > last_bmark_timestamp):
-        #        continue
-
-        #    # if close enough, then add to plotting lists
-        #    new_nvsmi_timestamps.append(nvsmi_timestamps[i])
-        #    new_nvsmi_curr_powers.append(nvsmi_curr_powers[i])
-        #    new_nvsmi_max_powers.append(nvsmi_max_powers[i])
-
-        #initial_timestamp = new_nvsmi_timestamps[0]
-        #for i in range(len(new_nvsmi_timestamps)):
-        #    new_nvsmi_timestamps[i] = new_nvsmi_timestamps[i] - initial_timestamp
-
-        #if plot_token_energy:
-        #    # calculate all tokens computed during the entire benchmark
-        #    total_bmark_generated_tokens = 0
-
-        #    for batch_iteration, batch_dict in bmark_info.items():
-        #        batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-        #        for batch_input_length_index, batch_input_lengths in batch_dict['batch_input_lengths'].items():
-        #            batch_input_lengths_sum += batch_input_lengths
-        #        for batch_output_length_index, batch_output_lengths in batch_dict['batch_output_lengths'].items():
-        #            batch_output_lengths_sum += batch_output_lengths
-        #        total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
-        #        total_bmark_generated_tokens += total_batch_generated_tokens
-
-        #    # calculate the total energy consumed during the entire benchmark
-        #    total_bmark_joules = np.trapz(new_nvsmi_curr_powers, new_nvsmi_timestamps)
-        #    joules_per_token = total_bmark_joules / total_bmark_generated_tokens
+        avg_ept = ept_sum / num_iterations
+        #print(f'model_size: {model_size}, batch_size: {batch_size}, gpu_type: {gpu_type}, avg_ept: {avg_ept}')
 
 
 def plot_ept_vs_tbt(
@@ -708,106 +677,6 @@ def plot_normalized_token_latency(
 #    kWh = joules / 3600000
 #    grams_co2_eq = kWh * pittsburgh_carbon_intensity
 #    return grams_co2_eq
-
-
-
-
-
-
-#def plot_average_batch_latency(
-#    bmark_entries,
-#    plot_filename,
-#    plot_sequence_lengths,
-#    plot_batch_sizes,
-#    bmark_param_groups
-#):
-#    plt.figure(figsize=(10, 3))
-#
-#    bmark_param_group_dicts = []
-#    for bmark_param_group in bmark_param_groups:
-#        group_split = bmark_param_group.split()
-#        bmark_param_group_dict = {}
-#        bmark_param_group_dict['model_size'] = int(group_split[0]) if group_split[0] != 'X' else 'X'
-#        bmark_param_group_dict['batch_size'] = int(group_split[1]) if group_split[1] != 'X' else 'X'
-#        bmark_param_group_dict['max_sequence_length'] = int(group_split[2]) if group_split[2] != 'X' else 'X'
-#        bmark_param_group_dict['avg_batch_latencies'] = []
-#        bmark_param_group_dicts.append(bmark_param_group_dict)
-#
-#    for bmark_entry in bmark_entries:
-#        model_size = bmark_entry['model_size']
-#        batch_size = bmark_entry['batch_size']
-#        max_sequence_length = bmark_entry['max_sequence_length']
-#        if max_sequence_length not in plot_sequence_lengths:
-#            continue
-#        if batch_size not in plot_batch_sizes:
-#            continue
-#
-#        # Extract timestamps from bmark_info
-#        bmark_info = bmark_entry['bmark_info']
-#        # each entry is (batch_start_time, batch_end_time)
-#        bmark_tuples = []
-#        curr_max_time = 0.0
-#        batch_latency_sum = 0.0
-#        num_iterations = len(bmark_info)
-#
-#        for batch_iteration, batch_dict in bmark_info.items():
-#            batch_start_time = batch_dict['batch_start_time']
-#            batch_end_time = batch_dict['batch_end_time']
-#
-#            # make sure timestamps are strictly increasing
-#            assert(batch_start_time > curr_max_time and
-#                   batch_end_time > batch_start_time)
-#            curr_max_time = batch_end_time
-#            batch_latency = batch_end_time - batch_start_time
-#            batch_latency_sum += batch_latency
-#
-#        avg_batch_latency = batch_latency_sum / num_iterations
-#        print(f'PLOT_AVERAGE_BATCH_LATENCY model_size: {model_size}, batch_size: {batch_size}, max_sequence_length: {max_sequence_length}, avg_batch_latency: {avg_batch_latency}, batch_size: {batch_size}')
-#        avg_batch_latencies_dict = {
-#            'batch_size': batch_size,
-#            'avg_batch_latency': avg_batch_latency
-#        }
-#
-#        # Identify which bmark_param_group_dict to append to
-#        for bmark_param_group_dict in bmark_param_group_dicts:
-#            bmark_param_match_found = False
-#            if (bmark_param_group_dict['model_size'] != 'X' and
-#                bmark_param_group_dict['model_size'] != model_size):
-#                continue
-#            if (bmark_param_group_dict['batch_size'] != 'X' and
-#                bmark_param_group_dict['batch_size'] != batch_size):
-#                continue
-#            if (bmark_param_group_dict['max_sequence_length'] != 'X' and
-#                bmark_param_group_dict['max_sequence_length'] != max_sequence_length):
-#                continue
-#
-#            # Only reach this point if a match is found
-#            bmark_param_match_found = True
-#            bmark_param_group_dict['avg_batch_latencies'].append(avg_batch_latencies_dict)
-#            break
-#
-#        # For each bmark_entry, should at least match to one of the plotting groups
-#        assert(bmark_param_match_found)
-#
-#    for bmark_param_group_dict in bmark_param_group_dicts:
-#        batch_sizes = []
-#        avg_latencies = []
-#        for avg_batch_latencies_dict in bmark_param_group_dict['avg_batch_latencies']:
-#            batch_sizes.append(avg_batch_latencies_dict['batch_size'])
-#            avg_latencies.append(avg_batch_latencies_dict['avg_batch_latency'])
-#
-#        plt.plot(batch_sizes, avg_latencies, label=f'Llama {bmark_param_group_dict["model_size"]}B Max {bmark_param_group_dict["max_sequence_length"]} Sequence Length)')
-#
-#    # Minimum batch size of 1
-#    plt.xlim(left=1)
-#    plt.xlabel('batch size')
-#    plt.ylabel('Time (seconds)')
-#    plt.title(f'Avg. Batch Latency vs. Batch Size')
-#    plt.legend()
-#    plt.grid(True)
-#    plt.tight_layout()
-#    plt.savefig('plots/' + plot_filename)
-
 
 
 def main(args):
