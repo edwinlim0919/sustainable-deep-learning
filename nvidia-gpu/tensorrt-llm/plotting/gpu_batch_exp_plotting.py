@@ -239,7 +239,7 @@ def calculate_avg_ept(
                     nvsmi_timestamp_1 >= batch_end_time):
                     nvsmi_after_ts = nvsmi_timestamp_1
             assert(nvsmi_before_ts != -1 and nvsmi_after_ts != -1)
-            print(f'nvsmi_before_ts: {nvsmi_before_ts}, batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}, nvsmi_after_ts: {nvmsi_after_ts}')
+            print(f'nvsmi_before_ts: {nvsmi_before_ts}, batch_start_time: {batch_start_time}, batch_end_time: {batch_end_time}, nvsmi_after_ts: {nvsmi_after_ts}')
 
         ## Make the nvsmi timestamp entries start in the same place as the bmark timestamp entries
         #new_nvsmi_timestamps, new_nvsmi_curr_powers, new_nvsmi_max_powers = [], [], []
@@ -286,7 +286,7 @@ def plot_ept_vs_tbt(
     bmark_entries,
     bmark_param_groups,
     excluded_tokens,
-    gpu_idx
+    gpu_idx,
     plot_filename,
     plot_name
 ):
@@ -807,7 +807,7 @@ def main(args):
             bmark_entries,
             args.bmark_param_groups,
             args.excluded_tokens,
-            args.gpu_idx
+            args.gpu_idx,
             args.plot_filename,
             args.plot_name
         )
