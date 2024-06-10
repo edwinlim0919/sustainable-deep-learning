@@ -32,7 +32,7 @@ def preprocess_image(image_path):
 
 # Get list of image files from a directory
 def get_image_files(directory):
-    image_files = [f for f in os.listdir(directory) if f.endswith(('.jpg', '.jpeg', '.png'))]
+    image_files = [f for f in os.listdir(directory) if f.endswith(('.JPEG'))]
     return image_files
 
 # performs inference
@@ -42,7 +42,7 @@ def benchmark(model, image_directory, output_file, dtype='fp32', nwarmup=50, nru
         raise ValueError(f"No image files found in {image_directory}")
 
     with open(output_file, 'w') as f_out:
-        f_out.write("Image,Inference Time (ms)\n")
+        f_out.write(f"num_iterations: {nruns}\n\n")
 
         print("Warm up ...")
         with torch.no_grad():
@@ -68,7 +68,10 @@ def benchmark(model, image_directory, output_file, dtype='fp32', nwarmup=50, nru
                 end_time = time.time()
                 inference_time = (end_time - start_time) * 1000  # in milliseconds
                 timings.append(inference_time)
-                f_out.write(f"{image_file},{inference_time:.2f}\n")
+                f_out.write(f"iteration: {i}/{nruns}\n")
+                f_out.write(f"image_file: {image_file}\n")
+                f_out.write(f"start_time: {start_time:.2f}\n")
+                f_out.write(f"end_time: {end_time:.2f}\n\n")
                 if i % 10 == 0:
                     print(f'Iteration {i}/{nruns}, ave batch time {np.mean(timings):.2f} ms')
                     
