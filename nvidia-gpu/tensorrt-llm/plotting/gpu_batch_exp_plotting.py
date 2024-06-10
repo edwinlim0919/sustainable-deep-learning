@@ -281,10 +281,13 @@ def calculate_avg_ept(
             ept_sum += batch_ept_avg
             num_iterations += 1
 
-            #print(f'energy_joules: {energy_joules}, total_batch_generated_tokens: {total_batch_generated_tokens}, batch_ept_avg: {batch_ept_avg}')
-
         avg_ept = ept_sum / num_iterations
-        #print(f'model_size: {model_size}, batch_size: {batch_size}, gpu_type: {gpu_type}, avg_ept: {avg_ept}')
+        update_experiment_data(
+            bmark_param_group_dicts,
+            plotting_knob,
+            'avg_ept',
+            avg_ept
+        )
 
 
 def plot_ept_vs_tbt(
@@ -340,6 +343,39 @@ def plot_ept_vs_tbt(
         gpu_idx,
         bmark_param_group_dicts
     )
+
+    plt.figure(figsize=(8, 3))
+    for bmark_param_group_dict in bmark_param_group_dicts:
+        for key, val in bmark_param_group_dict.items():
+            print(f'{key}, {val}')
+
+        avg_ept = bmark_param_group_dict['avg_ept']
+        avg_tbt = bmark_param_group_dict['avg_tbt']
+        batch_sizes = bmark_param_group_dict['batch_size']
+
+        model_size = bmark_param_group_dict['model_size']
+        max_sequence_length = bmark_param_group_dict['max_sequence_length']
+        gpu_type = bmark_param_group_dict['gpu_type']
+        plt.plot(avg_tbt, avg_ept, label=f'{model_size} {gpu_type}', marker='o')
+
+        for avg_tbt_val, avg_ept_val, batch_size in zip(avg_tbt, avg_ept, batch_sizes):
+            plt.annotate(str(batch_size),
+                         (avg_tbt_val, avg_ept_val),
+                         textcoords='offset points',
+                         xytext=(0, 10),
+                         ha='center')
+
+    plt.xlabel('Avg. Request Token Latency')
+    plt.ylabel('Joules Per Token')
+    plt.title(plot_name)
+    plt.grid(True)
+    legend = plt.legend()
+    legend._legend_box.sep = 3
+    legend._legend_box.align = "right"
+    plt.setp(legend.get_texts(), fontsize='small')
+    plt.setp(legend.get_patches(), scalex=0.5, scaley=0.5)
+    plt.tight_layout()
+    plt.savefig('plots/' + plot_filename)
 
 
 # TODO: - This is theoretical user-perceived latency to provide a bound for tbt (time between tokens).
