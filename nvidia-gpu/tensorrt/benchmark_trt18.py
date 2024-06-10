@@ -7,6 +7,7 @@ import os
 import random
 import time
 import numpy as np
+import argparse
 from torchvision.models import ResNet18_Weights
 
 # loads pre-trained resnet18 model
@@ -27,7 +28,6 @@ def preprocess_image(image_path):
     ])
     image = Image.open(image_path).convert('RGB') # Load image
     image = preprocess(image)                     # Apply preprocessing
-    image = image.unsqueeze(0)                    # Add batch dimension
     return image
 
 # Get list of image files from a directory
@@ -49,7 +49,7 @@ def benchmark(model, image_directory, output_file, max_batch_size=1, dtype='fp32
             for _ in range(nwarmup):
                 batch_files = random.sample(image_files, max_batch_size)
                 images = [preprocess_image(os.path.join(image_directory, img_file)).to('cuda') for img_file in batch_files]
-                batch = torch.cat(images)
+                batch = torch.stack(images)
                 features = model(batch)
                 torch.cuda.synchronize()
 
@@ -60,7 +60,7 @@ def benchmark(model, image_directory, output_file, max_batch_size=1, dtype='fp32
                 start_time = time.time()
                 batch_files = random.sample(image_files, max_batch_size)
                 images = [preprocess_image(os.path.join(image_directory, img_file)).to('cuda') for img_file in batch_files]
-                batch = torch.cat(images)
+                batch = torch.stack(images)
                 features = model(batch)
                 torch.cuda.synchronize()
                 end_time = time.time()
@@ -84,30 +84,31 @@ def benchmark(model, image_directory, output_file, max_batch_size=1, dtype='fp32
     return timings
 
 if __name__ == '__main__':
-    model = load_model()
+    parser = argparse.ArgumentParser(description='Benchmark ResNet18 with TensorRT')
+    parser.add_argument('--batch-size', type=int, default=1, help='Max batch size for inference')
+    parser.add_argument('--image-directory', type=str, required=True, help='Directory containing images')
+    parser.add_argument('--output-file', type=str, default='output.csv', help='File to write the output')
+    parser.add_argument('--num-iterations', type=int, default=100, help='Number of iterations to run')
     
-    image_directory = '/workspace/tensorrt/images'  # TODO: replace with your image directory
-    output_file = 'output.csv'
-    max_batch_size = 10  # Adjust as needed
-    num_iterations = 100
+    args = parser.parse_args()
+
+    model = load_model()
     
     trt_model_fp32 = torch_tensorrt.compile(model, 
                                             inputs=[torch_tensorrt.Input(
-                                                shape=(max_batch_size, 3, 224, 224),  # Maximum dynamic shape
+                                                shape=(args.batch_size, 3, 224, 224),  # Maximum dynamic shape
                                                 dtype=torch.float32
                                             )],
                                             enabled_precisions={torch.float32},  # Run with FP32
                                             workspace_size=1 << 22)
 
-    
-
-    timings = benchmark(trt_model_fp32, image_directory, output_file, max_batch_size=max_batch_size, nruns=num_iterations)
+    timings = benchmark(trt_model_fp32, args.image_directory, args.output_file, max_batch_size=args.batch_size, nruns=args.num_iterations)
 
     # Output results
     if timings:
         total_time = sum(timings) / 1000  # Convert to seconds
         avg_time_per_iteration = np.mean(timings)
-        print(f'Total time for {num_iterations} iterations: {total_time:.4f} seconds')
+        print(f'Total time for {args.num_iterations} iterations: {total_time:.4f} seconds')
         print(f'Average time per iteration: {avg_time_per_iteration:.4f} ms')
     else:
         print("No timings recorded during benchmarking.")
