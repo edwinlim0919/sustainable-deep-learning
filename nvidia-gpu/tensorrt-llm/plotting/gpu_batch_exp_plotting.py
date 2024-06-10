@@ -36,8 +36,14 @@ def update_experiment_data(
     bmark_param_group_dicts,
     plotting_knob,
     bmark_param_group_dict_key,
-    bmark_param_group_dict_val
+    bmark_param_group_dict_val,
+    bmark_entry
 ):
+    model_size = bmark_entry['model_size']
+    batch_size = bmark_entry['batch_size']
+    max_sequence_length = bmark_entry['max_sequence_length']
+    gpu_type = bmark_entry['gpu_type']
+
     # group plotting points into the group_dicts
     bmark_param_match_found = False
     for bmark_param_group_dict in bmark_param_group_dicts:
@@ -98,10 +104,7 @@ def calculate_avg_tbt(
     bmark_param_group_dicts
 ):
     for bmark_entry in bmark_entries:
-        model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
-        max_sequence_length = bmark_entry['max_sequence_length']
-        gpu_type = bmark_entry['gpu_type']
         bmark_info = bmark_entry['bmark_info']
 
         # For this given bmark data point, keep track of running tbt sum to calculate avg at the end
@@ -133,7 +136,8 @@ def calculate_avg_tbt(
             bmark_param_group_dicts,
             plotting_knob,
             'avg_tbt',
-            avg_tbt
+            avg_tbt,
+            bmark_entry
         )
 
 
@@ -181,7 +185,8 @@ def calculate_avg_tps(
             bmark_param_group_dicts,
             plotting_knob,
             'avg_tps',
-            avg_tps
+            avg_tps,
+            bmark_entry
         )
 
 
@@ -194,10 +199,7 @@ def calculate_avg_ept(
     bmark_param_group_dicts
 ):
     for bmark_entry in bmark_entries:
-        model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
-        max_sequence_length = bmark_entry['max_sequence_length']
-        gpu_type = bmark_entry['gpu_type']
         bmark_info = bmark_entry['bmark_info']
 
         # Extract timestamps from bmark_info
@@ -286,7 +288,8 @@ def calculate_avg_ept(
             bmark_param_group_dicts,
             plotting_knob,
             'avg_ept',
-            avg_ept
+            avg_ept,
+            bmark_entry
         )
 
 
@@ -314,16 +317,13 @@ def plot_ept_vs_tbt(
     # Populate bmark_param_group_dicts with the plotting knob lists
     # For this graph, batch_size is the plotting knob
     for bmark_entry in bmark_entries:
-        model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
-        max_sequence_length = bmark_entry['max_sequence_length']
-        gpu_type = bmark_entry['gpu_type']
-        bmark_info = bmark_entry['bmark_info']
         update_experiment_data(
             bmark_param_group_dicts,
             plotting_knob,
             plotting_knob,
-            batch_size
+            batch_size,
+            bmark_entry
         )
 
     # Calculate TBT
@@ -406,16 +406,13 @@ def plot_tps_vs_tbt(
     # Populate bmark_param_group_dicts with the plotting knob lists
     # For this graph, batch_size is the plotting knob
     for bmark_entry in bmark_entries:
-        model_size = bmark_entry['model_size']
         batch_size = bmark_entry['batch_size']
-        max_sequence_length = bmark_entry['max_sequence_length']
-        gpu_type = bmark_entry['gpu_type']
-        bmark_info = bmark_entry['bmark_info']
         update_experiment_data(
             bmark_param_group_dicts,
             plotting_knob,
             plotting_knob,
-            batch_size
+            batch_size,
+            bmark_entry
         )
 
     # Calculate TBT
@@ -457,7 +454,7 @@ def plot_tps_vs_tbt(
                          ha='center')
 
     plt.xlabel('Tokens Per Second')
-    plt.ylabel('Avg. Request Token Latency')
+    plt.ylabel('Time Between Tokens')
     plt.title(plot_name)
     plt.grid(True)
     legend = plt.legend()
