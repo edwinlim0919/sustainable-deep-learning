@@ -42,7 +42,9 @@ def benchmark(model, image_directory, output_file, max_batch_size=1, dtype='fp32
         raise ValueError(f"No image files found in {image_directory}")
 
     with open(output_file, 'w') as f_out:
-        f_out.write(f"num_iterations: {nruns}\n\n")
+        f_out.write(f"num_iterations: {nruns}\n")
+        
+        f_out.write(f"batch_size: {max_batch_size}\n\n")
 
         print("Warm up ...")
         with torch.no_grad():
