@@ -183,8 +183,8 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 													   "13B X 1000 a10040gb" \
 													   "13B X 1000 v10032gb" \
 								  --gpu_idx			   0 \
-								  --plot_filename      "llama2_throughput_vs_tbt_tradeoff.png" \
-								  --plot_name		   "Llama2 Throughput-TBT Tradeoff" \
+								  --plot_filename      "llama2_tbt_vs_ept_tradeoff.png" \
+								  --plot_name		   "Llama2 TBT-EPT Tradeoff" \
 								  --excluded_tokens    32000 \
 								  					   2 \
-								  --plot_tps_vs_tbt
+								  --plot_tbt_vs_ept

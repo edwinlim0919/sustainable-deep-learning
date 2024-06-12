@@ -293,7 +293,7 @@ def calculate_avg_ept(
         )
 
 
-def plot_ept_vs_tbt(
+def plot_tbt_vs_ept(
     bmark_entries,
     bmark_param_groups,
     excluded_tokens,
@@ -365,7 +365,7 @@ def plot_ept_vs_tbt(
                          xytext=(0, 10),
                          ha='center')
 
-    plt.xlabel('Avg. Request Token Latency')
+    plt.xlabel('Time Between Tokens')
     plt.ylabel('Joules Per Token')
     plt.title(plot_name)
     plt.grid(True)
@@ -703,8 +703,8 @@ def main(args):
             args.plot_filename,
             args.plot_name
         )
-    if args.plot_ept_vs_tbt:
-        plot_ept_vs_tbt(
+    if args.plot_tbt_vs_ept:
+        plot_tbt_vs_ept(
             bmark_entries,
             args.bmark_param_groups,
             args.excluded_tokens,
@@ -750,7 +750,7 @@ if __name__ == '__main__':
         help='specify this arg to plot tps (tokens per second) vs tbt (time between tokens)'
     )
     parser.add_argument(
-        '--plot_ept_vs_tbt',
+        '--plot_tbt_vs_ept',
         default=False,
         action='store_true',
         help='specify this arg to plot ept (energy per token) vs tbt (time between tokens)'
