@@ -9,6 +9,8 @@ import time
 import numpy as np
 import argparse
 from torchvision.models import ResNet18_Weights
+from pathlib import Path
+
 
 # loads pre-trained resnet18 model
 def load_model():
@@ -87,10 +89,42 @@ def benchmark(model, image_directory, output_file, max_batch_size=1, dtype='fp32
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Benchmark ResNet18 with TensorRT')
-    parser.add_argument('--batch-size', type=int, default=1, help='Max batch size for inference')
-    parser.add_argument('--image-directory', type=str, required=True, help='Directory containing images')
-    parser.add_argument('--output-file', type=str, default='output.csv', help='File to write the output')
-    parser.add_argument('--num-iterations', type=int, default=100, help='Number of iterations to run')
+    parser.add_argument(
+        '--batch-size', 
+        type=int, 
+        default=1, 
+        help='Max batch size for inference'
+    )
+    parser.add_argument(
+        '--image-directory', 
+        type=str, 
+        required=True, 
+        help='Directory containing images'
+    )
+    parser.add_argument(
+        '--output-file', 
+        type=str, 
+        default='output.csv', 
+        help='File to write the output'
+    )
+    parser.add_argument(
+        '--num-iterations', 
+        type=int, 
+        default=100, 
+        help='Number of iterations to run'
+    )
+    parser.add_argument(
+        '--container_output_dir',
+        type=str,
+        required=True,
+        help='directory in docker container for saving output files'
+    )
+    parser.add_argument(
+        '--container_stop_file',
+        type=str,
+        required=True,
+        help='filepath in docker container for coordinating nvsmi loop stop'
+    )
     
     args = parser.parse_args()
 
@@ -114,4 +148,9 @@ if __name__ == '__main__':
         print(f'Average time per iteration: {avg_time_per_iteration:.4f} ms')
     else:
         print("No timings recorded during benchmarking.")
+        
+    container_output_dir = Path(args.container_output_dir)
+    container_output_dir.mkdir(exist_ok=True, parents=True)
+    with (container_output_dir / args.container_stop_file).open('w') as f:
+        f.write('COMPLETED\n')
 
