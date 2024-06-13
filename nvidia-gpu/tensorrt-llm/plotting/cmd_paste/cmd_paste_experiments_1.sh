@@ -68,8 +68,6 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 								  --gpu_idx			   0 \
 								  --plot_filename      "llama2_tps_vs_tbt_tradeoff.png" \
 								  --plot_name		   "Llama2 TPS-TBT Tradeoff" \
-								  --excluded_tokens    32000 \
-								  					   2 \
 								  --plot_tps_vs_tbt
 
 python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
@@ -91,8 +89,6 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 								  --gpu_idx			   0 \
 								  --plot_filename      "dev_testing_llama2_13b.png" \
 								  --plot_name		   "Dev Testing Llama2 13B" \
-								  --excluded_tokens    32000 \
-								  					   2 \
 								  --plot_tps_vs_tbt
 
 python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
@@ -114,8 +110,6 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 								  --gpu_idx			   0 \
 								  --plot_filename      "dev_testing_llama2_13b.png" \
 								  --plot_name		   "Dev Testing Llama2 13B" \
-								  --excluded_tokens    32000 \
-								  					   2 \
 								  --plot_ept_vs_tbt
 
 python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
@@ -185,6 +179,4 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 								  --gpu_idx			   0 \
 								  --plot_filename      "llama2_tbt_vs_ept_tradeoff.png" \
 								  --plot_name		   "Llama2 TBT-EPT Tradeoff" \
-								  --excluded_tokens    32000 \
-								  					   2 \
 								  --plot_tbt_vs_ept

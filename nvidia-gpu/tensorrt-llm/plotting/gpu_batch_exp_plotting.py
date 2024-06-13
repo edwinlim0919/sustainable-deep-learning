@@ -69,28 +69,63 @@ def update_experiment_data(
     assert(bmark_param_match_found)
 
 
+# MANUAL COUNTS
+#def calculate_total_batch_generated_tokens(
+#    batch_dict,
+#    batch_size,
+#    excluded_tokens
+#):
+#    batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
+#    batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
+#    batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
+#    assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
+#
+#    for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
+#        batch_input_length, batch_output_length = 0, 0
+#        for token in batch_input_tokens:
+#            if token not in excluded_tokens:
+#                batch_input_length += 1
+#        for token in batch_output_tokens:
+#            if token not in excluded_tokens:
+#                batch_output_length += 1
+#        batch_input_lengths_sum += batch_input_length
+#        batch_output_lengths_sum += batch_output_length
+#
+#    assert(batch_size == len(batch_input_tokens_items))
+#    total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
+#    return total_batch_generated_tokens
+
+
+# REPORTED COUNTS
 def calculate_total_batch_generated_tokens(
     batch_dict,
-    batch_size,
-    excluded_tokens
+    batch_size
+    #excluded_tokens
 ):
     batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-    batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
-    batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
-    assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
+    #batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
+    #batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
+    #assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
+    batch_input_lengths_items = batch_dict['batch_input_lengths'].items()
+    batch_output_lengths_items = batch_dict['batch_output_lengths'].items()
+    assert(len(batch_input_lengths_items) == len(batch_output_lengths_items) and
+           len(batch_output_lengths_items) == batch_size)
 
-    for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
-        batch_input_length, batch_output_length = 0, 0
-        for token in batch_input_tokens:
-            if token not in excluded_tokens:
-                batch_input_length += 1
-        for token in batch_output_tokens:
-            if token not in excluded_tokens:
-                batch_output_length += 1
-        batch_input_lengths_sum += batch_input_length
-        batch_output_lengths_sum += batch_output_length
+    #for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
+    #    batch_input_length, batch_output_length = 0, 0
+    #    for token in batch_input_tokens:
+    #        if token not in excluded_tokens:
+    #            batch_input_length += 1
+    #    for token in batch_output_tokens:
+    #        if token not in excluded_tokens:
+    #            batch_output_length += 1
+    #    batch_input_lengths_sum += batch_input_length
+    #    batch_output_lengths_sum += batch_output_length
+    for (batch_input_lengths_index, batch_input_lengths), (batch_output_lengths_index, batch_output_lengths) in zip(batch_input_lengths_items, batch_output_lengths_items):
+        batch_input_lengths_sum += batch_input_lengths
+        batch_output_lengths_sum += batch_output_lengths
 
-    assert(batch_size == len(batch_input_tokens_items))
+    #assert(batch_size == len(batch_input_tokens_items))
     total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
     return total_batch_generated_tokens
 
@@ -99,7 +134,7 @@ def calculate_total_batch_generated_tokens(
 def calculate_avg_tbt(
     bmark_entries,
     bmark_param_groups,
-    excluded_tokens,
+    #excluded_tokens,
     plotting_knob,
     bmark_param_group_dicts
 ):
@@ -119,8 +154,8 @@ def calculate_avg_tbt(
 
             total_batch_generated_tokens = calculate_total_batch_generated_tokens(
                 batch_dict,
-                batch_size,
-                excluded_tokens
+                batch_size#,
+                #excluded_tokens
             )
             # if no tokens generated, skip this iteration
             if total_batch_generated_tokens == 0:
@@ -145,7 +180,7 @@ def calculate_avg_tbt(
 def calculate_avg_tps(
     bmark_entries,
     bmark_param_groups,
-    excluded_tokens,
+    #excluded_tokens,
     plotting_knob,
     bmark_param_group_dicts
 ):
@@ -168,8 +203,8 @@ def calculate_avg_tps(
 
             total_batch_generated_tokens = calculate_total_batch_generated_tokens(
                 batch_dict,
-                batch_size,
-                excluded_tokens
+                batch_size#,
+                #excluded_tokens
             )
             # if no tokens generated, skip this iteration
             if total_batch_generated_tokens == 0:
@@ -193,7 +228,7 @@ def calculate_avg_tps(
 def calculate_avg_ept(
     bmark_entries,
     bmark_param_groups,
-    excluded_tokens,
+    #excluded_tokens,
     plotting_knob,
     gpu_idx,
     bmark_param_group_dicts
@@ -212,8 +247,8 @@ def calculate_avg_ept(
             # Calculate and record the total tokens decoded during this batch
             total_batch_generated_tokens = calculate_total_batch_generated_tokens(
                 batch_dict,
-                batch_size,
-                excluded_tokens
+                batch_size#,
+                #excluded_tokens
             )
             batch_total_tokens_list.append(total_batch_generated_tokens)
 
@@ -296,7 +331,7 @@ def calculate_avg_ept(
 def plot_tbt_vs_ept(
     bmark_entries,
     bmark_param_groups,
-    excluded_tokens,
+    #excluded_tokens,
     gpu_idx,
     plot_filename,
     plot_name
@@ -330,7 +365,7 @@ def plot_tbt_vs_ept(
     calculate_avg_tbt(
         bmark_entries,
         bmark_param_groups,
-        excluded_tokens,
+        #excluded_tokens,
         plotting_knob,
         bmark_param_group_dicts
     )
@@ -338,7 +373,7 @@ def plot_tbt_vs_ept(
     calculate_avg_ept(
         bmark_entries,
         bmark_param_groups,
-        excluded_tokens,
+        #excluded_tokens,
         plotting_knob,
         gpu_idx,
         bmark_param_group_dicts
@@ -386,7 +421,7 @@ def plot_tbt_vs_ept(
 def plot_tps_vs_tbt(
     bmark_entries,
     bmark_param_groups,
-    excluded_tokens,
+    #excluded_tokens,
     plot_filename,
     plot_name
 ):
@@ -419,7 +454,7 @@ def plot_tps_vs_tbt(
     calculate_avg_tbt(
         bmark_entries,
         bmark_param_groups,
-        excluded_tokens,
+        #excluded_tokens,
         plotting_knob,
         bmark_param_group_dicts
     )
@@ -427,7 +462,7 @@ def plot_tps_vs_tbt(
     calculate_avg_tps(
         bmark_entries,
         bmark_param_groups,
-        excluded_tokens,
+        #excluded_tokens,
         plotting_knob,
         bmark_param_group_dicts
     )
@@ -699,7 +734,7 @@ def main(args):
         plot_tps_vs_tbt(
             bmark_entries,
             args.bmark_param_groups,
-            args.excluded_tokens,
+            #args.excluded_tokens,
             args.plot_filename,
             args.plot_name
         )
@@ -707,7 +742,7 @@ def main(args):
         plot_tbt_vs_ept(
             bmark_entries,
             args.bmark_param_groups,
-            args.excluded_tokens,
+            #args.excluded_tokens,
             args.gpu_idx,
             args.plot_filename,
             args.plot_name
@@ -767,12 +802,12 @@ if __name__ == '__main__':
         required=True,
         help='title for specified plot'
     )
-    parser.add_argument(
-        '--excluded_tokens',
-        type=int,
-        nargs='+',
-        help='specify tokens ids such as padding token ids to exclude from useful work done'
-    )
+    #parser.add_argument(
+    #    '--excluded_tokens',
+    #    type=int,
+    #    nargs='+',
+    #    help='specify tokens ids such as padding token ids to exclude from useful work done'
+    #)
     parser.add_argument(
         '--gpu_idx',
         type=int,
