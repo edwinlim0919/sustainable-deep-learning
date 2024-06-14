@@ -85,6 +85,7 @@ def benchmark(model, image_directory, output_file, max_batch_size=1, dtype='fp32
     else:
         print("Output features size:", features.size())
     print(f'Average batch time: {np.mean(timings):.2f} ms')
+
     return timings
 
 if __name__ == '__main__':
@@ -148,9 +149,11 @@ if __name__ == '__main__':
         print(f'Average time per iteration: {avg_time_per_iteration:.4f} ms')
     else:
         print("No timings recorded during benchmarking.")
-        
+
     container_output_dir = Path(args.container_output_dir)
     container_output_dir.mkdir(exist_ok=True, parents=True)
+    
+    # Sleep for 30s for extra nvsmi readings
+    time.sleep(30)
     with (container_output_dir / args.container_stop_file).open('w') as f:
         f.write('COMPLETED\n')
-

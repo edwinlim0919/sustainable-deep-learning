@@ -64,7 +64,7 @@ if __name__ == '__main__':
                                             enabled_precisions={torch.float32},  # Run with FP32
                                             workspace_size=1 << 22)
 
-    image_path = 'path_to_your_image.jpg'  # TODO: replace with your image path
+    image_path = '/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt/n02352591_3694.JPEG'  # TODO: replace with your image path
     num_iterations = 100
 
     benchmark(trt_model_fp32, image_path, nruns=num_iterations)
