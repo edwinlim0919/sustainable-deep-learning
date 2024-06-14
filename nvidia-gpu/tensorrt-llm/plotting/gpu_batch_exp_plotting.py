@@ -313,7 +313,7 @@ def joules_to_kWh(joules):
 
 # Currently just plots on-premise GPU situation
 # TODO: Add cloud cost calculation
-def plot_gpu_serving_cost(
+def plot_tco_breakdown(
     bmark_entries,
     bmark_param_groups,
     gpu_idx,
@@ -843,6 +843,32 @@ def main(args):
             args.plot_filename,
             args.plot_name
         )
+    if args.plot_tco_breakdown:
+        plot_tco_breakdown(
+            bmark_entries,
+            args.bmark_param_groups,
+            args.gpu_idx,
+            args.required_tps,
+            args.workload_duration_s,
+            args.usd_per_kWh,
+            args.pue,
+            args.gpu_lifetime_y,
+            args.plot_filename,
+            args.plot_name
+        )
+
+def plot_tco_breakdown(
+    bmark_entries,
+    bmark_param_groups,
+    gpu_idx,
+    required_tps,        # the current load
+    workload_duration_s, # how long are we running this load for? (in seconds)
+    usd_per_kWh,         # USD per kWh (regional electricity price)
+    PUE,                 # Power Usage Efficiency
+    gpu_lifetime_y,      # expected lifetime of a GPU (in years)
+    plot_filename,
+    plot_name
+):
 
 
 if __name__ == '__main__':
@@ -885,6 +911,37 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
         help='specify this arg to plot ept (energy per token) vs tbt (time between tokens)'
+    )
+    parser.add_argument(
+        '--plot_tco_breakdown',
+        default=False,
+        action='store_true',
+        help='specify this arg to plot the tco breakdown (CapEx vs. OpEx) of inference serving'
+    )
+    parser.add_argument(
+        '--required_tps',
+        type=int,
+        help='specify what token generation rate to simulate serving in tokens per second'
+    )
+    parser.add_argument(
+        '--workload_duration_s',
+        type=int,
+        help='specify how long the simulated workload is running for in seconds'
+    )
+    parser.add_argument(
+        'usd_per_kWh',
+        type=float,
+        help='specify the regional electricity cost rate in usd per kWh'
+    )
+    parser.add_argument(
+        'pue',
+        type=float,
+        help='specify the PUE (Power Usage Efficiency) of the simulated datacenter environment'
+    )
+    parser.add_argument(
+        'gpu_lifetime_y',
+        type=int,
+        help='specify the lifetime of datacenter GPU platforms in years'
     )
     parser.add_argument(
         '--plot_filename',
