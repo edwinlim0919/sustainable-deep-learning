@@ -309,6 +309,7 @@ def calculate_avg_ept(
 
 def joules_to_kWh(joules):
     kWh = joules / 3600000
+    return kWh
 
 
 # Currently just plots on-premise GPU situation
@@ -857,19 +858,6 @@ def main(args):
             args.plot_name
         )
 
-def plot_tco_breakdown(
-    bmark_entries,
-    bmark_param_groups,
-    gpu_idx,
-    required_tps,        # the current load
-    workload_duration_s, # how long are we running this load for? (in seconds)
-    usd_per_kWh,         # USD per kWh (regional electricity price)
-    PUE,                 # Power Usage Efficiency
-    gpu_lifetime_y,      # expected lifetime of a GPU (in years)
-    plot_filename,
-    plot_name
-):
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -929,17 +917,17 @@ if __name__ == '__main__':
         help='specify how long the simulated workload is running for in seconds'
     )
     parser.add_argument(
-        'usd_per_kWh',
+        '--usd_per_kWh',
         type=float,
         help='specify the regional electricity cost rate in usd per kWh'
     )
     parser.add_argument(
-        'pue',
+        '--pue',
         type=float,
         help='specify the PUE (Power Usage Efficiency) of the simulated datacenter environment'
     )
     parser.add_argument(
-        'gpu_lifetime_y',
+        '--gpu_lifetime_y',
         type=int,
         help='specify the lifetime of datacenter GPU platforms in years'
     )
