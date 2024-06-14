@@ -180,3 +180,5 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 								  --plot_filename      "llama2_tbt_vs_ept_tradeoff.png" \
 								  --plot_name		   "Llama2 TBT-EPT Tradeoff" \
 								  --plot_tbt_vs_ept
+
+#python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/"

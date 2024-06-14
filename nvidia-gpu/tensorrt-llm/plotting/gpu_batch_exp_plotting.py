@@ -100,32 +100,17 @@ def update_experiment_data(
 def calculate_total_batch_generated_tokens(
     batch_dict,
     batch_size
-    #excluded_tokens
 ):
     batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-    #batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
-    #batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
-    #assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
     batch_input_lengths_items = batch_dict['batch_input_lengths'].items()
     batch_output_lengths_items = batch_dict['batch_output_lengths'].items()
     assert(len(batch_input_lengths_items) == len(batch_output_lengths_items) and
            len(batch_output_lengths_items) == batch_size)
 
-    #for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
-    #    batch_input_length, batch_output_length = 0, 0
-    #    for token in batch_input_tokens:
-    #        if token not in excluded_tokens:
-    #            batch_input_length += 1
-    #    for token in batch_output_tokens:
-    #        if token not in excluded_tokens:
-    #            batch_output_length += 1
-    #    batch_input_lengths_sum += batch_input_length
-    #    batch_output_lengths_sum += batch_output_length
     for (batch_input_lengths_index, batch_input_lengths), (batch_output_lengths_index, batch_output_lengths) in zip(batch_input_lengths_items, batch_output_lengths_items):
         batch_input_lengths_sum += batch_input_lengths
         batch_output_lengths_sum += batch_output_lengths
 
-    #assert(batch_size == len(batch_input_tokens_items))
     total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
     return total_batch_generated_tokens
 
@@ -134,7 +119,6 @@ def calculate_total_batch_generated_tokens(
 def calculate_avg_tbt(
     bmark_entries,
     bmark_param_groups,
-    #excluded_tokens,
     plotting_knob,
     bmark_param_group_dicts
 ):
@@ -154,8 +138,7 @@ def calculate_avg_tbt(
 
             total_batch_generated_tokens = calculate_total_batch_generated_tokens(
                 batch_dict,
-                batch_size#,
-                #excluded_tokens
+                batch_size
             )
             # if no tokens generated, skip this iteration
             if total_batch_generated_tokens == 0:
@@ -180,7 +163,6 @@ def calculate_avg_tbt(
 def calculate_avg_tps(
     bmark_entries,
     bmark_param_groups,
-    #excluded_tokens,
     plotting_knob,
     bmark_param_group_dicts
 ):
@@ -203,8 +185,7 @@ def calculate_avg_tps(
 
             total_batch_generated_tokens = calculate_total_batch_generated_tokens(
                 batch_dict,
-                batch_size#,
-                #excluded_tokens
+                batch_size
             )
             # if no tokens generated, skip this iteration
             if total_batch_generated_tokens == 0:
@@ -228,7 +209,6 @@ def calculate_avg_tps(
 def calculate_avg_ept(
     bmark_entries,
     bmark_param_groups,
-    #excluded_tokens,
     plotting_knob,
     gpu_idx,
     bmark_param_group_dicts
@@ -247,8 +227,7 @@ def calculate_avg_ept(
             # Calculate and record the total tokens decoded during this batch
             total_batch_generated_tokens = calculate_total_batch_generated_tokens(
                 batch_dict,
-                batch_size#,
-                #excluded_tokens
+                batch_size
             )
             batch_total_tokens_list.append(total_batch_generated_tokens)
 
@@ -328,10 +307,134 @@ def calculate_avg_ept(
         )
 
 
+def joules_to_kWh(joules):
+    kWh = joules / 3600000
+
+
+# Currently just plots on-premise GPU situation
+# TODO: Add cloud cost calculation
+def plot_gpu_serving_cost(
+    bmark_entries,
+    bmark_param_groups,
+    gpu_idx,
+    required_tps,        # the current load
+    workload_duration_s, # how long are we running this load for? (in seconds)
+    usd_per_kWh,         # USD per kWh (regional electricity price)
+    PUE,                 # Power Usage Efficiency
+    gpu_lifetime_y,      # expected lifetime of a GPU (in years)
+    plot_filename,
+    plot_name
+):
+    usd_per_a10040gb = 9000 # TODO: This is the avg. price listed online (is this okay?)
+    usd_per_v10032gb = 3500 # TODO: This is the avg. price listed online (is this okay?)
+    plotting_metrics = [
+        'batch_size',
+        'avg_ept',
+        'avg_tbt',
+        'avg_tps'
+    ]
+    bmark_param_group_dicts = group_experiment_data(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_metrics
+    )
+    plotting_knob = 'batch_size'
+
+    for bmark_entry in bmark_entries:
+        batch_size = bmark_entry['batch_size']
+        update_experiment_data(
+            bmark_param_group_dicts,
+            plotting_knob,
+            plotting_knob,
+            batch_size,
+            bmark_entry
+        )
+
+    # Calculate TPS
+    calculate_avg_tps(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_knob,
+        bmark_param_group_dicts
+    )
+    # Calculate EPT
+    calculate_avg_ept(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_knob,
+        gpu_idx,
+        bmark_param_group_dicts
+    )
+
+    model_sizes = []
+    gpu_types = []
+    total_opex_costs = []
+    total_capex_costs = []
+    total_overall_costs = []
+    # 1) Find out what is the <avg_tps_max> (and corresponding <avg_ept_max>) for each GPU/model configuration
+    # 2) Find out the minimum number of this GPU is required to serve the required_tps load
+    # 3) Calculate total energy required to compute <required_tps> for <workload_duration_s> given <avg_ept>
+    for bmark_param_group_dict in bmark_param_group_dicts:
+        for key, val in bmark_param_group_dict.items():
+            print(f'{key}, {val}')
+
+        if bmark_param_group_dict['gpu_type'] == 'a10040gb':
+            gpu_price = usd_per_a10040gb
+        elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
+            gpu_price = usd_per_v10032gb
+
+        # Finding maximum TPS of this GPU
+        avg_tps = bmark_param_group_dict['avg_tps']
+        avg_ept = bmark_param_group_dict['avg_ept']
+        assert(len(avg_tps) == len(avg_ept))
+
+        avg_tps_max, avg_ept_max = 0, 0
+        for avg_tps_val, avg_ept_val in zip(avg_tps, avg_ept):
+            if avg_tps_val > avg_tps_max:
+                avg_tps_max = avg_tps_val
+                avg_ept_max = avg_ept_val
+
+        # Calculate the number of required GPUs
+        # (tokens / sec) / ((tokens / sec) / gpu)
+        num_gpus_req = math.ceil(required_tps / avg_tps_max)
+
+        # Calculate the total energy required to compute the workload
+        # (joules / token) * (tokens / sec) * sec
+        total_energy_joules = avg_ept_max * required_tps * workload_duration_s * PUE
+        total_energy_kWh = joules_to_kWh(total_energy_joules)
+
+        # Calculate OpEx costs from energy usage and rate
+        total_opex_cost = total_energy_kWh * usd_per_kWh
+
+        # Calculate CapEx costs from workload duration, gpu price, and gpu lifetime
+        # years * (days / year) * (hours / day) * (minutes / hour) * (seconds / minute)
+        gpu_lifetime_s = gpu_lifetime_y * 365 * 24 * 60 * 60
+        total_capex_cost = gpu_price * (workload_duration_s / gpu_lifetime_s)
+        total_overall_cost = total_opex_cost + total_capex_cost
+
+        model_sizes.append(bmark_param_group_dict['model_size'])
+        gpu_types.append(bmark_param_group_dict['gpu_type'])
+        total_opex_costs.append(total_opex_cost)
+        total_capex_costs.append(total_capex_cost)
+        total_overall_costs.append(total_overall_cost)
+
+    fig, ax = plt.subplots()
+    bar_width = 0.35
+    bar_positions = range(len(bar_labels))
+    capex_bars = ax.bar(bar_positions, total_capex_costs, bar_width, label='Capex')
+    opex_bars = ax.bar(bar_positions, total_opex_costs, bar_width, bottom=total_capex_costs, label='Opex')
+    ax.set_xlabel('Workloads')
+    ax.set_ylabel('Costs')
+    ax.set_title('Comparison of Capex and Opex Costs')
+    ax.set_xticks(bar_positions)
+    ax.set_xticklabels(bar_labels)
+    ax.legend()
+    plt.savefig('plots/' + plot_filename)
+
+
 def plot_tbt_vs_ept(
     bmark_entries,
     bmark_param_groups,
-    #excluded_tokens,
     gpu_idx,
     plot_filename,
     plot_name
@@ -365,7 +468,6 @@ def plot_tbt_vs_ept(
     calculate_avg_tbt(
         bmark_entries,
         bmark_param_groups,
-        #excluded_tokens,
         plotting_knob,
         bmark_param_group_dicts
     )
@@ -373,7 +475,6 @@ def plot_tbt_vs_ept(
     calculate_avg_ept(
         bmark_entries,
         bmark_param_groups,
-        #excluded_tokens,
         plotting_knob,
         gpu_idx,
         bmark_param_group_dicts
@@ -421,7 +522,6 @@ def plot_tbt_vs_ept(
 def plot_tps_vs_tbt(
     bmark_entries,
     bmark_param_groups,
-    #excluded_tokens,
     plot_filename,
     plot_name
 ):
@@ -454,7 +554,6 @@ def plot_tps_vs_tbt(
     calculate_avg_tbt(
         bmark_entries,
         bmark_param_groups,
-        #excluded_tokens,
         plotting_knob,
         bmark_param_group_dicts
     )
@@ -462,7 +561,6 @@ def plot_tps_vs_tbt(
     calculate_avg_tps(
         bmark_entries,
         bmark_param_groups,
-        #excluded_tokens,
         plotting_knob,
         bmark_param_group_dicts
     )
@@ -734,7 +832,6 @@ def main(args):
         plot_tps_vs_tbt(
             bmark_entries,
             args.bmark_param_groups,
-            #args.excluded_tokens,
             args.plot_filename,
             args.plot_name
         )
@@ -742,7 +839,6 @@ def main(args):
         plot_tbt_vs_ept(
             bmark_entries,
             args.bmark_param_groups,
-            #args.excluded_tokens,
             args.gpu_idx,
             args.plot_filename,
             args.plot_name
@@ -802,12 +898,6 @@ if __name__ == '__main__':
         required=True,
         help='title for specified plot'
     )
-    #parser.add_argument(
-    #    '--excluded_tokens',
-    #    type=int,
-    #    nargs='+',
-    #    help='specify tokens ids such as padding token ids to exclude from useful work done'
-    #)
     parser.add_argument(
         '--gpu_idx',
         type=int,
