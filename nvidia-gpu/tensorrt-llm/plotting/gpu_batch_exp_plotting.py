@@ -69,33 +69,6 @@ def update_experiment_data(
     assert(bmark_param_match_found)
 
 
-# MANUAL COUNTS
-#def calculate_total_batch_generated_tokens(
-#    batch_dict,
-#    batch_size,
-#    excluded_tokens
-#):
-#    batch_input_lengths_sum, batch_output_lengths_sum = 0, 0
-#    batch_input_tokens_items = batch_dict['batch_input_tokens'].items()
-#    batch_output_tokens_items = batch_dict['batch_output_tokens'].items()
-#    assert(len(batch_input_tokens_items) == len(batch_output_tokens_items))
-#
-#    for (batch_input_tokens_index, batch_input_tokens), (batch_output_tokens_index, batch_output_tokens) in zip(batch_input_tokens_items, batch_output_tokens_items):
-#        batch_input_length, batch_output_length = 0, 0
-#        for token in batch_input_tokens:
-#            if token not in excluded_tokens:
-#                batch_input_length += 1
-#        for token in batch_output_tokens:
-#            if token not in excluded_tokens:
-#                batch_output_length += 1
-#        batch_input_lengths_sum += batch_input_length
-#        batch_output_lengths_sum += batch_output_length
-#
-#    assert(batch_size == len(batch_input_tokens_items))
-#    total_batch_generated_tokens = batch_output_lengths_sum - batch_input_lengths_sum
-#    return total_batch_generated_tokens
-
-
 # REPORTED COUNTS
 def calculate_total_batch_generated_tokens(
     batch_dict,
@@ -331,7 +304,6 @@ def plot_tco_breakdown(
     plotting_metrics = [
         'batch_size',
         'avg_ept',
-        'avg_tbt',
         'avg_tps'
     ]
     bmark_param_group_dicts = group_experiment_data(
@@ -367,8 +339,7 @@ def plot_tco_breakdown(
         bmark_param_group_dicts
     )
 
-    model_sizes = []
-    gpu_types = []
+    bar_labels = []
     total_opex_costs = []
     total_capex_costs = []
     total_overall_costs = []
@@ -410,11 +381,12 @@ def plot_tco_breakdown(
         # Calculate CapEx costs from workload duration, gpu price, and gpu lifetime
         # years * (days / year) * (hours / day) * (minutes / hour) * (seconds / minute)
         gpu_lifetime_s = gpu_lifetime_y * 365 * 24 * 60 * 60
-        total_capex_cost = gpu_price * (workload_duration_s / gpu_lifetime_s)
+        total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
         total_overall_cost = total_opex_cost + total_capex_cost
 
-        model_sizes.append(bmark_param_group_dict['model_size'])
-        gpu_types.append(bmark_param_group_dict['gpu_type'])
+        model_size = bmark_param_group_dict['model_size']
+        gpu_type = bmark_param_group_dict['gpu_type']
+        bar_labels.append(f'{model_size}_{gpu_type}')
         total_opex_costs.append(total_opex_cost)
         total_capex_costs.append(total_capex_cost)
         total_overall_costs.append(total_overall_cost)
@@ -424,12 +396,25 @@ def plot_tco_breakdown(
     bar_positions = range(len(bar_labels))
     capex_bars = ax.bar(bar_positions, total_capex_costs, bar_width, label='Capex')
     opex_bars = ax.bar(bar_positions, total_opex_costs, bar_width, bottom=total_capex_costs, label='Opex')
-    ax.set_xlabel('Workloads')
-    ax.set_ylabel('Costs')
+    ax.set_xlabel('Workload')
+    ax.set_ylabel('Cost')
     ax.set_title('Comparison of Capex and Opex Costs')
     ax.set_xticks(bar_positions)
     ax.set_xticklabels(bar_labels)
     ax.legend()
+
+    # Add cost number to capex and opex bars
+    for bar, capex, opex in zip(capex_bars, total_capex_costs, total_opex_costs):
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.0, height / 2,
+            f'{capex:.1f}', ha='center', va='bottom', color='black'
+        )
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.0, height + opex / 2,
+            f'{opex:.1f}', ha='center', va='bottom', color='black'
+        )
+
     plt.savefig('plots/' + plot_filename)
 
 
@@ -515,9 +500,10 @@ def plot_tbt_vs_ept(
     plt.savefig('plots/' + plot_filename)
 
 
-# TODO: - This is theoretical user-perceived latency to provide a bound for tbt (time between tokens).
-#       - Actual user-perceived latency depends on how quickly the new tokens actually make it to the user.
-#       - TTFT (time to first token) is also an important metric, but is not taken into account with these experiments.
+# NOTE
+#  - This is theoretical user-perceived latency to provide a bound for tbt (time between tokens).
+#  - Actual user-perceived latency depends on how quickly the new tokens actually make it to the user.
+#  - TTFT (time to first token) is also an important metric, but is not taken into account with these experiments.
 # throughput : tokens per second
 # latency    : theoretical user-perceived seconds per token (tbt)
 def plot_tps_vs_tbt(
