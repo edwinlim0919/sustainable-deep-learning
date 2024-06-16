@@ -284,6 +284,148 @@ def joules_to_kWh(joules):
     kWh = joules / 3600000
     return kWh
 
+def years_to_sec(years):
+    sec = years * 365 * 24 * 60 * 60
+    return sec
+
+def g_to_kg(g):
+    kg = g / 1000
+    return kg
+
+
+# Currently just plots on-premise GPU situation
+# TODO: Add cloud carbon calculation
+# TODO: This code is exactly the same as plot_tco_breakdown... just different names for cost variables
+def plot_tcf_breakdown(
+    bmark_entries,
+    bmark_param_groups,
+    gpu_idx,
+    required_tps,        # the current load
+    workload_duration_s, # how long are we running this load for? (in seconds)
+    gCO2eq_per_kWh,      # gC02eq per kWh (regional carbon intensity)
+    PUE,                 # Power Usage Efficiency
+    gpu_lifetime_y,      # expected lifetime of a GPU (in years)
+    kgCO2eq_per_a10040gb,
+    kgCO2eq_per_v10032gb,
+    plot_filename,
+    plot_name
+):
+    plotting_metrics = [
+        'batch_size',
+        'avg_ept',
+        'avg_tps'
+    ]
+    bmark_param_group_dicts = group_experiment_data(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_metrics
+    )
+    plotting_knob = 'batch_size'
+    for bmark_entry in bmark_entries:
+        batch_size = bmark_entry['batch_size']
+        update_experiment_data(
+            bmark_param_group_dicts,
+            plotting_knob,
+            plotting_knob,
+            batch_size,
+            bmark_entry
+        )
+
+    # Calculate TPS
+    calculate_avg_tps(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_knob,
+        bmark_param_group_dicts
+    )
+    # Calculate EPT
+    calculate_avg_ept(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_knob,
+        gpu_idx,
+        bmark_param_group_dicts
+    )
+
+    bar_labels = []
+    total_operational_carbons = []
+    total_embodied_carbons = []
+    total_overall_carbons = []
+    # 1) Find out what is the <avg_tps_max> (and corresponding <avg_ept_max>) for each GPU/model configuration
+    # 2) Find out the minimum number of this GPU is required to serve the required_tps load
+    # 3) Calculate total energy required to compute <required_tps> for <workload_duration_s> given <avg_ept>
+    for bmark_param_group_dict in bmark_param_group_dicts:
+        for key, val in bmark_param_group_dict.items():
+            print(f'{key}, {val}')
+
+        if bmark_param_group_dict['gpu_type'] == 'a10040gb':
+            gpu_embodied = kgCO2eq_per_a10040gb
+        elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
+            gpu_embodied = kgCO2eq_per_v10032gb
+        else:
+            raise ValueError('plot_tcf_breakdown: gpu_type not found')
+
+        # Finding maximum TPS of this GPU
+        avg_tps = bmark_param_group_dict['avg_tps']
+        avg_ept = bmark_param_group_dict['avg_ept']
+        batch_size = bmark_param_group_dict['batch_size']
+        assert(len(avg_tps) == len(avg_ept) and
+               len(avg_ept) == len(batch_size))
+
+        for avg_tps_val, avg_ept_val, batch_size_val in zip(avg_tps, avg_ept, batch_size):
+            # Calculate the number of required GPUs
+            # (tokens / sec) / ((tokens / sec) / gpu)
+            num_gpus_req = math.ceil(required_tps / avg_tps_val)
+
+            # Calculate the total energy required to compute the workload
+            # (joules / token) * (tokens / sec) * sec
+            total_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
+            total_energy_kWh = joules_to_kWh(total_energy_joules)
+
+            # Calculate OpEx costs from energy usage and rate
+            total_operational_carbon_g = total_energy_kWh * gCO2eq_per_kWh
+            total_operational_carbon_kg = g_to_kg(total_operational_carbon_g)
+
+            # Calculate CapEx costs from workload duration, gpu price, and gpu lifetime
+            # years * (days / year) * (hours / day) * (minutes / hour) * (seconds / minute)
+            gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
+            total_embodied_carbon = num_gpus_req * gpu_embodied * (workload_duration_s / gpu_lifetime_s)
+            total_overall_carbon = total_operational_carbon_kg + total_embodied_carbon
+
+            model_size = bmark_param_group_dict['model_size']
+            gpu_type = bmark_param_group_dict['gpu_type']
+            bar_labels.append(f'{model_size}_{gpu_type}_{batch_size_val}')
+            total_operational_carbons.append(total_operational_carbon_kg)
+            total_embodied_carbons.append(total_embodied_carbon)
+            total_overall_carbons.append(total_overall_carbon)
+
+    fig, ax = plt.subplots()
+    bar_width = 0.5
+    bar_positions = range(len(bar_labels))
+    embodied_bars = ax.bar(bar_positions, total_embodied_carbons, bar_width, label='Embodied')
+    operational_bars = ax.bar(bar_positions, total_operational_carbons, bar_width, bottom=total_embodied_carbons, label='Operational')
+    ax.set_xlabel('Workload')
+    ax.set_ylabel('Carbon (kgCO2eq)')
+    ax.set_title(plot_name)
+    ax.set_xticks(bar_positions)
+    ax.set_xticklabels(bar_labels, rotation=45, ha='right', fontsize=8)
+    ax.legend()
+
+    # Add cost number to capex and opex bars
+    for bar, capex, opex in zip(capex_bars, total_capex_costs, total_opex_costs):
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.0, height / 2,
+            f'{capex:.1f}', ha='center', va='bottom', color='black', fontsize=8
+        )
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.0, height + opex / 2,
+            f'{opex:.1f}', ha='center', va='bottom', color='black', fontsize=8
+        )
+
+    plt.tight_layout(pad=2.0)
+    plt.savefig('plots/' + plot_filename)
+
 
 # Currently just plots on-premise GPU situation
 # TODO: Add cloud cost calculation
@@ -296,11 +438,11 @@ def plot_tco_breakdown(
     usd_per_kWh,         # USD per kWh (regional electricity price)
     PUE,                 # Power Usage Efficiency
     gpu_lifetime_y,      # expected lifetime of a GPU (in years)
+    usd_per_a10040gb,
+    usd_per_v10032gb,
     plot_filename,
     plot_name
 ):
-    usd_per_a10040gb = 9000 # TODO: This is the avg. price listed online (is this okay?)
-    usd_per_v10032gb = 3500 # TODO: This is the avg. price listed online (is this okay?)
     plotting_metrics = [
         'batch_size',
         'avg_ept',
@@ -312,7 +454,6 @@ def plot_tco_breakdown(
         plotting_metrics
     )
     plotting_knob = 'batch_size'
-
     for bmark_entry in bmark_entries:
         batch_size = bmark_entry['batch_size']
         update_experiment_data(
@@ -354,53 +495,52 @@ def plot_tco_breakdown(
             gpu_price = usd_per_a10040gb
         elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
             gpu_price = usd_per_v10032gb
+        else:
+            raise ValueError('plot_tco_breakdown: gpu_type not found')
 
         # Finding maximum TPS of this GPU
         avg_tps = bmark_param_group_dict['avg_tps']
         avg_ept = bmark_param_group_dict['avg_ept']
-        assert(len(avg_tps) == len(avg_ept))
+        batch_size = bmark_param_group_dict['batch_size']
+        assert(len(avg_tps) == len(avg_ept) and
+               len(avg_ept) == len(batch_size))
 
-        avg_tps_max, avg_ept_max = 0, 0
-        for avg_tps_val, avg_ept_val in zip(avg_tps, avg_ept):
-            if avg_tps_val > avg_tps_max:
-                avg_tps_max = avg_tps_val
-                avg_ept_max = avg_ept_val
+        for avg_tps_val, avg_ept_val, batch_size_val in zip(avg_tps, avg_ept, batch_size):
+            # Calculate the number of required GPUs
+            # (tokens / sec) / ((tokens / sec) / gpu)
+            num_gpus_req = math.ceil(required_tps / avg_tps_val)
 
-        # Calculate the number of required GPUs
-        # (tokens / sec) / ((tokens / sec) / gpu)
-        num_gpus_req = math.ceil(required_tps / avg_tps_max)
+            # Calculate the total energy required to compute the workload
+            # (joules / token) * (tokens / sec) * sec
+            total_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
+            total_energy_kWh = joules_to_kWh(total_energy_joules)
 
-        # Calculate the total energy required to compute the workload
-        # (joules / token) * (tokens / sec) * sec
-        total_energy_joules = avg_ept_max * required_tps * workload_duration_s * PUE
-        total_energy_kWh = joules_to_kWh(total_energy_joules)
+            # Calculate OpEx costs from energy usage and rate
+            total_opex_cost = total_energy_kWh * usd_per_kWh
 
-        # Calculate OpEx costs from energy usage and rate
-        total_opex_cost = total_energy_kWh * usd_per_kWh
+            # Calculate CapEx costs from workload duration, gpu price, and gpu lifetime
+            # years * (days / year) * (hours / day) * (minutes / hour) * (seconds / minute)
+            gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
+            total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
+            total_overall_cost = total_opex_cost + total_capex_cost
 
-        # Calculate CapEx costs from workload duration, gpu price, and gpu lifetime
-        # years * (days / year) * (hours / day) * (minutes / hour) * (seconds / minute)
-        gpu_lifetime_s = gpu_lifetime_y * 365 * 24 * 60 * 60
-        total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
-        total_overall_cost = total_opex_cost + total_capex_cost
-
-        model_size = bmark_param_group_dict['model_size']
-        gpu_type = bmark_param_group_dict['gpu_type']
-        bar_labels.append(f'{model_size}_{gpu_type}')
-        total_opex_costs.append(total_opex_cost)
-        total_capex_costs.append(total_capex_cost)
-        total_overall_costs.append(total_overall_cost)
+            model_size = bmark_param_group_dict['model_size']
+            gpu_type = bmark_param_group_dict['gpu_type']
+            bar_labels.append(f'{model_size}_{gpu_type}_{batch_size_val}')
+            total_opex_costs.append(total_opex_cost)
+            total_capex_costs.append(total_capex_cost)
+            total_overall_costs.append(total_overall_cost)
 
     fig, ax = plt.subplots()
-    bar_width = 0.35
+    bar_width = 0.5
     bar_positions = range(len(bar_labels))
-    capex_bars = ax.bar(bar_positions, total_capex_costs, bar_width, label='Capex')
-    opex_bars = ax.bar(bar_positions, total_opex_costs, bar_width, bottom=total_capex_costs, label='Opex')
+    capex_bars = ax.bar(bar_positions, total_capex_costs, bar_width, label='CapEx')
+    opex_bars = ax.bar(bar_positions, total_opex_costs, bar_width, bottom=total_capex_costs, label='OpEx')
     ax.set_xlabel('Workload')
-    ax.set_ylabel('Cost')
-    ax.set_title('Comparison of Capex and Opex Costs')
+    ax.set_ylabel('Cost (USD)')
+    ax.set_title(plot_name)
     ax.set_xticks(bar_positions)
-    ax.set_xticklabels(bar_labels)
+    ax.set_xticklabels(bar_labels, rotation=45, ha='right', fontsize=8)
     ax.legend()
 
     # Add cost number to capex and opex bars
@@ -408,13 +548,14 @@ def plot_tco_breakdown(
         height = bar.get_height()
         ax.text(
             bar.get_x() + bar.get_width() / 2.0, height / 2,
-            f'{capex:.1f}', ha='center', va='bottom', color='black'
+            f'{capex:.1f}', ha='center', va='bottom', color='black', fontsize=8
         )
         ax.text(
             bar.get_x() + bar.get_width() / 2.0, height + opex / 2,
-            f'{opex:.1f}', ha='center', va='bottom', color='black'
+            f'{opex:.1f}', ha='center', va='bottom', color='black', fontsize=8
         )
 
+    plt.tight_layout(pad=2.0)
     plt.savefig('plots/' + plot_filename)
 
 
@@ -840,6 +981,8 @@ def main(args):
             args.usd_per_kWh,
             args.pue,
             args.gpu_lifetime_y,
+            args.usd_per_a10040gb,
+            args.usd_per_v10032gb,
             args.plot_filename,
             args.plot_name
         )
@@ -916,6 +1059,16 @@ if __name__ == '__main__':
         '--gpu_lifetime_y',
         type=int,
         help='specify the lifetime of datacenter GPU platforms in years'
+    )
+    parser.add_argument(
+        '--usd_per_a10040gb',
+        type=int,
+        help='specify the price in USD of a single 40GB SXM4 A100 GPU'
+    )
+    parser.add_argument(
+        '--usd_per_v10032gb',
+        type=int,
+        help='specify the price in USD of a single 32GB PCIE V100S GPU'
     )
     parser.add_argument(
         '--plot_filename',
