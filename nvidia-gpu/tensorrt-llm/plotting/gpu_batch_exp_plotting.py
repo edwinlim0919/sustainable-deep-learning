@@ -295,7 +295,7 @@ def g_to_kg(g):
 
 # Currently just plots on-premise GPU situation
 # TODO: Add cloud carbon calculation
-# TODO: This code is exactly the same as plot_tco_breakdown... just different names for cost variables
+# TODO: This code is exactly the same as plot_tco_breakdown... basically just different names for cost variables
 def plot_tcf_breakdown(
     bmark_entries,
     bmark_param_groups,
@@ -365,7 +365,6 @@ def plot_tcf_breakdown(
         else:
             raise ValueError('plot_tcf_breakdown: gpu_type not found')
 
-        # Finding maximum TPS of this GPU
         avg_tps = bmark_param_group_dict['avg_tps']
         avg_ept = bmark_param_group_dict['avg_ept']
         batch_size = bmark_param_group_dict['batch_size']
@@ -382,12 +381,11 @@ def plot_tcf_breakdown(
             total_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
             total_energy_kWh = joules_to_kWh(total_energy_joules)
 
-            # Calculate OpEx costs from energy usage and rate
+            # Calculate operational carbon from energy usage and carbon intensity
             total_operational_carbon_g = total_energy_kWh * gCO2eq_per_kWh
             total_operational_carbon_kg = g_to_kg(total_operational_carbon_g)
 
-            # Calculate CapEx costs from workload duration, gpu price, and gpu lifetime
-            # years * (days / year) * (hours / day) * (minutes / hour) * (seconds / minute)
+            # Calculate embodied_carbon (kgCO2eq) from workload duration, single gpu embodied, and gpu lifetime
             gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
             total_embodied_carbon = num_gpus_req * gpu_embodied * (workload_duration_s / gpu_lifetime_s)
             total_overall_carbon = total_operational_carbon_kg + total_embodied_carbon
@@ -412,15 +410,15 @@ def plot_tcf_breakdown(
     ax.legend()
 
     # Add cost number to capex and opex bars
-    for bar, capex, opex in zip(capex_bars, total_capex_costs, total_opex_costs):
+    for bar, embodied_carbon, operational_carbon in zip(embodied_bars, total_embodied_carbons, total_operational_carbons):
         height = bar.get_height()
         ax.text(
             bar.get_x() + bar.get_width() / 2.0, height / 2,
-            f'{capex:.1f}', ha='center', va='bottom', color='black', fontsize=8
+            f'{embodied_carbon:.1f}', ha='center', va='bottom', color='black', fontsize=8
         )
         ax.text(
             bar.get_x() + bar.get_width() / 2.0, height + opex / 2,
-            f'{opex:.1f}', ha='center', va='bottom', color='black', fontsize=8
+            f'{operational_carbon:.1f}', ha='center', va='bottom', color='black', fontsize=8
         )
 
     plt.tight_layout(pad=2.0)
@@ -498,7 +496,6 @@ def plot_tco_breakdown(
         else:
             raise ValueError('plot_tco_breakdown: gpu_type not found')
 
-        # Finding maximum TPS of this GPU
         avg_tps = bmark_param_group_dict['avg_tps']
         avg_ept = bmark_param_group_dict['avg_ept']
         batch_size = bmark_param_group_dict['batch_size']
@@ -518,8 +515,7 @@ def plot_tco_breakdown(
             # Calculate OpEx costs from energy usage and rate
             total_opex_cost = total_energy_kWh * usd_per_kWh
 
-            # Calculate CapEx costs from workload duration, gpu price, and gpu lifetime
-            # years * (days / year) * (hours / day) * (minutes / hour) * (seconds / minute)
+            # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
             gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
             total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
             total_overall_cost = total_opex_cost + total_capex_cost
