@@ -348,12 +348,19 @@ def plot_tco_breakeven(
     total_opex_costs = []
     total_capex_costs = []
     total_overall_costs = []
+    breakeven_groups = {}
     # 1) Find out what is the <avg_tps_max> (and corresponding <avg_ept_max>) for each GPU/model configuration
     # 2) Find out the minimum number of this GPU is required to serve the required_tps load
     # 3) Calculate total energy required to compute <required_tps> for <workload_duration_s> given <avg_ept>
     for bmark_param_group_dict in bmark_param_group_dicts:
+        print('\n\n')
         for key, val in bmark_param_group_dict.items():
-            print(f'\n{key}, {val}\n')
+            print(f'{key}: {val}')
+
+        # Group together data from the same model but different GPU
+        if bmark_param_group_dict['model_size'] not in breakeven_groups:
+            breakeven_groups[bmark_param_group_dict['model_size']] = {}
+        breakeven_groups[bmark_param_group_dict['model_size']][bmark_param_group_dict['gpu_type']] = bmark_param_group_dict
 
     #    if bmark_param_group_dict['gpu_type'] == 'a10040gb':
     #        gpu_price = usd_per_a10040gb
@@ -483,8 +490,9 @@ def plot_tcf_breakdown(
     # 2) Find out the minimum number of this GPU is required to serve the required_tps load
     # 3) Calculate total energy required to compute <required_tps> for <workload_duration_s> given <avg_ept>
     for bmark_param_group_dict in bmark_param_group_dicts:
+        print('\n\n')
         for key, val in bmark_param_group_dict.items():
-            print(f'\n{key}, {val}\n')
+            print(f'{key}: {val}')
 
         if bmark_param_group_dict['gpu_type'] == 'a10040gb':
             gpu_embodied = kgCO2eq_per_a10040gb
@@ -615,7 +623,7 @@ def plot_tco_breakdown(
     # 3) Calculate total energy required to compute <required_tps> for <workload_duration_s> given <avg_ept>
     for bmark_param_group_dict in bmark_param_group_dicts:
         for key, val in bmark_param_group_dict.items():
-            print(f'\n{key}, {val}\n')
+            print(f'{key}: {val}')
 
         if bmark_param_group_dict['gpu_type'] == 'a10040gb':
             gpu_price = usd_per_a10040gb
@@ -734,7 +742,7 @@ def plot_tbt_vs_ept(
     plt.figure(figsize=(8, 3))
     for bmark_param_group_dict in bmark_param_group_dicts:
         for key, val in bmark_param_group_dict.items():
-            print(f'\n{key}, {val}\n')
+            print(f'{key}: {val}')
 
         avg_ept = bmark_param_group_dict['avg_ept']
         avg_tbt = bmark_param_group_dict['avg_tbt']
@@ -820,7 +828,7 @@ def plot_tps_vs_tbt(
     plt.figure(figsize=(8, 3))
     for bmark_param_group_dict in bmark_param_group_dicts:
         for key, val in bmark_param_group_dict.items():
-            print(f'\n{key}, {val}\n')
+            print(f'{key}: {val}')
 
         avg_tps = bmark_param_group_dict['avg_tps']
         avg_tbt = bmark_param_group_dict['avg_tbt']

@@ -591,8 +591,10 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 													   "13B 1 1000 v10032gb" \
 													   "13B 2 1000 v10032gb" \
 													   "13B 4 1000 v10032gb" \
-								  --bmark_param_groups "7B X 1000 X" \
-													   "13B X 1000 X" \
+								  --bmark_param_groups "7B X 1000 a10040gb" \
+								  					   "7B X 1000 v10032gb" \
+													   "13B X 1000 a10040gb" \
+													   "13B X 1000 v10032gb" \
 								  --gpu_idx			   0 \
 								  --required_tps       1000000 \
 								  --workload_duration_s 3600 \
