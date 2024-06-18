@@ -288,6 +288,10 @@ def years_to_sec(years):
     sec = years * 365 * 24 * 60 * 60
     return sec
 
+def sec_to_years(sec):
+    years = sec / (365 * 24 * 60 * 60)
+    return years
+
 def g_to_kg(g):
     kg = g / 1000
     return kg
@@ -345,22 +349,79 @@ def plot_tco_breakeven(
     )
 
     bar_labels = []
-    total_opex_costs = []
-    total_capex_costs = []
-    total_overall_costs = []
+    new_total_opex_costs = []
+    new_total_capex_costs = []
+    new_total_overall_costs = []
+    breakeven_lifetimes = []
     breakeven_groups = {}
-    # 1) Find out what is the <avg_tps_max> (and corresponding <avg_ept_max>) for each GPU/model configuration
-    # 2) Find out the minimum number of this GPU is required to serve the required_tps load
-    # 3) Calculate total energy required to compute <required_tps> for <workload_duration_s> given <avg_ept>
+    # Group together data from the same model but different GPU
     for bmark_param_group_dict in bmark_param_group_dicts:
         print('\n\n')
         for key, val in bmark_param_group_dict.items():
             print(f'{key}: {val}')
 
-        # Group together data from the same model but different GPU
         if bmark_param_group_dict['model_size'] not in breakeven_groups:
             breakeven_groups[bmark_param_group_dict['model_size']] = {}
         breakeven_groups[bmark_param_group_dict['model_size']][bmark_param_group_dict['gpu_type']] = bmark_param_group_dict
+
+    for model_size, gpu_entries in breakeven_groups.items():
+        # First, calculate costs for a10040gb (new)
+        new_bmark_param_group_dict = gpu_entries['a10040gb']
+        gpu_price = usd_per_a10040gb
+        new_avg_tps = new_bmark_param_group_dict['avg_tps']
+        new_avg_ept = new_bmark_param_group_dict['avg_ept']
+        new_batch_size = new_bmark_param_group_dict['batch_size']
+        assert(len(new_avg_tps) == len(new_avg_ept) and
+               len(new_avg_ept) == len(new_batch_size))
+
+        for avg_tps_val, avg_ept_val, batch_size_val in zip(new_avg_tps, new_avg_ept, new_batch_size):
+            # Calculate the number of required GPUs
+            # (tokens / sec) / ((tokens / sec) / gpu)
+            num_gpus_req = math.ceil(required_tps / avg_tps_val)
+
+            # Calculate the total energy required to compute the workload
+            # (joules / token) * (tokens / sec) * sec
+            total_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
+            total_energy_kWh = joules_to_kWh(total_energy_joules)
+
+            # Calculate OpEx costs from energy usage and rate
+            total_opex_cost = total_energy_kWh * usd_per_kWh
+
+            # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
+            gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
+            total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
+            total_overall_cost = total_opex_cost + total_capex_cost
+
+            model_size = bmark_param_group_dict['model_size']
+            gpu_type = bmark_param_group_dict['gpu_type']
+            bar_labels.append(f'{model_size}_{gpu_type}_{batch_size_val}')
+            new_total_opex_costs.append(total_opex_cost)
+            new_total_capex_costs.append(total_capex_cost)
+            new_total_overall_costs.append(total_overall_cost)
+
+        # Then, calculate breakeven for v10032gb (old) given a10040gb cost
+        old_bmark_param_group_dict = gpu_entries['v10032gb']
+        gpu_price = usd_per_v10032gb
+        old_avg_tps = old_bmark_param_group_dict['avg_tps']
+        old_avg_ept = old_bmark_param_group_dict['avg_ept']
+        old_batch_size = old_bmark_param_group_dict['batch_size']
+            # Calculate the number of required GPUs
+            # (tokens / sec) / ((tokens / sec) / gpu)
+            num_gpus_req = math.ceil(required_tps / avg_tps_val)
+        assert(len(old_avg_tps) == len(old_avg_ept) and
+               len(old_avg_ept) == len(old_batch_size) and
+               len(old_batch_size) == len(new_total_overall_costs))
+
+        for avg_tps_val, avg_ept_val, batch_size_val, new_total_overall_cost_val in zip(old_avg_tps, old_avg_ept, old_batch_size, new_total_overall_costs):
+            # Find how many years it takes
+            workload_joules_per_second = avg_ept_val * required_tps * PUE
+            workload_kWh_per_second = joules_to_kWh(workload_joules_per_second)
+            workload_usd_per_second = workload_kWh_per_second * usd_per_kWh
+
+            breakeven_lifetime_s = new_total_overall_cost_val / workload_usd_per_second
+            breakeven_lifetime_y = sec_to_years(breakeven_lifetime_s)
+            breakeven_lifetimes.append(breakeven_lifetime_y)
+            
 
     #    if bmark_param_group_dict['gpu_type'] == 'a10040gb':
     #        gpu_price = usd_per_a10040gb
