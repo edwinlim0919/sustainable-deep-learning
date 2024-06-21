@@ -16,6 +16,11 @@ sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json 5e4d136c9647:/TensorRT-
 sudo docker cp ShareGPT_V3_unfiltered_cleaned_split_top100.json 5e4d136c9647:/TensorRT-LLM/examples/ShareGPT_V3_unfiltered_cleaned_split_top100.json
 
 
+# DEV TESTING
+# /TensorRT-LLM/examples/falcon
+mpirun -n 4 --allow-run-as-root --oversubscribe python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch1/
+
+
 # /TensorRT-LLM/examples/falcon
 # 4-way tensor parallelism + 1-way pipeline parallelism
 python3 convert_checkpoint.py --model_dir ./falcon/40b-instruct --dtype bfloat16 --output_dir ./falcon/40b-instruct/trt_ckpt/bf16/tp4-pp1/ --tp_size 4 --pp_size 1 --load_by_shard

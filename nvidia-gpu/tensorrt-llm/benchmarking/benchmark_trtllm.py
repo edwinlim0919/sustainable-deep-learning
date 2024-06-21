@@ -5,7 +5,7 @@ import argparse
 import random
 import ast
 import time
-import asyncio
+#import asyncio
 from pathlib import Path
 
 import evaluate
@@ -79,7 +79,8 @@ def eval_trt_llm(
 
 
 
-async def main(args):
+#async def main(args):
+def main(args):
     runtime_rank = tensorrt_llm.mpi_rank()
     logger.set_level(args.log_level)
     model_name, model_version = read_model_name(args.engine_dir)
@@ -247,7 +248,8 @@ async def main(args):
             )
 
     # Sleep for 30s for extra nvsmi readings
-    await asyncio.sleep(30)
+    #await asyncio.sleep(30)
+    time.sleep(30)
     with (container_output_dir / args.container_stop_file).open('w') as f:
         f.write('COMPLETED\n')
 
@@ -385,4 +387,5 @@ if __name__ == '__main__':
     )
     parser.add_argument('--log_level', type=str, default='info')
     args = parser.parse_args()
-    asyncio.run(main(args))
+    #asyncio.run(main(args))
+    main(args)
