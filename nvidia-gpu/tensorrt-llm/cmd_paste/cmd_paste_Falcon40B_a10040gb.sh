@@ -1,6 +1,6 @@
 # TensorRT-LLM standalone
 
-sed -i "s/5e4d136c9647/5e4d136c9647/g" cmd_paste_Falcon40B_a10040gb.sh
+sed -i "s/eb316aafb619/eb316aafb619/g" cmd_paste_Falcon40B_a10040gb.sh
 
 # /TensorRT-LLM/examples/falcon
 pip install -r requirements.txt
@@ -10,15 +10,16 @@ git lfs install
 git clone https://huggingface.co/tiiuae/falcon-40b-instruct falcon/40b-instruct
 
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
-sudo docker cp benchmarking/benchmark_trtllm.py 5e4d136c9647:/TensorRT-LLM/examples/benchmark_trtllm.py
-sudo docker cp benchmarking/benchmark_utils.py 5e4d136c9647:/TensorRT-LLM/examples/benchmark_utils.py
-sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json 5e4d136c9647:/TensorRT-LLM/examples/ShareGPT_V3_unfiltered_cleaned_split.json
-sudo docker cp ShareGPT_V3_unfiltered_cleaned_split_top100.json 5e4d136c9647:/TensorRT-LLM/examples/ShareGPT_V3_unfiltered_cleaned_split_top100.json
+sudo docker cp benchmarking/benchmark_trtllm.py eb316aafb619:/TensorRT-LLM/examples/benchmark_trtllm.py
+sudo docker cp benchmarking/benchmark_utils.py eb316aafb619:/TensorRT-LLM/examples/benchmark_utils.py
+sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json eb316aafb619:/TensorRT-LLM/examples/ShareGPT_V3_unfiltered_cleaned_split.json
+sudo docker cp ShareGPT_V3_unfiltered_cleaned_split_top100.json eb316aafb619:/TensorRT-LLM/examples/ShareGPT_V3_unfiltered_cleaned_split_top100.json
 
 
 # DEV TESTING
 # /TensorRT-LLM/examples/falcon
 mpirun -n 4 --allow-run-as-root --oversubscribe python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch1/
+sudo docker cp eb316aafb619:/TensorRT-LLM/examples/summarize.py benchmarking/summarize.py
 
 
 # /TensorRT-LLM/examples/falcon
@@ -29,6 +30,6 @@ python3 convert_checkpoint.py --model_dir ./falcon/40b-instruct --dtype bfloat16
 # /TensorRT-LLM/examples/falcon
 trtllm-build --checkpoint_dir ./falcon/40b-instruct/trt_ckpt/bf16/tp4-pp1/ --gemm_plugin bfloat16 --gpt_attention_plugin bfloat16 --output_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch1/ --workers 4 --max_batch_size 1
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
-python3 benchmarking/nvsmi_monitor.py --output_dir ./outputs/falcon/40B/bf16/tp4-pp1-batch1/ --output_file nvsmi_numreqsample0_iter100_max1000_a10040gb.out --container_id 5e4d136c9647 --container_output_dir /TensorRT-LLM/examples/falcon/ --container_stop_file container_stop.txt --gpu_type a10040gb
+python3 benchmarking/nvsmi_monitor.py --output_dir ./outputs/falcon/40B/bf16/tp4-pp1-batch1/ --output_file nvsmi_numreqsample0_iter100_max1000_a10040gb.out --container_id eb316aafb619 --container_output_dir /TensorRT-LLM/examples/falcon/ --container_stop_file container_stop.txt --gpu_type a10040gb
 # /TensorRT-LLM/examples/falcon
 mpirun -n 4 --allow-run-as-root --oversubscribe python3 ../benchmark_trtllm.py --tokenizer_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch1/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /TensorRT-LLM/examples/falcon/outputs/40B/bf16/tp4-pp1-batch1/ --output_file bmark_numreqsample0_iter100_max1000_a10040gb.out --container_output_dir /TensorRT-LLM/examples/falcon --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100
