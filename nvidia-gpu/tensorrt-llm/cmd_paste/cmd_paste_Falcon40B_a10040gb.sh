@@ -18,8 +18,10 @@ sudo docker cp ShareGPT_V3_unfiltered_cleaned_split_top100.json eb316aafb619:/Te
 
 # DEV TESTING
 # /TensorRT-LLM/examples/falcon
-mpirun -n 4 --allow-run-as-root --oversubscribe python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch1/
 sudo docker cp eb316aafb619:/TensorRT-LLM/examples/summarize.py benchmarking/summarize.py
+mpirun -n 4 --allow-run-as-root --oversubscribe python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch1/
+
+mpirun -n 4 --allow-run-as-root --oversubscribe python3 ../benchmark_trtllm.py --tokenizer_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch1/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /TensorRT-LLM/examples/falcon/outputs/40B/bf16/tp4-pp1-batch1/ --output_file bmark_numreqsample0_iter100_max1000_a10040gb.out --container_output_dir /TensorRT-LLM/examples/falcon --container_stop_file container_stop.txt --random_seed 42 --num_iterations 10
 
 
 # /TensorRT-LLM/examples/falcon

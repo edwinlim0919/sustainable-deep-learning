@@ -14,7 +14,8 @@ import torch
 from transformers import (AutoModel, AutoModelForCausalLM,
                           AutoModelForSeq2SeqLM, GenerationConfig,
                           AutoTokenizer)
-from utils import DEFAULT_HF_MODEL_DIRS, load_tokenizer, read_model_name
+from utils import (DEFAULT_HF_MODEL_DIRS, add_common_args, load_tokenizer,
+                   read_model_name)
 
 import tensorrt_llm
 import tensorrt_llm.profiler as profiler
@@ -76,7 +77,6 @@ def eval_trt_llm(
     batch_end_time = time.time()
 
     return batch_outputs, batch_start_time, batch_end_time
-
 
 
 #async def main(args):
@@ -153,22 +153,48 @@ def main(args):
         container_stop_lines = f.readlines()
     assert('RUNNING' in container_stop_lines[0])
 
-    # TODO change this for the actual batching
-    #sampled_prompts_text = [sampled_prompt[0] for sampled_prompt in sampled_prompts]
     if not PYTHON_BINDINGS:
-        logger.warning("MAIN python bindings of C++ session is unavailable, fallback to Python session.")
+        logger.warning("MAIN Python bindings of C++ session is unavailable, fallback to Python session.")
     runner_cls = ModelRunnerCpp
+
+    #runner_kwargs = dict(engine_dir=args.engine_dir,
+    #                     rank=runtime_rank,
+    #                     debug_mode=args.debug_mode)
     runner_kwargs = dict(engine_dir=args.engine_dir,
                          rank=runtime_rank,
-                         debug_mode=args.debug_mode)
-    runner_kwargs.update(
-        max_batch_size=max_batch_size,
-        max_input_len=max_input_tokens,
-        max_output_len=max_output_tokens,
-        max_beam_width=num_beams,
-        max_attention_window_size=max_attention_window_size,
-        sink_token_length=sink_token_length)
+                         debug_mode=args.debug_mode,
+                         gpu_weights_percent=args.gpu_weights_percent)
+    if args.medusa_choices is not None:
+        args.medusa_choices = ast.literal_eval(args.medusa_choices)
+        assert args.temperature == 1.0, "Medusa should use temperature == 1.0"
+        assert args.num_beams == 1, "Medusa should use num_beams == 1"
+        runner_kwargs.update(medusa_choices=args.medusa_choices)
+    if not args.use_py_session:
+        runner_kwargs.update(
+            max_batch_size=max_batch_size,
+            max_input_len=test_token_num,
+            max_output_len=output_len,
+            max_beam_width=num_beams,
+            max_attention_window_size=max_attention_window_size,
+            sink_token_length=sink_token_length,
+            max_tokens_in_paged_kv_cache=args.max_tokens_in_paged_kv_cache,
+            kv_cache_enable_block_reuse=args.kv_cache_enable_block_reuse,
+            kv_cache_free_gpu_memory_fraction=args.
+            kv_cache_free_gpu_memory_fraction,
+            enable_chunked_context=args.enable_chunked_context,
+        )
     runner = runner_cls.from_dir(**runner_kwargs)
+    assert not (args.eval_ppl and not (runner.gather_context_logits and runner.gather_generation_logits)), \
+        "PPL evaluation requires engine built with gather_all_token_logits enabled"
+
+    #runner_kwargs.update(
+    #    max_batch_size=max_batch_size,
+    #    max_input_len=max_input_tokens,
+    #    max_output_len=max_output_tokens,
+    #    max_beam_width=num_beams,
+    #    max_attention_window_size=max_attention_window_size,
+    #    sink_token_length=sink_token_length)
+    #runner = runner_cls.from_dir(**runner_kwargs)
 
     # set max_output_tokens and max_input_tokens to reflect current batch results from GPT4
     # decouple batch sampling with actual runtime
@@ -205,8 +231,11 @@ def main(args):
         }
         batch_dicts.append(batch_dict)
 
+    # TODO: runtime_rank stuff
     for iteration in range(num_iterations):
-        logger.info(f'MAIN iteration: {iteration} / {num_iterations - 1}')
+        if runtime_rank == 0:
+            logger.info(f'MAIN iteration: {iteration} / {num_iterations - 1}')
+
         batch_dict = batch_dicts[iteration]
         batch_outputs, batch_start_time, batch_end_time = eval_trt_llm(
             batch_dict['batch_input_tokens'],
@@ -233,41 +262,42 @@ def main(args):
         batch_dict['batch_end_time'] = batch_end_time
 
     # parsing and writing results
-    with (output_dir / args.output_file).open('a') as file:
-        file.write(f'num_iterations: {num_iterations}\n')
-        for batch_dict in batch_dicts:
-            #logger.info(f'\n\nbatch_dict: {batch_dict}\n\n')
-            benchmark_utils.parse_batch_dict(
-                batch_dict,
-                tokenizer
-            )
-            benchmark_utils.write_batch_dict(
-                batch_dict,
-                file,
-                args.no_token_logging
-            )
+    if runtime_rank == 0:
+        with (output_dir / args.output_file).open('a') as file:
+            file.write(f'num_iterations: {num_iterations}\n')
+            for batch_dict in batch_dicts:
+                benchmark_utils.parse_batch_dict(
+                    batch_dict,
+                    tokenizer
+                )
+                benchmark_utils.write_batch_dict(
+                    batch_dict,
+                    file,
+                    args.no_token_logging
+                )
 
     # Sleep for 30s for extra nvsmi readings
-    #await asyncio.sleep(30)
     time.sleep(30)
-    with (container_output_dir / args.container_stop_file).open('w') as f:
-        f.write('COMPLETED\n')
+    if runtime_rank == 0:
+        with (container_output_dir / args.container_stop_file).open('w') as f:
+            f.write('COMPLETED\n')
+    del runner
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--tokenizer_dir',
-        type=str,
-        required=True,
-        help='tokenizer path'
-    )
-    parser.add_argument(
-        '--engine_dir',
-        type=str,
-        required=True,
-        help='trtllm engine path'
-    )
+    #parser.add_argument(
+    #    '--tokenizer_dir',
+    #    type=str,
+    #    required=True,
+    #    help='tokenizer path'
+    #)
+    #parser.add_argument(
+    #    '--engine_dir',
+    #    type=str,
+    #    required=True,
+    #    help='trtllm engine path'
+    #)
     parser.add_argument(
         '--dataset_path',
         type=str,
@@ -328,45 +358,45 @@ if __name__ == '__main__':
         required=True,
         help='filepath in docker container for coordinating nvsmi loop stop'
     )
-    parser.add_argument(
-        '--random_seed',
-        type=int,
-        required=True,
-        help='random seed for reproducibility'
-    )
-    parser.add_argument(
-        '--max_attention_window_size',
-        type=int,
-        default=None,
-        help='attention window size for sliding window attention / cyclic kv cache behavior'
-    )
-    parser.add_argument(
-        '--sink_token_length',
-        type=int,
-        default=None,
-        help='sink token length.')
-    parser.add_argument('--num_beams', type=int, default=1)
-    parser.add_argument('--temperature', type=float, default=1.0)
-    parser.add_argument('--top_k', type=int, default=1)
-    parser.add_argument('--top_p', type=float, default=0.0)
-    parser.add_argument('--length_penalty', type=float, default=1.0)
-    parser.add_argument('--repetition_penalty', type=float, default=1.0)
-    parser.add_argument('--presence_penalty', type=float, default=0.0)
-    parser.add_argument('--frequency_penalty', type=float, default=0.0)
-    parser.add_argument(
-        '--early_stopping',
-        type=int,
-        default=1,
-        help='use early stopping if num_beams > 1'
-        '1 for early-stopping, 0 for non-early-stopping'
-        'other values for stopping by length'
-    )
-    parser.add_argument(
-        '--debug_mode',
-        default=False,
-        action='store_true',
-        help='whether or not to turn on the debug mode'
-    )
+    #parser.add_argument(
+    #    '--random_seed',
+    #    type=int,
+    #    required=True,
+    #    help='random seed for reproducibility'
+    #)
+    #parser.add_argument(
+    #    '--max_attention_window_size',
+    #    type=int,
+    #    default=None,
+    #    help='attention window size for sliding window attention / cyclic kv cache behavior'
+    #)
+    #parser.add_argument(
+    #    '--sink_token_length',
+    #    type=int,
+    #    default=None,
+    #    help='sink token length.')
+    #parser.add_argument('--num_beams', type=int, default=1)
+    #parser.add_argument('--temperature', type=float, default=1.0)
+    #parser.add_argument('--top_k', type=int, default=1)
+    #parser.add_argument('--top_p', type=float, default=0.0)
+    #parser.add_argument('--length_penalty', type=float, default=1.0)
+    #parser.add_argument('--repetition_penalty', type=float, default=1.0)
+    #parser.add_argument('--presence_penalty', type=float, default=0.0)
+    #parser.add_argument('--frequency_penalty', type=float, default=0.0)
+    #parser.add_argument(
+    #    '--early_stopping',
+    #    type=int,
+    #    default=1,
+    #    help='use early stopping if num_beams > 1'
+    #    '1 for early-stopping, 0 for non-early-stopping'
+    #    'other values for stopping by length'
+    #)
+    #parser.add_argument(
+    #    '--debug_mode',
+    #    default=False,
+    #    action='store_true',
+    #    help='whether or not to turn on the debug mode'
+    #)
     parser.add_argument(
         '--add_special_tokens',
         default=False,
@@ -385,7 +415,8 @@ if __name__ == '__main__':
         action='store_true',
         help='Specify this argument to avoid absurdly long output logs by not saving the token output.'
     )
-    parser.add_argument('--log_level', type=str, default='info')
+    #parser.add_argument('--log_level', type=str, default='info')
+    parser = add_common_args(parser)
     args = parser.parse_args()
     #asyncio.run(main(args))
     main(args)
