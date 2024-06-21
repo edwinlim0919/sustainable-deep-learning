@@ -143,10 +143,11 @@ def main(args):
     container_output_dir = Path(args.container_output_dir)
     container_output_dir.mkdir(exist_ok=True, parents=True)
 
-    logger.info(f'MAIN creating output directory {args.output_dir} w/ files {args.output_file}')
-    with (output_dir / args.output_file).open('w') as f:
-        f.write(f'engine path: {args.engine_dir}\n')
-        f.write(f'tokenizer path: {args.tokenizer_dir}\n')
+    if runtime_rank == 0:
+        logger.info(f'MAIN creating output directory {args.output_dir} w/ files {args.output_file}')
+        with (output_dir / args.output_file).open('w') as f:
+            f.write(f'engine path: {args.engine_dir}\n')
+            f.write(f'tokenizer path: {args.tokenizer_dir}\n')
 
     # Check if stop file has been uploaded to the container
     with (container_output_dir / args.container_stop_file).open('r') as f:
@@ -172,20 +173,21 @@ def main(args):
     if not args.use_py_session:
         runner_kwargs.update(
             max_batch_size=max_batch_size,
-            max_input_len=test_token_num,
-            max_output_len=output_len,
+            #max_input_len=test_token_num,
+            max_input_len=max_input_tokens,
+            #max_output_len=output_len,
+            max_output_len=max_output_tokens,
             max_beam_width=num_beams,
             max_attention_window_size=max_attention_window_size,
             sink_token_length=sink_token_length,
             max_tokens_in_paged_kv_cache=args.max_tokens_in_paged_kv_cache,
             kv_cache_enable_block_reuse=args.kv_cache_enable_block_reuse,
-            kv_cache_free_gpu_memory_fraction=args.
-            kv_cache_free_gpu_memory_fraction,
-            enable_chunked_context=args.enable_chunked_context,
+            kv_cache_free_gpu_memory_fraction=args.kv_cache_free_gpu_memory_fraction,
+            enable_chunked_context=args.enable_chunked_context
         )
     runner = runner_cls.from_dir(**runner_kwargs)
-    assert not (args.eval_ppl and not (runner.gather_context_logits and runner.gather_generation_logits)), \
-        "PPL evaluation requires engine built with gather_all_token_logits enabled"
+    #assert not (args.eval_ppl and not (runner.gather_context_logits and runner.gather_generation_logits)), \
+    #    "PPL evaluation requires engine built with gather_all_token_logits enabled"
 
     #runner_kwargs.update(
     #    max_batch_size=max_batch_size,
