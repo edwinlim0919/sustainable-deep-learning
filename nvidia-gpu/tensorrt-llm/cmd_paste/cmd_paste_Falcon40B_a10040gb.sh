@@ -90,3 +90,15 @@ mpirun -n 4 --allow-run-as-root --oversubscribe python3 ../benchmark_trtllm.py -
 sudo docker cp eb316aafb619:/TensorRT-LLM/examples/falcon/outputs/40B/bf16/tp4-pp1-batch32/bmark_numreqsample0_iter100_max1000_a10040gb.out ./outputs/falcon/40B/bf16/tp4-pp1-batch32/bmark_numreqsample0_iter100_max1000_a10040gb.out
 # /TensorRT-LLM/examples/falcon
 rm -rf ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch32/
+
+# max_batch_size 40
+# /TensorRT-LLM/examples/falcon
+trtllm-build --checkpoint_dir ./falcon/40b-instruct/trt_ckpt/bf16/tp4-pp1/ --gemm_plugin bfloat16 --gpt_attention_plugin bfloat16 --output_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch40/ --workers 4 --max_batch_size 40
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+python3 benchmarking/nvsmi_monitor.py --output_dir ./outputs/falcon/40B/bf16/tp4-pp1-batch40/ --output_file nvsmi_numreqsample0_iter100_max1000_a10040gb.out --container_id eb316aafb619 --container_output_dir /TensorRT-LLM/examples/falcon/ --container_stop_file container_stop.txt --gpu_type a10040gb
+# /TensorRT-LLM/examples/falcon
+mpirun -n 4 --allow-run-as-root --oversubscribe python3 ../benchmark_trtllm.py --tokenizer_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch40/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 40 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /TensorRT-LLM/examples/falcon/outputs/40B/bf16/tp4-pp1-batch40/ --output_file bmark_numreqsample0_iter100_max1000_a10040gb.out --container_output_dir /TensorRT-LLM/examples/falcon/ --container_stop_file container_stop.txt --random_seed 42 --num_iterations 100
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp eb316aafb619:/TensorRT-LLM/examples/falcon/outputs/40B/bf16/tp4-pp1-batch40/bmark_numreqsample0_iter100_max1000_a10040gb.out ./outputs/falcon/40B/bf16/tp4-pp1-batch40/bmark_numreqsample0_iter100_max1000_a10040gb.out
+# /TensorRT-LLM/examples/falcon
+rm -rf ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch40/
