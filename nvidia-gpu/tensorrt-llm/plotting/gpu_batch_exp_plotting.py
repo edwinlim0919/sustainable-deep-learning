@@ -2,11 +2,12 @@ import argparse
 import re
 import ast
 import matplotlib.pyplot as plt
+import numpy as np
 import math
 from pathlib import Path
 
-import numpy as np
 import gpu_batch_exp_utils
+import carbon_data
 
 
 # Group experiment data based on the parameter groups passed
