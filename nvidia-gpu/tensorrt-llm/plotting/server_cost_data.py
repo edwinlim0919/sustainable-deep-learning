@@ -32,7 +32,6 @@ aws_p4d_24xlarge_cost = {
     'aws_3_yr_res'  : 12.499    # USD / HR
 }
 
-
 # ---------- AWS v10032gb GPU INSTANCE COST ----------
 # p3dn.24xlarge
 # - CPU     : Xeon Platinum 8175M

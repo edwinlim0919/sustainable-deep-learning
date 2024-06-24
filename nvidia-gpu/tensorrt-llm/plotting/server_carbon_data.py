@@ -19,7 +19,6 @@ dell_poweredge_r740_carbon = {
 }
 # Operational carbon data for Dell PowerEdge R740 (TODO)
 
-
 # ---------- AWS GPU INSTANCE CARBON OVERALL ----------
 # p4d.24xlarge
 # - CPU     : Xeon Platinum 8275CL

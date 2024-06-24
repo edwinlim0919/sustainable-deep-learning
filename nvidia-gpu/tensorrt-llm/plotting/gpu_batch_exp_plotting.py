@@ -661,6 +661,9 @@ def plot_tco_breakdown(
 
     bar_labels = []
     total_opex_costs = []
+    total_pkg_energy_costs = []
+    total_ram_energy_costs = []
+    total_gpu_energy_costs = []
     total_capex_costs = []
     total_overall_costs = []
     # 1) Find out what is the <avg_tps_max> (and corresponding <avg_ept_max>) for each GPU/model configuration
@@ -694,31 +697,38 @@ def plot_tco_breakdown(
             #num_gpus_req = math.ceil(required_tps / avg_tps_val)
             num_gpu_servers_req = math.ceil(required_tps / (avg_tps_val * 8))
 
-            # Calulate the total server CPU/PKG power required to service the workload
+            # Calulate the total server PKG power/energy required to service the workload
             if pkg_power_load not in gpu_server_carbon_data:
                 raise ValueError('plot_tco_breakdown: pkg_power_load not found in gpu_server_carbon_data')
             single_server_pkg_power = gpu_server_carbon_data[pkg_power_load]
             total_pkg_power = single_server_pkg_power * num_gpu_servers_req
+            total_pkg_energy_joules = total_pkg_power * workload_duration * PUE
+            total_pkg_energy_kWh = joules_to_kWh(total_pkg_energy_joules)
+            total_pkg_energy_cost = total_pkg_energy_kWh * usd_per_kWh
 
             # Calculate the total server DRAM power required to service the workload
             if ram_power_load not in gpu_server_carbon_data:
                 raise ValueError('plot_tco_breakdown: ram_power_load not found in gpu_server_carbon_data')
             single_server_ram_power = gpu_server_carbon_data[ram_power_load]
             total_ram_power = single_server_ram_power * num_gpu_servers_req
-
-            # Calculate the total non-GPU energy required to service the workload
-            total_nongpu_energy_joules = (total_pkg_power + total_ram_power) * workload_duration_s * PUE
+            total_ram_energy_joules = total_ram_power * workload_duration_s * PUE
+            total_ram_energy_kWh = joules_to_kWh(total_ram_energy_joules)
+            total_ram_energy_cost = total_ram_energy_kWh * usd_per_kWh
 
             # Calculate the total GPU energy required to compute the workload
             # (joules / token) * (tokens / sec) * sec
             total_gpu_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
-
-            # Overall energy usage of the entire server
-            total_overall_energy_joules = total_nongpu_energy_joules + total_gpu_energy_joules
-            total_overall_energy_kWh = joules_to_kWh(total_overall_energy_joules)
+            total_gpu_energy_kWh = joules_to_kWh(total_gpu_energy_joules)
+            total_gpu_energy_cost = total_gpu_energy_kWh * usd_per_kWh
 
             # Calculate OpEx costs from energy usage and rate
-            total_opex_cost = total_overall_energy_kWh * usd_per_kWh
+            total_opex_cost = total_pkg_energy_cost + total_ram_energy_cost + total_gpu_energy_cost
+            total_opex_costs.append(total_opex_cost)
+            total_pkg_energy_costs.append(total_pkg_energy_cost)
+            total_ram_energy_costs.append(total_ram_energy_cost)
+            total_gpu_energy_costs.append(total_gpu_energy_cost)
+
+            # Calculate CapEx costs from ... TODO
 
             # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
             gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
@@ -728,7 +738,7 @@ def plot_tco_breakdown(
             model_size = bmark_param_group_dict['model_size']
             gpu_type = bmark_param_group_dict['gpu_type']
             bar_labels.append(f'{model_size}_{gpu_type}_{batch_size_val}')
-            total_opex_costs.append(total_opex_cost)
+            #total_opex_costs.append(total_opex_cost)
             total_capex_costs.append(total_capex_cost)
             total_overall_costs.append(total_overall_cost)
 
