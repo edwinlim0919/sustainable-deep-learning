@@ -617,6 +617,8 @@ def plot_tco_breakdown(
     #usd_per_a10040gb,
     #usd_per_v10032gb,
     second_life,
+    pkg_power_load,
+    ram_power_load,
     plot_filename,
     plot_name
 ):
@@ -670,12 +672,14 @@ def plot_tco_breakdown(
 
         if bmark_param_group_dict['gpu_type'] == 'a10040gb':
             gpu_server_cost_data = server_cost_data.aws_p4d_24xlarge_cost
+            gpu_server_carbon_data = server_carbon_data.aws_p4d_24xlarge_carbon
         #    gpu_price = usd_per_a10040gb
         elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
             gpu_server_cost_data = server_cost_data.aws_p3dn_24xlarge_cost
+            gpu_server_carbon_data = server_carbon_data.aws_p3dn_24xlarge_carbon
         #    gpu_price = usd_per_v10032gb
         else:
-            raise ValueError('plot_tco_breakdown: gpu_type not found')
+            raise ValueError('plot_tco_breakdown: gpu_type not found in bmark_param_group_dict')
 
         avg_tps = bmark_param_group_dict['avg_tps']
         avg_ept = bmark_param_group_dict['avg_ept']
@@ -684,17 +688,37 @@ def plot_tco_breakdown(
                len(avg_ept) == len(batch_size))
 
         for avg_tps_val, avg_ept_val, batch_size_val in zip(avg_tps, avg_ept, batch_size):
-            # Calculate the number of required GPUs
-            # (tokens / sec) / ((tokens / sec) / gpu)
-            num_gpus_req = math.ceil(required_tps / avg_tps_val)
+            # Calculate the number of required GPU servers
+            # Each GPU server contains 8 GPUs
+            # (tokens / sec) / ((tokens / sec) / gpu_server)
+            #num_gpus_req = math.ceil(required_tps / avg_tps_val)
+            num_gpu_servers_req = math.ceil(required_tps / (avg_tps_val * 8))
 
-            # Calculate the total energy required to compute the workload
+            # Calulate the total server CPU/PKG power required to service the workload
+            if pkg_power_load not in gpu_server_carbon_data:
+                raise ValueError('plot_tco_breakdown: pkg_power_load not found in gpu_server_carbon_data')
+            single_server_pkg_power = gpu_server_carbon_data[pkg_power_load]
+            total_pkg_power = single_server_pkg_power * num_gpu_servers_req
+
+            # Calculate the total server DRAM power required to service the workload
+            if ram_power_load not in gpu_server_carbon_data:
+                raise ValueError('plot_tco_breakdown: ram_power_load not found in gpu_server_carbon_data')
+            single_server_ram_power = gpu_server_carbon_data[ram_power_load]
+            total_ram_power = single_server_ram_power * num_gpu_servers_req
+
+            # Calculate the total non-GPU energy required to service the workload
+            total_nongpu_energy_joules = (total_pkg_power + total_ram_power) * workload_duration_s * PUE
+
+            # Calculate the total GPU energy required to compute the workload
             # (joules / token) * (tokens / sec) * sec
-            total_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
-            total_energy_kWh = joules_to_kWh(total_energy_joules)
+            total_gpu_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
+
+            # Overall energy usage of the entire server
+            total_overall_energy_joules = total_nongpu_energy_joules + total_gpu_energy_joules
+            total_overall_energy_kWh = joules_to_kWh(total_overall_energy_joules)
 
             # Calculate OpEx costs from energy usage and rate
-            total_opex_cost = total_energy_kWh * usd_per_kWh
+            total_opex_cost = total_overall_energy_kWh * usd_per_kWh
 
             # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
             gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
@@ -1166,6 +1190,8 @@ def main(args):
             #args.usd_per_a10040gb,
             #args.usd_per_v10032gb,
             args.second_life,
+            args.pkg_power_load,
+            args.ram_power_load,
             args.plot_filename,
             args.plot_name
         )
@@ -1265,6 +1291,16 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
         help='specify this arg for the assumption that V100 GPU servers are in their second lifetime and thus do not incur extra embodied carbon or CapEx cost'
+    )
+    parser.add_argument(
+        '--pkg_power_load',
+        type=str,
+        help='specify load conditions for estimating CPU power from <pkg_power_0, pkg_power_10, pkg_power_50, pkg_power_100>'
+    )
+    parser.add_argument(
+        '--ram_power_load',
+        type=str,
+        help='specify load conditions for estimating DRAM power from <ram_power_0, ram_power_10, ram_power_50, ram_power_100>'
     )
     parser.add_argument(
         '--tbt_slo',
