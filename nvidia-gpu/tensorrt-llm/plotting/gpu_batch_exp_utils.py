@@ -89,7 +89,6 @@ def parse_nvsmi_output(nvsmi_output_path):
 
     nvsmi_info = []
     for line in nvsmi_output_lines[1:]:
-        #print(line)
         nvsmi_dict = ast.literal_eval(line)
         num_gpus = nvsmi_dict['num_gpus']
 
@@ -147,9 +146,8 @@ def write_nvsmi_output(nvsmi_output_path, nvsmi_output):
                 gpu_storage_dict['power_usage'] = gpu_dict['power_usage']
                 gpu_storage_dict['memory_usage'] = gpu_dict['memory_usage']
                 gpu_storage_dict['gpu_utilization'] = gpu_dict['gpu_utilization']
-
-                #nvsmi_storage_dict[i] = nvsmi_dict[i]
                 nvsmi_storage_dict[i] = gpu_storage_dict
+
             nvsmi_storage_dict['num_gpus'] = nvsmi_dict['num_gpus']
 
             f.write(str(nvsmi_storage_dict) + '\n')
