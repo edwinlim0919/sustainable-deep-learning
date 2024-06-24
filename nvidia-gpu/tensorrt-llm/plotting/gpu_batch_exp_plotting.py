@@ -320,7 +320,7 @@ def g_to_kg(g):
 def plot_tco_breakeven(
     bmark_entries,
     bmark_param_groups,
-    gpu_idx,
+    gpu_idxs,
     required_tps,        # the current load
     workload_duration_s, # how long are we running this load for? (in seconds)
     usd_per_kWh,         # USD per kWh (regional electricity price)
@@ -364,7 +364,7 @@ def plot_tco_breakeven(
         bmark_entries,
         bmark_param_groups,
         plotting_knob,
-        gpu_idx,
+        gpu_idxs,
         bmark_param_group_dicts
     )
 
@@ -480,7 +480,7 @@ def plot_tco_breakeven(
 def plot_tcf_breakdown(
     bmark_entries,
     bmark_param_groups,
-    gpu_idx,
+    gpu_idxs,
     required_tps,        # the current load
     workload_duration_s, # how long are we running this load for? (in seconds)
     gCO2eq_per_kWh,      # gC02eq per kWh (regional carbon intensity)
@@ -524,7 +524,7 @@ def plot_tcf_breakdown(
         bmark_entries,
         bmark_param_groups,
         plotting_knob,
-        gpu_idx,
+        gpu_idxs,
         bmark_param_group_dicts
     )
 
@@ -612,7 +612,7 @@ def plot_tcf_breakdown(
 def plot_tco_breakdown(
     bmark_entries,
     bmark_param_groups,
-    gpu_idx,
+    gpu_idxs,
     required_tps,        # the current load
     workload_duration_s, # how long are we running this load for? (in seconds)
     usd_per_kWh,         # USD per kWh (regional electricity price)
@@ -656,7 +656,7 @@ def plot_tco_breakdown(
         bmark_entries,
         bmark_param_groups,
         plotting_knob,
-        gpu_idx,
+        gpu_idxs,
         bmark_param_group_dicts
     )
 
@@ -740,7 +740,7 @@ def plot_tco_breakdown(
 def plot_tbt_vs_ept(
     bmark_entries,
     bmark_param_groups,
-    gpu_idx,
+    gpu_idxs,
     plot_filename,
     plot_name
 ):
@@ -781,7 +781,7 @@ def plot_tbt_vs_ept(
         bmark_entries,
         bmark_param_groups,
         plotting_knob,
-        gpu_idx,
+        gpu_idxs,
         bmark_param_group_dicts
     )
 
@@ -1145,7 +1145,7 @@ def main(args):
         plot_tbt_vs_ept(
             bmark_entries,
             args.bmark_param_groups,
-            args.gpu_idx,
+            args.gpu_idxs,
             args.plot_filename,
             args.plot_name
         )
@@ -1153,7 +1153,7 @@ def main(args):
         plot_tco_breakdown(
             bmark_entries,
             args.bmark_param_groups,
-            args.gpu_idx,
+            args.gpu_idxs,
             args.required_tps,
             args.workload_duration_s,
             args.usd_per_kWh,
@@ -1168,7 +1168,7 @@ def main(args):
         plot_tcf_breakdown(
             bmark_entries,
             args.bmark_param_groups,
-            args.gpu_idx,
+            args.gpu_idxs,
             args.required_tps,
             args.workload_duration_s,
             args.gCO2eq_per_kWh,
@@ -1183,7 +1183,7 @@ def main(args):
         plot_tco_breakeven(
             bmark_entries,
             args.bmark_param_groups,
-            args.gpu_idx,
+            args.gpu_idxs,
             args.required_tps,
             args.workload_duration_s,
             args.usd_per_kWh,
@@ -1318,7 +1318,8 @@ if __name__ == '__main__':
         help='title for specified plot'
     )
     parser.add_argument(
-        '--gpu_idx',
+        '--gpu_idxs',
+        nargs='+',
         type=int,
         help='specify which idx of GPU for nvsmi info'
     )
