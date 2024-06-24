@@ -1,32 +1,30 @@
-# Building an AWS EC2 Carbon Emissions Dataset (Benjamin Davy): https://medium.com/teads-engineering/building-an-aws-ec2-carbon-emissions-dataset-3f0fd76c98ac
-# Dataset spreadsheet: https://docs.google.com/spreadsheets/d/1DqYgQnEDLQVQm5acMAhLgHLD8xXCG9BIrk-_Nv6jF3k/
 
-# ---------- STANDARD SERVER CARBON BREAKDOWN ----------
-# Embodied carbon data for Dell PowerEdge R740 (kgCO2eq)
-dell_poweredge_r740_carbon = {
-    'SSD'        : {
-        0 : 3379,       # 8 * 3.84TB Solid State Drives
-        1 : 64          # 1 * 400GB Solid State Drive
-    },
-    'DRAM'       : 533, # 12 * 32GB DIMMs Memory
-    'PWB'        : 109, # Mainboard PWB
-    'Networking' : 59,  # Riser card 1 - Riser card 2 - Riser card 3 - Ethernet card - HDD Controller - Q-logic - Intel Ethernet X710
-    'CPU'        : 47,  # 2 * Xeon CPUs with housing
-    'Chassis'    : 34,
-    'PSU'        : 30,
-    'IO'         : 20,  # Mainboard Connectors - Transport
-    'Fans'       : 13
-}
-# Operational carbon data for Dell PowerEdge R740 (TODO)
-
-
-# ---------- AWS GPU INSTANCE CARBON OVERALL ----------
+# ---------- AWS GPU INSTANCE COST OVERALL ----------
 # p4d.24xlarge
 # - CPU     : Xeon Platinum 8275CL
 # - Memory  : 1152GB
 # - Storage : 8TB NVMe SSD
 # - GPU     : 8 x 40GB A100
-aws_p4d_24xlarge_carbon = {
+#
+# ---------- ON-PREMISE DATACENTER ----------
+#   - CPU USD     : https://ark.intel.com/content/www/us/en/ark/products/192482/intel-xeon-platinum-8270-processor-35-75m-cache-2-70-ghz.html
+#     * Intel Xeon Platinum 8270 is compatible with DDR4-2933 memory
+#   - Memory USD  : https://memory.net/memory-prices/
+#     * 128GB DDR4-2933 PC4-23466U-L ECC LRDIMM
+#   - Storage USD : https://www.newegg.com/intel-dc-p4510-8tb/p/1Z4-009F-00083
+#     * Intel DC P4510 8TB PCIe NVMe SSD
+#   - GPU USD     : https://www.amazon.com/NVIDIA-Ampere-Graphics-Processor-Accelerator/dp/B08X13X6HF
+#     * NVIDIA Tesla A100 40GB PCIe
+#
+# ---------- CLOUD RENTAL ----------
+#   - AWS EC2 USD/HR : https://instances.vantage.sh/aws/ec2/p4d.24xlarge
+#     * 
+aws_p4d_24xlarge_cost = {
+    'CPU'   : 8477.00  # USD
+    'DRAM'  : 4932.00  # USD
+    'SSD'   : 1350.55  # USD
+    'GPU'   : 63679.92 # USD
+
     'pkg_power_0'       : 57.93,   # Watts
     'pkg_power_10'      : 175.53,  # Watts
     'pkg_power_50'      : 448.31,  # Watts
@@ -50,7 +48,7 @@ aws_p4d_24xlarge_carbon = {
 # - Memory  : 768GB
 # - Storage : 2 x 900GB NVMe SSD
 # - GPU     : 8 x 32GB V100
-aws_p3dn_24xlarge_carbon = {
+aws_p3dn_24xlarge_cost = {
     'pkg_power_0'       : 57.88,  # Watts
     'pkg_power_10'      : 146.63, # Watts
     'pkg_power_50'      : 343.70, # Watts

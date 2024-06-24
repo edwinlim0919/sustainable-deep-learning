@@ -8,6 +8,7 @@ from pathlib import Path
 
 import gpu_batch_exp_utils
 import carbon_data
+import cost_data
 
 
 # Group experiment data based on the parameter groups passed
@@ -830,7 +831,7 @@ def plot_tps_vs_tbt(
     bmark_param_groups,
     plot_filename,
     plot_name,
-    add_human_slo
+    tbt_slo
 ):
     # Organizing different bmark data points for the line plot
     plotting_metrics = [
@@ -893,7 +894,9 @@ def plot_tps_vs_tbt(
                          xytext=(0, 10),
                          ha='center')
 
-    
+    if tbt_slo is not None:
+        plt.axhline(y=tbt_slo, color='red', linestyle='--', label='TBT SLO')
+
     plt.xlabel('Tokens Per Second')
     plt.ylabel('Time Between Tokens')
     plt.title(plot_name)
@@ -1142,7 +1145,7 @@ def main(args):
             args.bmark_param_groups,
             args.plot_filename,
             args.plot_name,
-            args.add_human_slo
+            args.tbt_slo
         )
     if args.plot_tbt_vs_ept:
         plot_tbt_vs_ept(
@@ -1259,8 +1262,8 @@ if __name__ == '__main__':
         help='specify this arg to plot the tco breakeven point of inference serving between old and new generation of GPUs'
     )
     parser.add_argument(
-        '--add_human_slo',
-        type=int,
+        '--tbt_slo',
+        type=float,
         help='specify the TBT SLO for human readability'
     )
     parser.add_argument(
