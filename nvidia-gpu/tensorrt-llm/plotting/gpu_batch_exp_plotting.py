@@ -218,8 +218,6 @@ def calculate_avg_ept(
                 gpu_idx_dict = nvsmi_dict[gpu_idx]
                 nvsmi_curr_power.append(gpu_idx_dict['curr_power_usage'])
             nvsmi_curr_powers.append(nvsmi_curr_power)
-            #gpu_idx_dict = nvsmi_dict[gpu_idx]
-            #nvsmi_curr_powers.append(gpu_idx_dict['curr_power_usage'])
 
         # For this given bmark data point, keep track of running tbt sum to calculate avg at the end
         ept_sum = 0
@@ -241,8 +239,6 @@ def calculate_avg_ept(
             nvsmi_before_ts, nvsmi_after_ts = -1, -1
             for j in range(len(nvsmi_timestamps) - 1):
                 nvsmi_timestamp_0, nvsmi_timestamp_1 = nvsmi_timestamps[j], nvsmi_timestamps[j+1]
-                #nvsmi_curr_power_0, nvsmi_curr_power_1 = nvsmi_curr_powers[j], nvsmi_curr_powers[j+1]
-
                 if (nvsmi_timestamp_0 <= batch_start_time and
                     nvsmi_timestamp_1 >= batch_start_time):
                     nvsmi_before_ts = nvsmi_timestamp_0
@@ -281,7 +277,6 @@ def calculate_avg_ept(
                 for j in range(len(gpu_idxs)):
                     batch_nvsmi_curr_powers_split[j].append(batch_nvsmi_curr_power[j])
 
-            #energy_joules = np.trapz(batch_nvsmi_curr_powers, batch_nvsmi_timestamps)
             energy_joules_sum = 0
             for j in range(len(gpu_idxs)):
                 energy_joules = np.trapz(batch_nvsmi_curr_powers_split[j], batch_nvsmi_timestamps)
@@ -619,8 +614,8 @@ def plot_tco_breakdown(
     usd_per_kWh,         # USD per kWh (regional electricity price)
     PUE,                 # Power Usage Efficiency
     gpu_lifetime_y,      # expected lifetime of a GPU (in years)
-    usd_per_a10040gb,
-    usd_per_v10032gb,
+    #usd_per_a10040gb,
+    #usd_per_v10032gb,
     plot_filename,
     plot_name
 ):
@@ -672,12 +667,12 @@ def plot_tco_breakdown(
         for key, val in bmark_param_group_dict.items():
             print(f'{key}: {val}')
 
-        if bmark_param_group_dict['gpu_type'] == 'a10040gb':
-            gpu_price = usd_per_a10040gb
-        elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
-            gpu_price = usd_per_v10032gb
-        else:
-            raise ValueError('plot_tco_breakdown: gpu_type not found')
+        #if bmark_param_group_dict['gpu_type'] == 'a10040gb':
+        #    gpu_price = usd_per_a10040gb
+        #elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
+        #    gpu_price = usd_per_v10032gb
+        #else:
+        #    raise ValueError('plot_tco_breakdown: gpu_type not found')
 
         avg_tps = bmark_param_group_dict['avg_tps']
         avg_ept = bmark_param_group_dict['avg_ept']
@@ -1165,8 +1160,8 @@ def main(args):
             args.usd_per_kWh,
             args.pue,
             args.gpu_lifetime_y,
-            args.usd_per_a10040gb,
-            args.usd_per_v10032gb,
+            #args.usd_per_a10040gb,
+            #args.usd_per_v10032gb,
             args.plot_filename,
             args.plot_name
         )
