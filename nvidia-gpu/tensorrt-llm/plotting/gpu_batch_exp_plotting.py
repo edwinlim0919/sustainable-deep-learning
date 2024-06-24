@@ -7,8 +7,8 @@ import math
 from pathlib import Path
 
 import gpu_batch_exp_utils
-import carbon_data
-import cost_data
+import server_carbon_data
+import server_cost_data
 
 
 # Group experiment data based on the parameter groups passed
@@ -616,6 +616,7 @@ def plot_tco_breakdown(
     gpu_lifetime_y,      # expected lifetime of a GPU (in years)
     #usd_per_a10040gb,
     #usd_per_v10032gb,
+    second_life,
     plot_filename,
     plot_name
 ):
@@ -667,12 +668,14 @@ def plot_tco_breakdown(
         for key, val in bmark_param_group_dict.items():
             print(f'{key}: {val}')
 
-        #if bmark_param_group_dict['gpu_type'] == 'a10040gb':
+        if bmark_param_group_dict['gpu_type'] == 'a10040gb':
+            gpu_server_cost_data = server_cost_data.aws_p4d_24xlarge_cost
         #    gpu_price = usd_per_a10040gb
-        #elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
+        elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
+            gpu_server_cost_data = server_cost_data.aws_p3dn_24xlarge_cost
         #    gpu_price = usd_per_v10032gb
-        #else:
-        #    raise ValueError('plot_tco_breakdown: gpu_type not found')
+        else:
+            raise ValueError('plot_tco_breakdown: gpu_type not found')
 
         avg_tps = bmark_param_group_dict['avg_tps']
         avg_ept = bmark_param_group_dict['avg_ept']
@@ -1162,6 +1165,7 @@ def main(args):
             args.gpu_lifetime_y,
             #args.usd_per_a10040gb,
             #args.usd_per_v10032gb,
+            args.second_life,
             args.plot_filename,
             args.plot_name
         )
@@ -1255,6 +1259,12 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
         help='specify this arg to plot the tco breakeven point of inference serving between old and new generation of GPUs'
+    )
+    parser.add_argument(
+        '--second_life',
+        default=False,
+        action='store_true',
+        help='specify this arg for the assumption that V100 GPU servers are in their second lifetime and thus do not incur extra embodied carbon or CapEx cost'
     )
     parser.add_argument(
         '--tbt_slo',
