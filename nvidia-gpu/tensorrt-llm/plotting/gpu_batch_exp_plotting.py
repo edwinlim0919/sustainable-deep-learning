@@ -184,7 +184,7 @@ def calculate_avg_ept(
     bmark_entries,
     bmark_param_groups,
     plotting_knob,
-    gpu_idx,
+    gpu_idxs,
     bmark_param_group_dicts
 ):
     for bmark_entry in bmark_entries:
@@ -212,8 +212,13 @@ def calculate_avg_ept(
             nvsmi_timestamps.append(nvsmi_dict['timestamp_raw'])
             # nvidia-smi monitor records information for all GPUs, even if unused
             # get information about the GPU we actually used for inference
-            gpu_idx_dict = nvsmi_dict[gpu_idx]
-            nvsmi_curr_powers.append(gpu_idx_dict['curr_power_usage'])
+            nvsmi_curr_power = []
+            for gpu_idx in gpu_idxs:
+                gpu_idx_dict = nvsmi_dict[gpu_idx]
+                nvsmi_curr_power.append(gpu_idx_dict['curr_power_usage'])
+            nvsmi_curr_powers.append(nvsmi_curr_power)
+            #gpu_idx_dict = nvsmi_dict[gpu_idx]
+            #nvsmi_curr_powers.append(gpu_idx_dict['curr_power_usage'])
 
         # For this given bmark data point, keep track of running tbt sum to calculate avg at the end
         ept_sum = 0
@@ -235,7 +240,7 @@ def calculate_avg_ept(
             nvsmi_before_ts, nvsmi_after_ts = -1, -1
             for j in range(len(nvsmi_timestamps) - 1):
                 nvsmi_timestamp_0, nvsmi_timestamp_1 = nvsmi_timestamps[j], nvsmi_timestamps[j+1]
-                nvsmi_curr_power_0, nvsmi_curr_power_1 = nvsmi_curr_powers[j], nvsmi_curr_powers[j+1]
+                #nvsmi_curr_power_0, nvsmi_curr_power_1 = nvsmi_curr_powers[j], nvsmi_curr_powers[j+1]
 
                 if (nvsmi_timestamp_0 <= batch_start_time and
                     nvsmi_timestamp_1 >= batch_start_time):
@@ -266,8 +271,22 @@ def calculate_avg_ept(
             batch_nvsmi_timestamps[0] = batch_start_time
             batch_nvsmi_timestamps[-1] = batch_end_time
 
-            energy_joules = np.trapz(batch_nvsmi_curr_powers, batch_nvsmi_timestamps)
-            batch_ept_avg = energy_joules / total_batch_generated_tokens
+            # w/ 4 GPUs batch_nvsmi_curr_powers looks like [[idx0, idx1, idx2, idx3] ... [idx0, idx1, idx2, idx3]]
+            # to calculate energy/area under curve, batch_nvsmi_curr_powers_split needs to look like [[idx0 ... idx0] ... [idx3 ... idx3]]
+            batch_nvsmi_curr_powers_split = []
+            for j in range(len(gpu_idxs)):
+                batch_nvsmi_curr_powers_split.append([])
+            for batch_nvsmi_curr_power in batch_nvsmi_curr_powers:
+                for j in range(len(gpu_idxs)):
+                    batch_nvsmi_curr_powers_split[j].append(batch_nvsmi_curr_power[j])
+
+            #energy_joules = np.trapz(batch_nvsmi_curr_powers, batch_nvsmi_timestamps)
+            energy_joules_sum = 0
+            for j in range(len(gpu_idxs)):
+                energy_joules = np.trapz(batch_nvsmi_curr_powers_split[j], batch_nvsmi_timestamps)
+                energy_joules_sum += energy_joules
+
+            batch_ept_avg = energy_joules_sum / total_batch_generated_tokens
             ept_sum += batch_ept_avg
             num_iterations += 1
 
