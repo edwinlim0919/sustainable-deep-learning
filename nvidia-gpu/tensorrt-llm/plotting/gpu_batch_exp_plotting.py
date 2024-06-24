@@ -321,7 +321,7 @@ def plot_tco_breakeven(
     workload_duration_s, # how long are we running this load for? (in seconds)
     usd_per_kWh,         # USD per kWh (regional electricity price)
     PUE,                 # Power Usage Efficiency
-    gpu_lifetime_y,      # expected lifetime of a GPU (in years)
+    server_lifetime_y,      # expected lifetime of a GPU (in years)
     usd_per_a10040gb,
     usd_per_v10032gb,
     plot_filename,
@@ -404,7 +404,7 @@ def plot_tco_breakeven(
             total_opex_cost = total_energy_kWh * usd_per_kWh
 
             # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
-            gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
+            gpu_lifetime_s = years_to_sec(server_lifetime_y)
             total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
             total_overall_cost = total_opex_cost + total_capex_cost
 
@@ -481,7 +481,7 @@ def plot_tcf_breakdown(
     workload_duration_s, # how long are we running this load for? (in seconds)
     gCO2eq_per_kWh,      # gC02eq per kWh (regional carbon intensity)
     PUE,                 # Power Usage Efficiency
-    gpu_lifetime_y,      # expected lifetime of a GPU (in years)
+    server_lifetime_y,      # expected lifetime of a GPU (in years)
     kgCO2eq_per_a10040gb,
     kgCO2eq_per_v10032gb,
     plot_filename,
@@ -564,7 +564,7 @@ def plot_tcf_breakdown(
             total_operational_carbon_kg = g_to_kg(total_operational_carbon_g)
 
             # Calculate embodied_carbon (kgCO2eq) from workload duration, single gpu embodied, and gpu lifetime
-            gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
+            gpu_lifetime_s = years_to_sec(server_lifetime_y)
             total_embodied_carbon = num_gpus_req * gpu_embodied * (workload_duration_s / gpu_lifetime_s)
             total_overall_carbon = total_operational_carbon_kg + total_embodied_carbon
 
@@ -613,7 +613,7 @@ def plot_tco_breakdown(
     workload_duration_s, # how long are we running this load for? (in seconds)
     usd_per_kWh,         # USD per kWh (regional electricity price)
     PUE,                 # Power Usage Efficiency
-    gpu_lifetime_y,      # expected lifetime of a GPU (in years)
+    server_lifetime_y,      # expected lifetime of a GPU (in years)
     #usd_per_a10040gb,
     #usd_per_v10032gb,
     second_life,
@@ -665,6 +665,10 @@ def plot_tco_breakdown(
     total_ram_energy_costs = []
     total_gpu_energy_costs = []
     total_capex_costs = []
+    total_server_cpu_costs = []
+    total_server_dram_costs = []
+    total_server_ssd_costs = []
+    total_server_gpu_costs = []
     total_overall_costs = []
     # 1) Find out what is the <avg_tps_max> (and corresponding <avg_ept_max>) for each GPU/model configuration
     # 2) Find out the minimum number of this GPU is required to serve the required_tps load
@@ -702,7 +706,7 @@ def plot_tco_breakdown(
                 raise ValueError('plot_tco_breakdown: pkg_power_load not found in gpu_server_carbon_data')
             single_server_pkg_power = gpu_server_carbon_data[pkg_power_load]
             total_pkg_power = single_server_pkg_power * num_gpu_servers_req
-            total_pkg_energy_joules = total_pkg_power * workload_duration * PUE
+            total_pkg_energy_joules = total_pkg_power * workload_duration_s * PUE
             total_pkg_energy_kWh = joules_to_kWh(total_pkg_energy_joules)
             total_pkg_energy_cost = total_pkg_energy_kWh * usd_per_kWh
 
@@ -728,18 +732,42 @@ def plot_tco_breakdown(
             total_ram_energy_costs.append(total_ram_energy_cost)
             total_gpu_energy_costs.append(total_gpu_energy_cost)
 
-            # Calculate CapEx costs from ... TODO
+            server_lifetime_s = years_to_sec(server_lifetime_y)
+
+            # Calculate CapEx costs from CPU
+            single_server_cpu_cost = gpu_server_cost_data['CPU']
+            total_server_cpu_cost = single_server_cpu_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+            # Calculate CapEx costs from DRAM
+            single_server_dram_cost = gpu_server_cost_data['DRAM']
+            total_server_dram_cost = single_server_dram_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+            # Calculate CapEx costs from SSD
+            single_server_ssd_cost = gpu_server_cost_data['SSD']
+            total_server_ssd_cost = single_server_ssd_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+            # Calculate CapEx costs from GPU
+            single_server_gpu_cost = gpu_server_cost_data['GPU']
+            total_server_gpu_cost = single_server_gpu_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
 
             # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
-            gpu_lifetime_s = years_to_sec(gpu_lifetime_y)
-            total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
-            total_overall_cost = total_opex_cost + total_capex_cost
+            #gpu_lifetime_s = years_to_sec(server_lifetime_y)
+            #total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
+            #total_overall_cost = total_opex_cost + total_capex_cost
+            total_capex_cost = total_server_cpu_cost + total_server_dram_cost + total_server_ssd_cost + total_server_gpu_cost
+            total_capex_costs.append(total_capex_cost)
+            total_server_cpu_costs.append(total_server_cpu_cost)
+            total_server_dram_costs.append(total_server_dram_cost)
+            total_server_ssd_costs.append(total_server_ssd_cost)
+            total_server_gpu_costs.append(total_server_gpu_cost)
 
             model_size = bmark_param_group_dict['model_size']
             gpu_type = bmark_param_group_dict['gpu_type']
             bar_labels.append(f'{model_size}_{gpu_type}_{batch_size_val}')
             #total_opex_costs.append(total_opex_cost)
-            total_capex_costs.append(total_capex_cost)
+            #total_capex_costs.append(total_capex_cost)
+
+            total_overall_cost = total_opex_cost + total_capex_cost
             total_overall_costs.append(total_overall_cost)
 
     fig, ax = plt.subplots()
@@ -1196,7 +1224,7 @@ def main(args):
             args.workload_duration_s,
             args.usd_per_kWh,
             args.pue,
-            args.gpu_lifetime_y,
+            args.server_lifetime_y,
             #args.usd_per_a10040gb,
             #args.usd_per_v10032gb,
             args.second_life,
@@ -1214,7 +1242,7 @@ def main(args):
             args.workload_duration_s,
             args.gCO2eq_per_kWh,
             args.pue,
-            args.gpu_lifetime_y,
+            args.server_lifetime_y,
             args.kgCO2eq_per_a10040gb,
             args.kgCO2eq_per_v10032gb,
             args.plot_filename,
@@ -1229,7 +1257,7 @@ def main(args):
             args.workload_duration_s,
             args.usd_per_kWh,
             args.pue,
-            args.gpu_lifetime_y,
+            args.server_lifetime_y,
             args.usd_per_a10040gb,
             args.usd_per_v10032gb,
             args.plot_filename,
@@ -1343,9 +1371,9 @@ if __name__ == '__main__':
         help='specify the PUE (Power Usage Efficiency) of the simulated datacenter environment'
     )
     parser.add_argument(
-        '--gpu_lifetime_y',
+        '--server_lifetime_y',
         type=int,
-        help='specify the lifetime of datacenter GPU platforms in years'
+        help='specify the lifetime of datacenter GPU servers in years'
     )
     parser.add_argument(
         '--usd_per_a10040gb',
