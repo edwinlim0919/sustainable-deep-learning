@@ -829,7 +829,8 @@ def plot_tps_vs_tbt(
     bmark_entries,
     bmark_param_groups,
     plot_filename,
-    plot_name
+    plot_name,
+    add_human_slo
 ):
     # Organizing different bmark data points for the line plot
     plotting_metrics = [
@@ -892,6 +893,7 @@ def plot_tps_vs_tbt(
                          xytext=(0, 10),
                          ha='center')
 
+    
     plt.xlabel('Tokens Per Second')
     plt.ylabel('Time Between Tokens')
     plt.title(plot_name)
@@ -1139,7 +1141,8 @@ def main(args):
             bmark_entries,
             args.bmark_param_groups,
             args.plot_filename,
-            args.plot_name
+            args.plot_name,
+            args.add_human_slo
         )
     if args.plot_tbt_vs_ept:
         plot_tbt_vs_ept(
@@ -1254,6 +1257,11 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
         help='specify this arg to plot the tco breakeven point of inference serving between old and new generation of GPUs'
+    )
+    parser.add_argument(
+        '--add_human_slo',
+        type=int,
+        help='specify the TBT SLO for human readability'
     )
     parser.add_argument(
         '--required_tps',
