@@ -729,21 +729,25 @@ def plot_tco_breakdown(
 
             server_lifetime_s = years_to_sec(server_lifetime_y)
 
-            # Calculate CapEx costs from CPU
-            single_server_cpu_cost = gpu_server_cost_data['CPU']
-            total_server_cpu_cost = single_server_cpu_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+            # CapEx costs are 0 for second-life V100s
+            if second_life and bmark_param_group_dict['gpu_type'] == 'v10032gb':
+                total_server_cpu_cost, total_server_dram_cost, total_server_ssd_cost, total_server_gpu_cost = 0, 0, 0, 0
+            else:
+                # Calculate CapEx costs from CPU
+                single_server_cpu_cost = gpu_server_cost_data['CPU']
+                total_server_cpu_cost = single_server_cpu_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
 
-            # Calculate CapEx costs from DRAM
-            single_server_dram_cost = gpu_server_cost_data['DRAM']
-            total_server_dram_cost = single_server_dram_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+                # Calculate CapEx costs from DRAM
+                single_server_dram_cost = gpu_server_cost_data['DRAM']
+                total_server_dram_cost = single_server_dram_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
 
-            # Calculate CapEx costs from SSD
-            single_server_ssd_cost = gpu_server_cost_data['SSD']
-            total_server_ssd_cost = single_server_ssd_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+                # Calculate CapEx costs from SSD
+                single_server_ssd_cost = gpu_server_cost_data['SSD']
+                total_server_ssd_cost = single_server_ssd_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
 
-            # Calculate CapEx costs from GPU
-            single_server_gpu_cost = gpu_server_cost_data['GPU']
-            total_server_gpu_cost = single_server_gpu_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+                # Calculate CapEx costs from GPU
+                single_server_gpu_cost = gpu_server_cost_data['GPU']
+                total_server_gpu_cost = single_server_gpu_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
 
             # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
             total_capex_cost = total_server_cpu_cost + total_server_dram_cost + total_server_ssd_cost + total_server_gpu_cost
@@ -770,32 +774,32 @@ def plot_tco_breakdown(
         bar_positions,
         total_server_cpu_costs,
         bar_width,
-        label='CPU',
-        color='#1f77b4'
+        label='CPU CapEx',
+        color='#022b5f'
     )
     dram_bars = ax.bar(
         bar_positions,
         total_server_dram_costs,
         bar_width,
         bottom=total_server_cpu_costs,
-        label='DRAM',
-        color='#aec7e8'
+        label='DRAM CapEx',
+        color='#1071a4'
     )
     ssd_bars = ax.bar(
         bar_positions,
         total_server_ssd_costs,
         bar_width,
         bottom=[i+j for i,j in zip(total_server_cpu_costs, total_server_dram_costs)],
-        label='SSD',
-        color='#ff7f0e'
+        label='SSD CapEx',
+        color='#5bbfd7'
     )
     gpu_bars = ax.bar(
         bar_positions,
         total_server_gpu_costs,
         bar_width,
         bottom=[i+j+k for i,j,k in zip(total_server_cpu_costs, total_server_dram_costs, total_server_ssd_costs)],
-        label='GPU',
-        color='#ffbb78'
+        label='GPU CapEx',
+        color='#b3e8ec'
     )
 
     pkg_energy_bars = ax.bar(
@@ -803,24 +807,24 @@ def plot_tco_breakdown(
         total_pkg_energy_costs,
         bar_width,
         bottom=[i+j+k+l for i,j,k,l in zip(total_server_cpu_costs, total_server_dram_costs, total_server_ssd_costs, total_server_gpu_costs)],
-        label='Pkg Energy',
-        color='#d62728'
+        label='Pkg OpEx',
+        color='#5c3923'
     )
     ram_energy_bars = ax.bar(
         bar_positions,
         total_ram_energy_costs,
         bar_width,
         bottom=[i+j+k+l+m for i,j,k,l,m in zip(total_server_cpu_costs, total_server_dram_costs, total_server_ssd_costs, total_server_gpu_costs, total_pkg_energy_costs)],
-        label='RAM Energy',
-        color='#ff9896'
+        label='RAM OpEx',
+        color='#bb7542'
     )
     gpu_energy_bars = ax.bar(
         bar_positions,
         total_gpu_energy_costs,
         bar_width,
         bottom=[i+j+k+l+m+n for i,j,k,l,m,n in zip(total_server_cpu_costs, total_server_dram_costs, total_server_ssd_costs, total_server_gpu_costs, total_pkg_energy_costs, total_ram_energy_costs)],
-        label='GPU Energy',
-        color='#9467bd'
+        label='GPU OpEx',
+        color='#ffb65a'
     )
 
     ax.set_xlabel('Workload')
@@ -831,16 +835,16 @@ def plot_tco_breakdown(
     ax.legend()
 
     # Add cost number to capex and opex bars
-    for bar, capex, opex in zip(capex_bars, total_capex_costs, total_opex_costs):
-        height = bar.get_height()
-        ax.text(
-            bar.get_x() + bar.get_width() / 2.0, height / 2,
-            f'{capex:.1f}', ha='center', va='bottom', color='black', fontsize=8
-        )
-        ax.text(
-            bar.get_x() + bar.get_width() / 2.0, height + opex / 2,
-            f'{opex:.1f}', ha='center', va='bottom', color='black', fontsize=8
-        )
+    #for bar, capex, opex in zip(cpu_bars, total_capex_costs, total_opex_costs):
+    #    height = bar.get_height()
+    #    ax.text(
+    #        bar.get_x() + bar.get_width() / 2.0, height / 2,
+    #        f'{capex:.1f}', ha='center', va='bottom', color='black', fontsize=8
+    #    )
+    #    ax.text(
+    #        bar.get_x() + bar.get_width() / 2.0, height + opex / 2,
+    #        f'{opex:.1f}', ha='center', va='bottom', color='black', fontsize=8
+    #    )
 
     plt.tight_layout(pad=2.0)
     plt.savefig('plots/' + plot_filename)
