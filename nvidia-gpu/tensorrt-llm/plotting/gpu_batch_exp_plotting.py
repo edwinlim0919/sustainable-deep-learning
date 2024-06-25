@@ -601,7 +601,7 @@ def plot_tcf_breakdown(
 
             # Embodied carbon is 0 for second-life V100s
             if second_life and bmark_param_group_dict['gpu_type'] == 'v10032gb':
-                total_server_cpu_carbon, total_server_gpu_carbon, total_server_platform_carbon, total_server_dram_carbon = 0, 0, 0, 0
+                total_server_cpu_carbon, total_server_gpu_carbon, total_server_ssd_carbon, total_server_dram_carbon = 0, 0, 0, 0
             else:
                 # Calculate embodied carbon from CPU
                 single_server_cpu_carbon = gpu_server_carbon_data['cpu_embodied']
