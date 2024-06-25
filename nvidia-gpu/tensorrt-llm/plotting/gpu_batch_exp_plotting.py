@@ -1375,26 +1375,26 @@ if __name__ == '__main__':
         type=int,
         help='specify the lifetime of datacenter GPU servers in years'
     )
-    parser.add_argument(
-        '--usd_per_a10040gb',
-        type=int,
-        help='specify the price in USD of a single 40GB SXM4 A100 GPU'
-    )
-    parser.add_argument(
-        '--usd_per_v10032gb',
-        type=int,
-        help='specify the price in USD of a single 32GB PCIE V100S GPU'
-    )
-    parser.add_argument(
-        '--kgCO2eq_per_a10040gb',
-        type=int,
-        help='specify the estimated embodied carbon of manufacturing a single 40GB SXM4 A100 GPU'
-    )
-    parser.add_argument(
-        '--kgCO2eq_per_v10032gb',
-        type=int,
-        help='specify the estimated embodied carbon of manufacturing a single 32GB PCIE V100S GPU'
-    )
+    #parser.add_argument(
+    #    '--usd_per_a10040gb',
+    #    type=int,
+    #    help='specify the price in USD of a single 40GB SXM4 A100 GPU'
+    #)
+    #parser.add_argument(
+    #    '--usd_per_v10032gb',
+    #    type=int,
+    #    help='specify the price in USD of a single 32GB PCIE V100S GPU'
+    #)
+    #parser.add_argument(
+    #    '--kgCO2eq_per_a10040gb',
+    #    type=int,
+    #    help='specify the estimated embodied carbon of manufacturing a single 40GB SXM4 A100 GPU'
+    #)
+    #parser.add_argument(
+    #    '--kgCO2eq_per_v10032gb',
+    #    type=int,
+    #    help='specify the estimated embodied carbon of manufacturing a single 32GB PCIE V100S GPU'
+    #)
     parser.add_argument(
         '--plot_filename',
         type=str,
