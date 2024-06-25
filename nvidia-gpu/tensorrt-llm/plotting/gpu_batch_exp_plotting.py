@@ -481,9 +481,12 @@ def plot_tcf_breakdown(
     workload_duration_s, # how long are we running this load for? (in seconds)
     gCO2eq_per_kWh,      # gC02eq per kWh (regional carbon intensity)
     PUE,                 # Power Usage Efficiency
-    server_lifetime_y,      # expected lifetime of a GPU (in years)
-    kgCO2eq_per_a10040gb,
-    kgCO2eq_per_v10032gb,
+    server_lifetime_y,   # expected lifetime of a GPU (in years)
+    #kgCO2eq_per_a10040gb,
+    #kgCO2eq_per_v10032gb,
+    second_life,
+    pkg_power_load,
+    ram_power_load,
     plot_filename,
     plot_name
 ):
@@ -526,22 +529,30 @@ def plot_tcf_breakdown(
 
     bar_labels = []
     total_operational_carbons = []
+    total_pkg_energy_carbons = []
+    total_ram_energy_carbons = []
+    total_gpu_energy_carbons = []
     total_embodied_carbons = []
     total_overall_carbons = []
+    total_server_cpu_carbons = []
+    total_server_dram_carbons = []
+    total_server_ssd_carbons = []
+    total_server_gpu_carbons = []
     # 1) Find out what is the <avg_tps_max> (and corresponding <avg_ept_max>) for each GPU/model configuration
     # 2) Find out the minimum number of this GPU is required to serve the required_tps load
     # 3) Calculate total energy required to compute <required_tps> for <workload_duration_s> given <avg_ept>
     for bmark_param_group_dict in bmark_param_group_dicts:
-        print('\n\n')
         for key, val in bmark_param_group_dict.items():
             print(f'{key}: {val}')
 
         if bmark_param_group_dict['gpu_type'] == 'a10040gb':
-            gpu_embodied = kgCO2eq_per_a10040gb
+            #gpu_embodied = kgCO2eq_per_a10040gb
+            gpu_server_carbon_data = server_carbon_data.aws_p4d_24xlarge_carbon
         elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
-            gpu_embodied = kgCO2eq_per_v10032gb
+            #gpu_embodied = kgCO2eq_per_v10032gb
+            gpu_server_carbon_data = server_carbon_data.aws_p3dn_24xlarge_carbon
         else:
-            raise ValueError('plot_tcf_breakdown: gpu_type not found')
+            raise ValueError('plot_tcf_breakdown: gpu_type not found in bmark_param_group_dict')
 
         avg_tps = bmark_param_group_dict['avg_tps']
         avg_ept = bmark_param_group_dict['avg_ept']
@@ -550,36 +561,142 @@ def plot_tcf_breakdown(
                len(avg_ept) == len(batch_size))
 
         for avg_tps_val, avg_ept_val, batch_size_val in zip(avg_tps, avg_ept, batch_size):
-            # Calculate the number of required GPUs
-            # (tokens / sec) / ((tokens / sec) / gpu)
-            num_gpus_req = math.ceil(required_tps / avg_tps_val)
+            # Calculate the number of required GPU servers
+            # Each GPU server contains 8 GPUs
+            # (tokens / sec) / ((tokens / sec) / gpu_server)
+            num_gpu_servers_req = math.ceil(required_tps / (avg_tps_val * 8))
 
-            # Calculate the total energy required to compute the workload
+            # Calulate the total server PKG power/energy required to service the workload
+            if pkg_power_load not in gpu_server_carbon_data:
+                raise ValueError('plot_tcf_breakdown: pkg_power_load not found in gpu_server_carbon_data')
+            single_server_pkg_power = gpu_server_carbon_data[pkg_power_load]
+            total_pkg_power = single_server_pkg_power * num_gpu_servers_req
+            total_pkg_energy_joules = total_pkg_power * workload_duration_s * PUE
+            total_pkg_energy_kWh = joules_to_kWh(total_pkg_energy_joules)
+            total_pkg_energy_carbon = g_to_kg(total_pkg_energy_kWh * gCO2eq_per_kWh)
+
+            # Calculate the total server DRAM power required to service the workload
+            if ram_power_load not in gpu_server_carbon_data:
+                raise ValueError('plot_tcf_breakdown: ram_power_load not found in gpu_server_carbon_data')
+            single_server_ram_power = gpu_server_carbon_data[ram_power_load]
+            total_ram_power = single_server_ram_power * num_gpu_servers_req
+            total_ram_energy_joules = total_ram_power * workload_duration_s * PUE
+            total_ram_energy_kWh = joules_to_kWh(total_ram_energy_joules)
+            total_ram_energy_carbon = g_to_kg(total_ram_energy_kWh * gCO2eq_per_kWh)
+
+            # Calculate the total GPU energy required to compute the workload
             # (joules / token) * (tokens / sec) * sec
-            total_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
-            total_energy_kWh = joules_to_kWh(total_energy_joules)
+            total_gpu_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
+            total_gpu_energy_kWh = joules_to_kWh(total_gpu_energy_joules)
+            total_gpu_energy_carbon = g_to_kg(total_gpu_energy_kWh * gCO2eq_per_kWh)
 
-            # Calculate operational carbon from energy usage and carbon intensity
-            total_operational_carbon_g = total_energy_kWh * gCO2eq_per_kWh
-            total_operational_carbon_kg = g_to_kg(total_operational_carbon_g)
+            # Calculate operational carbon from energy usage and rate
+            total_operational_carbon = total_pkg_energy_carbon + total_ram_energy_carbon + total_gpu_energy_carbon
+            total_operational_carbons.append(total_operational_carbon)
+            total_pkg_energy_carbons.append(total_pkg_energy_carbon)
+            total_ram_energy_carbons.append(total_ram_energy_carbon)
+            total_gpu_energy_carbons.append(total_gpu_energy_carbon)
 
-            # Calculate embodied_carbon (kgCO2eq) from workload duration, single gpu embodied, and gpu lifetime
-            gpu_lifetime_s = years_to_sec(server_lifetime_y)
-            total_embodied_carbon = num_gpus_req * gpu_embodied * (workload_duration_s / gpu_lifetime_s)
-            total_overall_carbon = total_operational_carbon_kg + total_embodied_carbon
+            server_lifetime_s = years_to_sec(server_lifetime_y)
+
+            # Embodied carbon is 0 for second-life V100s
+            if second_life and bmark_param_group_dict['gpu_type'] == 'v10032gb':
+                total_server_cpu_carbon, total_server_gpu_carbon, total_server_platform_carbon, total_server_dram_carbon = 0, 0, 0, 0
+            else:
+                # Calculate embodied carbon from CPU
+                single_server_cpu_carbon = gpu_server_carbon_data['cpu_embodied']
+                total_server_cpu_carbon = single_server_cpu_carbon * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+                # Calculate embodied carbon from DRAM
+                single_server_dram_carbon = gpu_server_carbon_data['memory_embodied']
+                total_server_dram_carbon = single_server_dram_carbon * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+                # Calculate embodied carbon from SSD
+                single_server_ssd_carbon = gpu_server_carbon_data['platform_embodied']
+                total_server_ssd_carbon = single_server_ssd_carbon * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+                # Calculate embodied carbon from GPU
+                single_server_gpu_carbon = gpu_server_carbon_data['gpu_embodied']
+                total_server_gpu_carbon = single_server_gpu_carbon * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+            # Calculate embodied carbon from workload duration, single gpu price, and gpu lifetime
+            total_embodied_carbon = total_server_cpu_carbon + total_server_dram_carbon + total_server_ssd_carbon + total_server_gpu_carbon
+            total_embodied_carbons.append(total_embodied_carbon)
+            total_server_cpu_carbons.append(total_server_cpu_carbon)
+            total_server_dram_carbons.append(total_server_dram_carbon)
+            total_server_ssd_carbons.append(total_server_ssd_carbon)
+            total_server_gpu_carbons.append(total_server_gpu_carbon)
 
             model_size = bmark_param_group_dict['model_size']
             gpu_type = bmark_param_group_dict['gpu_type']
             bar_labels.append(f'{model_size}_{gpu_type}_{batch_size_val}')
-            total_operational_carbons.append(total_operational_carbon_kg)
-            total_embodied_carbons.append(total_embodied_carbon)
+
+            total_overall_carbon = total_operational_carbon + total_embodied_carbon
             total_overall_carbons.append(total_overall_carbon)
 
     fig, ax = plt.subplots()
     bar_width = 0.5
     bar_positions = range(len(bar_labels))
-    embodied_bars = ax.bar(bar_positions, total_embodied_carbons, bar_width, label='Embodied')
-    operational_bars = ax.bar(bar_positions, total_operational_carbons, bar_width, bottom=total_embodied_carbons, label='Operational')
+
+    #embodied_bars = ax.bar(bar_positions, total_embodied_carbons, bar_width, label='Embodied')
+    #operational_bars = ax.bar(bar_positions, total_operational_carbons, bar_width, bottom=total_embodied_carbons, label='Operational')
+    cpu_bars = ax.bar(
+        bar_positions,
+        total_server_cpu_carbons,
+        bar_width,
+        label='CPU Emb.',
+        color='#022b5f'
+    )
+    dram_bars = ax.bar(
+        bar_positions,
+        total_server_dram_carbons,
+        bar_width,
+        bottom=total_server_cpu_carbons,
+        label='DRAM Emb.',
+        color='#1071a4'
+    )
+    ssd_bars = ax.bar(
+        bar_positions,
+        total_server_ssd_carbons,
+        bar_width,
+        bottom=[i+j for i,j in zip(total_server_cpu_carbons, total_server_dram_carbons)],
+        label='SSD CapEx',
+        color='#5bbfd7'
+    )
+    gpu_bars = ax.bar(
+        bar_positions,
+        total_server_gpu_carbons,
+        bar_width,
+        bottom=[i+j+k for i,j,k in zip(total_server_cpu_carbons, total_server_dram_carbons, total_server_ssd_carbons)],
+        label='GPU CapEx',
+        color='#b3e8ec'
+    )
+
+    pkg_energy_bars = ax.bar(
+        bar_positions,
+        total_pkg_energy_carbons,
+        bar_width,
+        bottom=[i+j+k+l for i,j,k,l in zip(total_server_cpu_carbons, total_server_dram_carbons, total_server_ssd_carbons, total_server_gpu_carbons)],
+        label='Pkg OpEx',
+        color='#5c3923'
+    )
+    ram_energy_bars = ax.bar(
+        bar_positions,
+        total_ram_energy_carbons,
+        bar_width,
+        bottom=[i+j+k+l+m for i,j,k,l,m in zip(total_server_cpu_carbons, total_server_dram_carbons, total_server_ssd_carbons, total_server_gpu_carbons, total_pkg_energy_carbons)],
+        label='RAM OpEx',
+        color='#bb7542'
+    )
+    gpu_energy_bars = ax.bar(
+        bar_positions,
+        total_gpu_energy_carbons,
+        bar_width,
+        bottom=[i+j+k+l+m+n for i,j,k,l,m,n in zip(total_server_cpu_carbons, total_server_dram_carbons, total_server_ssd_carbons, total_server_gpu_carbons, total_pkg_energy_carbons, total_ram_energy_carbons)],
+        label='GPU OpEx',
+        color='#ffb65a'
+    )
+
     ax.set_xlabel('Workload')
     ax.set_ylabel('Carbon (kgCO2eq)')
     ax.set_title(plot_name)
@@ -588,16 +705,16 @@ def plot_tcf_breakdown(
     ax.legend()
 
     # Add cost number to capex and opex bars
-    for bar, embodied_carbon, operational_carbon in zip(embodied_bars, total_embodied_carbons, total_operational_carbons):
-        height = bar.get_height()
-        ax.text(
-            bar.get_x() + bar.get_width() / 2.0, height / 2,
-            f'{embodied_carbon:.1f}', ha='center', va='bottom', color='black', fontsize=8
-        )
-        ax.text(
-            bar.get_x() + bar.get_width() / 2.0, height + operational_carbon / 2,
-            f'{operational_carbon:.1f}', ha='center', va='bottom', color='black', fontsize=8
-        )
+    #for bar, embodied_carbon, operational_carbon in zip(embodied_bars, total_embodied_carbons, total_operational_carbons):
+    #    height = bar.get_height()
+    #    ax.text(
+    #        bar.get_x() + bar.get_width() / 2.0, height / 2,
+    #        f'{embodied_carbon:.1f}', ha='center', va='bottom', color='black', fontsize=8
+    #    )
+    #    ax.text(
+    #        bar.get_x() + bar.get_width() / 2.0, height + operational_carbon / 2,
+    #        f'{operational_carbon:.1f}', ha='center', va='bottom', color='black', fontsize=8
+    #    )
 
     plt.tight_layout(pad=2.0)
     plt.savefig('plots/' + plot_filename)
@@ -1295,8 +1412,11 @@ def main(args):
             args.gCO2eq_per_kWh,
             args.pue,
             args.server_lifetime_y,
-            args.kgCO2eq_per_a10040gb,
-            args.kgCO2eq_per_v10032gb,
+            #args.kgCO2eq_per_a10040gb,
+            #args.kgCO2eq_per_v10032gb,
+            args.second_life,
+            args.pkg_power_load,
+            args.ram_power_load,
             args.plot_filename,
             args.plot_name
         )
