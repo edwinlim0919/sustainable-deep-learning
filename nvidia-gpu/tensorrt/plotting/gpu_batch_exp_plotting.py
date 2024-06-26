@@ -7,8 +7,6 @@ import math
 from pathlib import Path
 
 import gpu_batch_exp_utils
-import server_carbon_data
-import server_cost_data
 
 
 # Group experiment data based on the parameter groups passed
@@ -241,23 +239,6 @@ def calculate_avg_epi(
             bmark_entry
         )
 
-
-def joules_to_kWh(joules):
-    kWh = joules / 3600000
-    return kWh
-
-def years_to_sec(years):
-    sec = years * 365 * 24 * 60 * 60
-    return sec
-
-def sec_to_years(sec):
-    years = sec / (365 * 24 * 60 * 60)
-    return years
-
-def g_to_kg(g):
-    kg = g / 1000
-    return kg
-
 def plot_tbi_vs_epi(
     bmark_entries,
     bmark_param_groups,
@@ -316,7 +297,6 @@ def plot_tbi_vs_epi(
         batch_sizes = bmark_param_group_dict['batch_size']
 
         model_size = bmark_param_group_dict['model_size']
-        max_sequence_length = bmark_param_group_dict['max_sequence_length']
         gpu_type = bmark_param_group_dict['gpu_type']
         plt.plot(avg_tbi, avg_epi, label=f'{model_size} {gpu_type}', marker='o')
 
@@ -402,7 +382,6 @@ def plot_ips_vs_tbi(
         batch_sizes = bmark_param_group_dict['batch_size']
 
         model_size = bmark_param_group_dict['model_size']
-        max_sequence_length = bmark_param_group_dict['max_sequence_length']
         gpu_type = bmark_param_group_dict['gpu_type']
         plt.plot(avg_ips, avg_tbi, label=f'{model_size} {gpu_type}', marker='o')
 
@@ -442,13 +421,11 @@ def main(args):
         curr_bmark_params = bmark_params[i].split()
         model_size = curr_bmark_params[0]
         batch_size = int(curr_bmark_params[1])
-        max_sequence_length = int(curr_bmark_params[2])
-        gpu_type = curr_bmark_params[3]
+        gpu_type = curr_bmark_params[2]
         bmark_info = gpu_batch_exp_utils.parse_bmark_output(bmark_output_paths[i])
         nvsmi_info = gpu_batch_exp_utils.parse_nvsmi_output(nvsmi_output_paths[i])
         bmark_entry['model_size'] = model_size
         bmark_entry['batch_size'] = batch_size
-        bmark_entry['max_sequence_length'] = max_sequence_length
         bmark_entry['gpu_type'] = gpu_type
         bmark_entry['bmark_info'] = bmark_info
         bmark_entry['nvsmi_info'] = nvsmi_info
@@ -514,55 +491,9 @@ if __name__ == '__main__':
         help='specify this arg to plot epi (energy per image) vs tbi (time between images)'
     )
     parser.add_argument(
-        '--second_life',
-        default=False,
-        action='store_true',
-        help='specify this arg for the assumption that V100 GPU servers are in their second lifetime and thus do not incur extra embodied carbon or CapEx cost'
-    )
-    parser.add_argument(
-        '--pkg_power_load',
-        type=str,
-        help='specify load conditions for estimating CPU power from <pkg_power_0, pkg_power_10, pkg_power_50, pkg_power_100>'
-    )
-    parser.add_argument(
-        '--ram_power_load',
-        type=str,
-        help='specify load conditions for estimating DRAM power from <ram_power_0, ram_power_10, ram_power_50, ram_power_100>'
-    )
-    parser.add_argument(
         '--tbi_slo',
         type=float,
         help='specify the tbi SLO for human readability'
-    )
-    parser.add_argument(
-        '--required_tps',
-        type=int,
-        help='specify what image generation rate to simulate serving in images per second'
-    )
-    parser.add_argument(
-        '--workload_duration_s',
-        type=int,
-        help='specify how long the simulated workload is running for in seconds'
-    )
-    parser.add_argument(
-        '--usd_per_kWh',
-        type=float,
-        help='specify the regional electricity cost rate in usd per kWh'
-    )
-    parser.add_argument(
-        '--gCO2eq_per_kWh',
-        type=int,
-        help='specify the regional carbon intensity in gCO2eq per kWh'
-    )
-    parser.add_argument(
-        '--pue',
-        type=float,
-        help='specify the PUE (Power Usage Efficiency) of the simulated datacenter environment'
-    )
-    parser.add_argument(
-        '--server_lifetime_y',
-        type=int,
-        help='specify the lifetime of datacenter GPU servers in years'
     )
     parser.add_argument(
         '--plot_filename',
