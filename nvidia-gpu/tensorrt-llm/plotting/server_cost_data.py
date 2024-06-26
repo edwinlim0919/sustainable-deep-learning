@@ -2,7 +2,7 @@
 # p4d.24xlarge
 # - CPU     : Xeon Platinum 8275CL
 # - Memory  : 1152GB
-# - Storage : 8TB NVMe SSD
+# - Storage : 8 x 1TB NVMe SSD
 # - GPU     : 8 x 40GB A100
 #
 # ---------- ON-PREMISE DATACENTER ----------

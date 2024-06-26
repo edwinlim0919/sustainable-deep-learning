@@ -23,7 +23,7 @@ dell_poweredge_r740_carbon = {
 # p4d.24xlarge
 # - CPU     : Xeon Platinum 8275CL
 # - Memory  : 1152GB
-# - Storage : 8TB NVMe SSD
+# - Storage : 8 x 1TB NVMe SSD
 # - GPU     : 8 x 40GB A100
 aws_p4d_24xlarge_carbon = {
     'pkg_power_0'       : 57.93,   # Watts
