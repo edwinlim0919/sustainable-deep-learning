@@ -21,12 +21,14 @@ sudo docker network inspect trtllm_network
 # /TensorRT-LLM/examples/falcon
 # Set up the MPI hostfile
 touch hostfile
-echo "130.127.134.25 slots=2" >> hostfile
-echo "130.127.134.35 slots=2" >> hostfile
-
+echo "10.0.1.2 slots=2" >> hostfile
+echo "10.0.1.4 slots=2" >> hostfile
+# Ensure SSH daemon is running
+apt-get install ssh
+service ssh start
 # Test out the MPI connection
 sudo docker cp benchmarking/mpi_test.py b250d4dd5d36:/TensorRT-LLM/examples/falcon/mpi_test.py
-mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe python3 mpi_test.py
+mpirun -n 4 --hostfile hostfile --allow-run-as-root --oversubscribe python3 mpi_test.py
 
 
 # ---------- SETTING UP FALCON 40B ----------
