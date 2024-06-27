@@ -29,7 +29,7 @@ sudo systemctl restart docker
 # Installing through pip and NVIDIA docker containers
 sudo docker run --rm --runtime=nvidia --gpus all -it nvidia/cuda:12.2.0-devel-ubuntu22.04 /bin/bash -c "
 apt-get update && \
-apt-get -y install python3.10 python3-pip openmpi-bin libopenmpi-dev git && \
+apt-get -y install python3.10 python3-pip openmpi-bin openmpi-common libopenmpi-dev git && \
 pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com && \
 python3 -c 'import tensorrt_llm' && \
 git clone https://github.com/NVIDIA/TensorRT-LLM.git && \
