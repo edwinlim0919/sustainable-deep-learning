@@ -19,18 +19,23 @@ sudo docker network connect trtllm_network dazzling_hofstadter
 sudo docker network inspect trtllm_network
 
 # /TensorRT-LLM/examples/falcon
-# Set up the MPI hostfile
+# (HEAD) Set up the MPI hostfile
 touch hostfile
 echo "10.0.1.2 slots=2" >> hostfile
 echo "10.0.1.4 slots=2" >> hostfile
-# Ensure SSH daemon is running
+# (HEAD) Ensure SSH daemon is running
 apt-get install ssh
 service ssh start
-# Configure passwordless SSH
+# (HEAD) Configure passwordless SSH
 ssh-keygen -t rsa -b 2048
-# Copy the generated key to the other server
+# (HEAD) Copy the generated key to the other server
 cat ~/.ssh/id_rsa.pub
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQClHON3vni5zpJXoxh8jA4BOQI98KvbVstYN90y5cg2618XucRzW9iDnxqkmEROsgDZhwL1ebzCOq8RITRO6We++NOzca3brHUA4vKYAi37gXwm8J1pSUhUF6YYm0KoB9as55wef/b0b6KzFw7/HjDhQz/8roCM+Q1NuYr/7lS2SQnzpNXdnk4T/HY+c5rDQ2m+c4RAOP1AKg6iUuV+yDfHTv/A41Fl63Q8T1Ao2pkmAKCuPXX7yoCMBH74YH0voylpAUa65lpbH9UesG6ncoSvmJh5LmllhicgYFp/0tu5eAI1r3Q25/VHSeClP2YWZRLBXqNouI73DjQIlhrq3gT1 root@b250d4dd5d36
+# (WORKER) Create .ssh directory and add public key of HEAD node
+mkdir -p ~/.ssh
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQClHON3vni5zpJXoxh8jA4BOQI98KvbVstYN90y5cg2618XucRzW9iDnxqkmEROsgDZhwL1ebzCOq8RITRO6We++NOzca3brHUA4vKYAi37gXwm8J1pSUhUF6YYm0KoB9as55wef/b0b6KzFw7/HjDhQz/8roCM+Q1NuYr/7lS2SQnzpNXdnk4T/HY+c5rDQ2m+c4RAOP1AKg6iUuV+yDfHTv/A41Fl63Q8T1Ao2pkmAKCuPXX7yoCMBH74YH0voylpAUa65lpbH9UesG6ncoSvmJh5LmllhicgYFp/0tu5eAI1r3Q25/VHSeClP2YWZRLBXqNouI73DjQIlhrq3gT1 root@b250d4dd5d36" >> ~/.ssh/authorized_keys
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
 # Test out the MPI connection
 sudo docker cp benchmarking/mpi_test.py b250d4dd5d36:/TensorRT-LLM/examples/falcon/mpi_test.py
 mpirun -n 4 --hostfile hostfile --allow-run-as-root --oversubscribe python3 mpi_test.py
