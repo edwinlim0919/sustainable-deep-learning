@@ -37,6 +37,7 @@ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQClHON3vni5zpJXoxh8jA4BOQI98KvbVstYN9
 chmod 700 ~/.ssh
 chmod 600 ~/.ssh/authorized_keys
 # Test out the MPI connection
+# COPY mpi_test.py TO BOTH DOCKER CONTAINERS IN /TensorRT-LLM/examples/falcon/mpi_test.py
 sudo docker cp benchmarking/mpi_test.py b250d4dd5d36:/TensorRT-LLM/examples/falcon/mpi_test.py
 mpirun -n 4 --hostfile hostfile --allow-run-as-root --oversubscribe python3 mpi_test.py
 
