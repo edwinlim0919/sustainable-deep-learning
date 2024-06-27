@@ -33,5 +33,6 @@ git clone https://huggingface.co/tiiuae/falcon-40b-instruct falcon/40b-instruct
 
 # /TensorRT-LLM/examples/falcon
 # 4-way tensor parallelism + 1-way pipeline parallelism
-python3 convert_checkpoint.py --model_dir ./falcon/40b-instruct --dtype bfloat16 --output_dir ./falcon/40b-instruct/trt_ckpt/bf16/tp4-pp1/ --tp_size 4 --pp_size 1 --load_by_shard
-
+python3 convert_checkpoint.py --model_dir ./falcon/40b-instruct --dtype float16 --output_dir ./falcon/40b-instruct/trt_ckpt/fp16/tp4-pp1/ --tp_size 4 --pp_size 1 --load_by_shard
+trtllm-build --checkpoint_dir ./falcon/40b-instruct/trt_ckpt/fp16/tp4-pp1/ --gemm_plugin float16 --gpt_attention_plugin float16 --output_dir ./falcon/40b-instruct/trt_engines/fp16/tp4-pp1-batch1/
+mpirun -n 4 --allow-run-as-root --oversubscribe python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp4-pp1-batch1/
