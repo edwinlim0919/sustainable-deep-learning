@@ -11,4 +11,4 @@ hostname -I
 docker swarm init --advertise-addr 130.127.134.25
 
 #cat /etc/hosts # Both nodes in your experiment should be listed here (e.g. node0, node1, ...)
-docker swarm join --token SWMTKN-1-2gkral686j38dapepynjo7oz08xl2y21uzj7g6nwracyofmqw8-bfqoc8mhtrasa5tak15asiyxn 130.127.134.25:2377
+sudo docker swarm join --token SWMTKN-1-2gkral686j38dapepynjo7oz08xl2y21uzj7g6nwracyofmqw8-bfqoc8mhtrasa5tak15asiyxn 130.127.134.25:2377
