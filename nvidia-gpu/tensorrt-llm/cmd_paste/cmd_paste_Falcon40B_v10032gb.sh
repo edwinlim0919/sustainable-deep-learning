@@ -2,7 +2,6 @@
 sed -i "s/eb316aafb619/b250d4dd5d36/g" cmd_paste_Falcon40B_v10032gb.sh
 
 
-
 # ---------- SETTING UP MULTI-NODE MPI ----------
 # Find IP address of head node
 hostname -I
@@ -22,4 +21,17 @@ sudo docker network connect trtllm_network dazzling_hofstadter
 
 # Verify that all containers are connected to the network
 sudo docker network inspect trtllm_network
+
+
+# ---------- SETTING UP FALCON 40B ----------
+# /TensorRT-LLM/examples/falcon
+pip install -r requirements.txt
+apt-get update
+apt-get -y install git git-lfs
+git lfs install
+git clone https://huggingface.co/tiiuae/falcon-40b-instruct falcon/40b-instruct
+
+# /TensorRT-LLM/examples/falcon
+# 4-way tensor parallelism + 1-way pipeline parallelism
+python3 convert_checkpoint.py --model_dir ./falcon/40b-instruct --dtype bfloat16 --output_dir ./falcon/40b-instruct/trt_ckpt/bf16/tp4-pp1/ --tp_size 4 --pp_size 1 --load_by_shard
 
