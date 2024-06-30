@@ -50,18 +50,10 @@ memory_usage_pattern = r"\s\d+MiB / \d+MiB\s"
 gpu_utilization_pattern = r"\s\d+%\s"
 timestamp_pattern = r"\s([01]?[0-9]|2[0-3]):([0-5]?[0-9]):([0-5]?[0-9])\s"
 
-def parse_nvsmi_info():
-
-async def get_nvsmi_info(
-    gpu_type: str,
-    multi_node: bool,
-    clients: list[paramiko.SSHClient]
-):
-    output = subprocess.check_output(['nvidia-smi'])
-    decoded_output = output.decode('utf-8')
+def parse_nvsmi_info(decoded_output: str):
     nvsmi_dict = {}
-    curr_GPU = -1 # TODO: this is janky
-    timestamp_found = False # TODO: this is also kinda janky
+    curr_GPU = -1
+    timestamp_found = False
 
     for line in decoded_output.split('\n'):
         temp_celsius_match = re.search(temp_celsius_pattern, line)
@@ -100,6 +92,34 @@ async def get_nvsmi_info(
     assert(curr_GPU > -1)
     nvsmi_dict['num_gpus'] = curr_GPU + 1
     return nvsmi_dict
+
+
+async def get_nvsmi_info(
+    gpu_type: str,
+    multi_node: bool,
+    clients: list[paramiko.SSHClient]
+):
+    # Collect nvidia-smi outputs from all nodes
+    head_nvsmi_output = get_nvsmi_output_local()
+    worker_nvsmi_outputs = []
+    if multi_node:
+        for client in clients:
+            worker_nvsmi_output = get_nvsmi_output_remote(client)
+            worker_nvsmi_outputs.append(worker_nvsmi_output)
+
+    # Parse all nvidia-smi outputs into a single dictionary
+    head_nvsmi_dict = parse_nvsmi_info(head_nvsmi_output)
+    next_gpu_idx = head_nvsmi_dict['num_gpus']
+    for worker_nvsmi_output in worker_nvsmi_outputs:
+        worker_nvsmi_dict = parse_nvsmi_info(worker_nvsmi_output)
+        worker_num_gpus = worker_nvsmi_dict['num_gpus']
+
+        for i in range(worker_nvsmi_dict['num_gpus']):
+            curr_gpu_info = worker_nvsmi_dict[i]
+            head_nvsmi_dict[(next_gpu_idx + i)] = curr_gpu_info
+        next_gpu_idx += worker_num_gpus
+
+    return worker_nvsmi_outputs
 
 
 async def nvsmi_loop(
