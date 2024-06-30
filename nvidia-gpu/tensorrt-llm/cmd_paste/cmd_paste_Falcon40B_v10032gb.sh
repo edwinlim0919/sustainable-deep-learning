@@ -71,6 +71,9 @@ export NCCL_SOCKET_IFNAME=eth1
 export NCCL_IB_DISABLE=1
 mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=eth1 -x NCCL_IB_DISABLE=1 python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch1/
 
+
+
+# ---------- DEV TESTING ----------
 # Testing the actual benchmarking script of multi-gpu multi-node setup
 # /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
 sudo docker cp benchmarking/benchmark_trtllm.py b250d4dd5d36:/TensorRT-LLM/examples/benchmark_trtllm.py
@@ -85,4 +88,9 @@ python3 benchmarking/nvsmi_monitor.py --output_dir ./outputs/falcon/40B/fp16/tp2
 
 
 
-# ----------  ----------
+# ---------- EXPERIMENT COMMANDS ----------
+# max batch size 1
+# /TensorRT-LLM/examples/falcon
+trtllm-build --checkpoint_dir ./falcon/40b-instruct/trt_ckpt/fp16/tp2-pp2/ --gemm_plugin float16 --gpt_attention_plugin float16 --output_dir ./falcon/40b-instruct/trt_engines/bf16/tp2-pp2-batch1/ --workers 2 --max_batch_size 1
+
+rm -rf ./falcon/40b-instruct/trt_engines/bf16/tp2-pp2-batch1/
