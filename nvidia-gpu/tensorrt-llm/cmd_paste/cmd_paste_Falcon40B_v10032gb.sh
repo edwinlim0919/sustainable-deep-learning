@@ -58,8 +58,13 @@ trtllm-build --checkpoint_dir ./falcon/40b-instruct/trt_ckpt/fp16/tp4-pp1/ --gem
 export NCCL_DEBUG=INFO
 export NCCL_SOCKET_IFNAME=eth1
 export NCCL_IB_DISABLE=1
-mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=eth0 -x NCCL_IB_DISABLE=1 python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp4-pp1-batch1/
+mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=eth1 -x NCCL_IB_DISABLE=1 python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp4-pp1-batch1/
 
 # (HEAD + WORKER) 2-way tensor parallelism + 2-way pipeline parallelism
 python3 convert_checkpoint.py --model_dir ./falcon/40b-instruct --dtype float16 --output_dir ./falcon/40b-instruct/trt_ckpt/fp16/tp2-pp2/ --tp_size 2 --pp_size 2 --load_by_shard
 trtllm-build --checkpoint_dir ./falcon/40b-instruct/trt_ckpt/fp16/tp2-pp2/ --gemm_plugin float16 --gpt_attention_plugin float16 --output_dir ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch1/
+export NCCL_DEBUG=INFO
+export NCCL_SOCKET_IFNAME=eth1
+export NCCL_IB_DISABLE=1
+mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=eth1 -x NCCL_IB_DISABLE=1 python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch1/
+
