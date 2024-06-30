@@ -1,5 +1,6 @@
 # TensorRT-LLM standalone
-sed -i "s/eb316aafb619/b250d4dd5d36/g" cmd_paste_Falcon40B_v10032gb.sh
+sed -i "s/b250d4dd5d36/b250d4dd5d36/g" cmd_paste_Falcon40B_v10032gb.sh
+
 
 
 # ---------- SETTING UP MULTI-NODE MPI ----------
@@ -42,6 +43,7 @@ sudo docker cp benchmarking/mpi_test.py b250d4dd5d36:/TensorRT-LLM/examples/falc
 mpirun -n 4 --hostfile hostfile --allow-run-as-root --oversubscribe python3 mpi_test.py
 
 
+
 # ---------- SETTING UP FALCON 40B ----------
 # /TensorRT-LLM/examples/falcon
 # (HEAD + WORKER) Install and download some prerequisites for Falcon 40B
@@ -60,6 +62,7 @@ export NCCL_SOCKET_IFNAME=eth1
 export NCCL_IB_DISABLE=1
 mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=eth1 -x NCCL_IB_DISABLE=1 python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp4-pp1-batch1/
 
+# /TensorRT-LLM/examples/falcon
 # (HEAD + WORKER) 2-way tensor parallelism + 2-way pipeline parallelism
 python3 convert_checkpoint.py --model_dir ./falcon/40b-instruct --dtype float16 --output_dir ./falcon/40b-instruct/trt_ckpt/fp16/tp2-pp2/ --tp_size 2 --pp_size 2 --load_by_shard
 trtllm-build --checkpoint_dir ./falcon/40b-instruct/trt_ckpt/fp16/tp2-pp2/ --gemm_plugin float16 --gpt_attention_plugin float16 --output_dir ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch1/
@@ -68,3 +71,15 @@ export NCCL_SOCKET_IFNAME=eth1
 export NCCL_IB_DISABLE=1
 mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=eth1 -x NCCL_IB_DISABLE=1 python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch1/
 
+# Testing the actual benchmarking script of multi-gpu multi-node setup
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp benchmarking/benchmark_trtllm.py b250d4dd5d36:/TensorRT-LLM/examples/benchmark_trtllm.py
+sudo docker cp benchmarking/benchmark_utils.py b250d4dd5d36:/TensorRT-LLM/examples/benchmark_utils.py
+sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json b250d4dd5d36:/TensorRT-LLM/examples/ShareGPT_V3_unfiltered_cleaned_split.json
+mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=eth1 -x NCCL_IB_DISABLE=1 python3 ../benchmark_trtllm.py --tokenizer_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/bf16/tp4-pp1-batch1/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /TensorRT-LLM/examples/falcon/outputs/40B/bf16/tp4-pp1-batch1/ --output_file bmark_numreqsample0_iter100_max1000_a10040gb.out --container_output_dir /TensorRT-LLM/examples/falcon/ --container_stop_file container_stop.txt --random_seed 42 --num_iterations 10
+
+
+
+
+
+# ----------  ----------
