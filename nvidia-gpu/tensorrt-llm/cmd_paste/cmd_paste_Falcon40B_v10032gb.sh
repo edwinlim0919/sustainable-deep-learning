@@ -76,9 +76,12 @@ mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEB
 sudo docker cp benchmarking/benchmark_trtllm.py b250d4dd5d36:/TensorRT-LLM/examples/benchmark_trtllm.py
 sudo docker cp benchmarking/benchmark_utils.py b250d4dd5d36:/TensorRT-LLM/examples/benchmark_utils.py
 sudo docker cp ShareGPT_V3_unfiltered_cleaned_split.json b250d4dd5d36:/TensorRT-LLM/examples/ShareGPT_V3_unfiltered_cleaned_split.json
+# /TensorRT-LLM/examples/falcon
 mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=eth1 -x NCCL_IB_DISABLE=1 python3 ../benchmark_trtllm.py --tokenizer_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch1/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 1 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /TensorRT-LLM/examples/falcon/outputs/40B/bf16/tp2-pp2-batch1/ --output_file bmark_numreqsample0_iter100_max1000_a10040gb.out --container_output_dir /TensorRT-LLM/examples/falcon/ --container_stop_file container_stop.txt --random_seed 42 --num_iterations 10
 
-
+# Testing multi-node NVSMI script
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+python3 benchmarking/nvsmi_monitor.py --output_dir ./outputs/falcon/40B/fp16/tp2-pp2-batch1/ --output_file nvsmi_numreqsample0_iter100_max1000_v10032gb.out --container_id b250d4dd5d36 --container_output_dir /TensorRT-LLM/examples/falcon/ --container_stop_file container_stop.txt --gpu_type v10032gb --multi_node --worker_ips 130.127.134.35 --ssh_username edwinlim
 
 
 

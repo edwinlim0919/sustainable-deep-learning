@@ -50,7 +50,10 @@ memory_usage_pattern = r"\s\d+MiB / \d+MiB\s"
 gpu_utilization_pattern = r"\s\d+%\s"
 timestamp_pattern = r"\s([01]?[0-9]|2[0-3]):([0-5]?[0-9]):([0-5]?[0-9])\s"
 
-def parse_nvsmi_info(decoded_output: str):
+def parse_nvsmi_info(
+    decoded_output: str,
+    gpu_type: str
+):
     nvsmi_dict = {}
     curr_GPU = -1
     timestamp_found = False
@@ -108,10 +111,16 @@ async def get_nvsmi_info(
             worker_nvsmi_outputs.append(worker_nvsmi_output)
 
     # Parse all nvidia-smi outputs into a single dictionary
-    head_nvsmi_dict = parse_nvsmi_info(head_nvsmi_output)
+    head_nvsmi_dict = parse_nvsmi_info(
+        head_nvsmi_output,
+        gpu_type
+    )
     next_gpu_idx = head_nvsmi_dict['num_gpus']
     for worker_nvsmi_output in worker_nvsmi_outputs:
-        worker_nvsmi_dict = parse_nvsmi_info(worker_nvsmi_output)
+        worker_nvsmi_dict = parse_nvsmi_info(
+            worker_nvsmi_output,
+            gpu_type
+        )
         worker_num_gpus = worker_nvsmi_dict['num_gpus']
 
         for i in range(worker_nvsmi_dict['num_gpus']):
@@ -280,7 +289,7 @@ def main(args):
     if args.multi_node:
         clients = open_ssh_connections(
             args.worker_ips,
-            args.username
+            args.ssh_username
         )
     # begin nvsmi loop until completion file is written
     asyncio.run(nvsmi_loop(
