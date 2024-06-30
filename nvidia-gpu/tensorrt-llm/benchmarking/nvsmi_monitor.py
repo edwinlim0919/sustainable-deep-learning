@@ -29,6 +29,18 @@ def get_nvsmi_loop_running(
     return not 'COMPLETED' in container_stop_lines[0]
 
 
+def get_nvsmi_output_local():
+    nvsmi_output = subprocess.check_output(['nvidia-smi'])
+    decoded_output = nvsmi_output.decode('utf-8')
+    return decoded_output
+
+
+def get_nvsmi_output_remote(client: paramiko.SSHClient):
+    stdin, nvsmi_output, stderr = client.exec_command('nvidia-smi')
+    decoded_output = nvsmi_output.read().decode('utf-8')
+    return decoded_output
+
+
 # TODO: Need to take a look at nvsmi output parsing again
 #       - more explicit timestamp matching
 #       - make sure some of the matches have surrounding spaces
@@ -36,10 +48,15 @@ temp_celsius_pattern = r"\s\d+C\s"
 power_usage_pattern = r"\s\d+W / \d+W\s"
 memory_usage_pattern = r"\s\d+MiB / \d+MiB\s"
 gpu_utilization_pattern = r"\s\d+%\s"
-#timestamp_pattern = r"\s(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d\s"
 timestamp_pattern = r"\s([01]?[0-9]|2[0-3]):([0-5]?[0-9]):([0-5]?[0-9])\s"
 
-async def get_nvsmi_info(gpu_type: str):
+def parse_nvsmi_info():
+
+async def get_nvsmi_info(
+    gpu_type: str,
+    multi_node: bool,
+    clients: list[paramiko.SSHClient]
+):
     output = subprocess.check_output(['nvidia-smi'])
     decoded_output = output.decode('utf-8')
     nvsmi_dict = {}
@@ -90,7 +107,9 @@ async def nvsmi_loop(
     host_filepath: str,
     container_filepath: str,
     container_id: str,
-    gpu_type: str
+    gpu_type: str,
+    multi_node: bool,
+    clients: list[paramiko.SSHClient]
 ):
     while get_nvsmi_loop_running(
         host_filepath,
@@ -98,7 +117,11 @@ async def nvsmi_loop(
         container_id
     ):
         start_time = time.time()
-        nvsmi_dict = await get_nvsmi_info(gpu_type)
+        nvsmi_dict = await get_nvsmi_info(
+            gpu_type,
+            multi_node,
+            clients
+        )
         async with aiofiles.open(nvsmi_filepath, 'a') as f:
             await f.write(str(nvsmi_dict) + '\n')
 
@@ -168,6 +191,34 @@ def host_delete(host_filepath: str):
         print(f'host_delete error: {e}')
 
 
+def open_ssh_connections(
+    remote_nodes: list[str],
+    username: str
+):
+    clients = []
+    for node in remote_nodes:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        agent = paramiko.Agent()
+        agent_keys = agent.get_keys()
+        if len(agent_keys) == 0:
+            raise Exception('No SSH keys available in the SSH agent')
+
+        client.connect(
+            node,
+            username=username,
+            pkey=agent_keys[0]
+        )
+        clients.append(client)
+    return clients
+
+
+def close_ssh_connections(clients: list[paramiko.SSHClient]):
+    for client in clients:
+        client.close()
+
+
 def main(args):
     nvsmi_filepath = f'{args.output_dir}/{args.output_file}'
     host_filepath = f'{args.output_dir}/{args.container_stop_file}'
@@ -203,13 +254,27 @@ def main(args):
     # make sure gpu_type is supported
     assert((args.gpu_type == 'v10032gb') or
            (args.gpu_type == 'a10040gb'))
+
+    # if multi-node experiment, open ssh connections to all worker nodes
+    clients = []
+    if args.multi_node:
+        clients = open_ssh_connections(
+            args.worker_ips,
+            args.username
+        )
+    # begin nvsmi loop until completion file is written
     asyncio.run(nvsmi_loop(
         nvsmi_filepath,
         host_filepath,
         container_filepath,
         args.container_id,
-        args.gpu_type
+        args.gpu_type,
+        args.multi_node,
+        clients
     ))
+    # if multi-node experiment, close ssh connections after experiment completion
+    if args.multi_node:
+        close_ssh_connections(clients)
 
 
 if __name__ == '__main__':
@@ -250,5 +315,25 @@ if __name__ == '__main__':
         required=True,
         help='specify v10032gb or a10040gb for parsing nvsmi output'
     )
+    parser.add_argument(
+        '--multi_node',
+        default=False,
+        action='store_true',
+        help='specify whether to collect multi-node statistics for a multi-node experiment'
+    )
+    parser.add_argument(
+        '--worker_ips',
+        nargs='+',
+        type=str,
+        help='provide ip addresses of worker nodes for a multi-node experiment'
+    )
+    parser.add_argument(
+        '--ssh_username',
+        type=str,
+        help='provide ssh username for a multi-node experiment'
+    )
     args = parser.parse_args()
+
+    if args.multi_node and (not args.worker_ips or not args.ssh_username):
+        raise ValueError('multi-node experiment specified without worker ip addresses or ssh username')
     main(args)
