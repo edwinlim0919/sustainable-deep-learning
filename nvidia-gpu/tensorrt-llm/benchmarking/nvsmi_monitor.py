@@ -128,7 +128,10 @@ async def get_nvsmi_info(
             head_nvsmi_dict[(next_gpu_idx + i)] = curr_gpu_info
         next_gpu_idx += worker_num_gpus
 
-    return worker_nvsmi_outputs
+    # For nice formatting
+    del head_nvsmi_dict['num_gpus']
+    head_nvsmi_dict['num_gpus'] = next_gpu_idx
+    return head_nvsmi_dict
 
 
 async def nvsmi_loop(
