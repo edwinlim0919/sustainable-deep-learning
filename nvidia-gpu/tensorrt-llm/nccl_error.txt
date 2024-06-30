@@ -1,0 +1,67 @@
+root@b250d4dd5d36:/TensorRT-LLM/examples/falcon# mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO python3 ../summarize.py --test_trt_llm --hf_model_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp4-pp1-batch1/
+[TensorRT-LLM] TensorRT-LLM version: 0.11.0.dev2024062500
+[TensorRT-LLM] TensorRT-LLM version: 0.11.0.dev2024062500
+[TensorRT-LLM] TensorRT-LLM version: 0.11.0.dev2024062500
+[TensorRT-LLM] TensorRT-LLM version: 0.11.0.dev2024062500
+[06/30/2024-15:08:25] [TRT-LLM] [I] Load tokenizer takes: 0.11013150215148926 sec
+[06/30/2024-15:08:25] [TRT-LLM] [I] Load tokenizer takes: 0.11114215850830078 sec
+[06/30/2024-15:08:25] [TRT-LLM] [I] Load tokenizer takes: 0.11019253730773926 sec
+[06/30/2024-15:08:25] [TRT-LLM] [I] Load tokenizer takes: 0.11457562446594238 sec
+b250d4dd5d36:57623:57623 [0] NCCL INFO Bootstrap : Using eth0:172.17.0.2<0>
+b250d4dd5d36:57623:57623 [0] NCCL INFO NET/Plugin : dlerror=libnccl-net.so: cannot open shared object file: No such file or directory No plugin found (libnccl-net.so), using internal implementation
+2ebb7f934cb9:53932:53932 [0] NCCL INFO cudaDriverVersion 12020
+2ebb7f934cb9:53932:53932 [0] NCCL INFO Bootstrap : Using eth0:172.17.0.2<0>
+2ebb7f934cb9:53932:53932 [0] NCCL INFO NET/Plugin : dlerror=libnccl-net.so: cannot open shared object file: No such file or directory No plugin found (libnccl-net.so), using internal implementation
+2ebb7f934cb9:53932:53932 [0] NCCL INFO NET/IB : No device found.
+2ebb7f934cb9:53932:53932 [0] NCCL INFO NET/Socket : Using [0]eth0:172.17.0.2<0> [1]eth1:10.0.1.4<0>
+2ebb7f934cb9:53932:53932 [0] NCCL INFO Using non-device net plugin version 0
+2ebb7f934cb9:53932:53932 [0] NCCL INFO Using network Socket
+
+2ebb7f934cb9:53932:53932 [0] misc/socket.cc:484 NCCL WARN socketStartConnect: Connect to 172.17.0.2<50297> failed : Software caused connection abort
+2ebb7f934cb9:53932:53932 [0] NCCL INFO misc/socket.cc:567 -> 2
+2ebb7f934cb9:53932:53932 [0] NCCL INFO misc/socket.cc:621 -> 2
+2ebb7f934cb9:53932:53932 [0] NCCL INFO bootstrap.cc:275 -> 2
+2ebb7f934cb9:53932:53932 [0] NCCL INFO init.cc:1493 -> 2
+2ebb7f934cb9:53932:53932 [0] NCCL INFO init.cc:1746 -> 2
+2ebb7f934cb9:53932:53932 [0] NCCL INFO init.cc:1784 -> 2
+Failed, NCCL error /home/jenkins/agent/workspace/LLM/main/L0_MergeRequest/tensorrt_llm/cpp/tensorrt_llm/plugins/common/plugin.cpp:93 'unhandled system error (run with NCCL_DEBUG=INFO for details)'
+b250d4dd5d36:57623:57623 [0] NCCL INFO cudaDriverVersion 12020
+NCCL version 2.20.5+cuda12.4
+2ebb7f934cb9:53933:53933 [1] NCCL INFO cudaDriverVersion 12020
+2ebb7f934cb9:53933:53933 [1] NCCL INFO Bootstrap : Using eth0:172.17.0.2<0>
+2ebb7f934cb9:53933:53933 [1] NCCL INFO NET/Plugin : dlerror=libnccl-net.so: cannot open shared object file: No such file or directory No plugin found (libnccl-net.so), using internal implementation
+b250d4dd5d36:57624:57624 [1] NCCL INFO cudaDriverVersion 12020
+b250d4dd5d36:57624:57624 [1] NCCL INFO Bootstrap : Using eth0:172.17.0.2<0>
+b250d4dd5d36:57624:57624 [1] NCCL INFO NET/Plugin : dlerror=libnccl-net.so: cannot open shared object file: No such file or directory No plugin found (libnccl-net.so), using internal implementation
+b250d4dd5d36:57623:57623 [0] NCCL INFO NET/IB : No device found.
+b250d4dd5d36:57623:57623 [0] NCCL INFO NET/Socket : Using [0]eth0:172.17.0.2<0> [1]eth1:10.0.1.2<0>
+b250d4dd5d36:57623:57623 [0] NCCL INFO Using non-device net plugin version 0
+b250d4dd5d36:57623:57623 [0] NCCL INFO Using network Socket
+2ebb7f934cb9:53933:53933 [1] NCCL INFO NET/IB : No device found.
+2ebb7f934cb9:53933:53933 [1] NCCL INFO NET/Socket : Using [0]eth0:172.17.0.2<0> [1]eth1:10.0.1.4<0>
+2ebb7f934cb9:53933:53933 [1] NCCL INFO Using non-device net plugin version 0
+2ebb7f934cb9:53933:53933 [1] NCCL INFO Using network Socket
+
+2ebb7f934cb9:53933:53933 [1] misc/socket.cc:484 NCCL WARN socketStartConnect: Connect to 172.17.0.2<50297> failed : Software caused connection abort
+2ebb7f934cb9:53933:53933 [1] NCCL INFO misc/socket.cc:567 -> 2
+2ebb7f934cb9:53933:53933 [1] NCCL INFO misc/socket.cc:621 -> 2
+2ebb7f934cb9:53933:53933 [1] NCCL INFO bootstrap.cc:275 -> 2
+2ebb7f934cb9:53933:53933 [1] NCCL INFO init.cc:1493 -> 2
+2ebb7f934cb9:53933:53933 [1] NCCL INFO init.cc:1746 -> 2
+2ebb7f934cb9:53933:53933 [1] NCCL INFO init.cc:1784 -> 2
+Failed, NCCL error /home/jenkins/agent/workspace/LLM/main/L0_MergeRequest/tensorrt_llm/cpp/tensorrt_llm/plugins/common/plugin.cpp:93 'unhandled system error (run with NCCL_DEBUG=INFO for details)'
+b250d4dd5d36:57624:57624 [1] NCCL INFO NET/IB : No device found.
+b250d4dd5d36:57624:57624 [1] NCCL INFO NET/Socket : Using [0]eth0:172.17.0.2<0> [1]eth1:10.0.1.2<0>
+b250d4dd5d36:57624:57624 [1] NCCL INFO Using non-device net plugin version 0
+b250d4dd5d36:57624:57624 [1] NCCL INFO Using network Socket
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[41076,1],2]
+  Exit code:    1
+--------------------------------------------------------------------------
