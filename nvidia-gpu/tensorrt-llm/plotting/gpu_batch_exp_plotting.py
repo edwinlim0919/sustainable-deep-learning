@@ -313,7 +313,7 @@ def g_to_kg(g):
     return kg
 
 
-def plot_tco_breakeven(
+def plot_tco_breakeven_old(
     bmark_entries,
     bmark_param_groups,
     gpu_idxs,
@@ -693,6 +693,236 @@ def plot_tcf_breakdown(
 
     ax.set_xlabel('Workload')
     ax.set_ylabel('Carbon (kgCO2eq)')
+    ax.set_title(plot_name)
+    ax.set_xticks(bar_positions)
+    ax.set_xticklabels(bar_labels, rotation=45, ha='right', fontsize=8)
+    ax.legend()
+    plt.tight_layout(pad=2.0)
+    plt.savefig('plots/' + plot_filename)
+
+
+def plot_tco_breakeven(
+    bmark_entries,
+    bmark_param_groups,
+    gpu_idxs,
+    required_tps,
+    workload_duration_s,
+    usd_per_kWh,
+    PUE,
+    server_lifetime_y,
+    #second_life,        # Second life for V100s is assumed in a breakeven analysis
+    pkg_power_load,
+    ram_power_load,
+    plot_filename,
+    plot_name
+):
+    plotting_metrics = [
+        'batch_size',
+        'avg_ept',
+        'avg_tps'
+    ]
+    bmark_param_group_dicts = group_experiment_data(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_metrics
+    )
+    plotting_knob = 'batch_size'
+    for bmark_entry in bmark_entries:
+        batch_size = bmark_entry['batch_size']
+        update_experiment_data(
+            bmark_param_group_dicts,
+            plotting_knob,
+            plotting_knob,
+            batch_size,
+            bmark_entry
+        )
+
+    # Calculate TPS
+    calculate_avg_tps(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_knob,
+        bmark_param_group_dicts
+    )
+    # Calculate EPT
+    calculate_avg_ept(
+        bmark_entries,
+        bmark_param_groups,
+        plotting_knob,
+        gpu_idxs,
+        bmark_param_group_dicts
+    )
+
+    bar_labels = []
+    total_opex_costs = []
+    total_pkg_energy_costs = []
+    total_ram_energy_costs = []
+    total_gpu_energy_costs = []
+    total_capex_costs = []
+    total_server_cpu_costs = []
+    total_server_dram_costs = []
+    total_server_ssd_costs = []
+    total_server_gpu_costs = []
+    total_overall_costs = []
+    # 1) Find out what is the <avg_tps_max> (and corresponding <avg_ept_max>) for each GPU/model configuration
+    # 2) Find out the minimum number of this GPU is required to serve the required_tps load
+    # 3) Calculate total energy required to compute <required_tps> for <workload_duration_s> given <avg_ept>
+    for bmark_param_group_dict in bmark_param_group_dicts:
+        for key, val in bmark_param_group_dict.items():
+            print(f'{key}: {val}')
+
+        if bmark_param_group_dict['gpu_type'] == 'a10040gb':
+            gpu_server_cost_data = server_cost_data.aws_p4d_24xlarge_cost
+            gpu_server_carbon_data = server_carbon_data.aws_p4d_24xlarge_carbon
+        elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
+            gpu_server_cost_data = server_cost_data.aws_p3dn_24xlarge_cost
+            gpu_server_carbon_data = server_carbon_data.aws_p3dn_24xlarge_carbon
+        else:
+            raise ValueError('plot_tco_breakdown: gpu_type not found in bmark_param_group_dict')
+
+        avg_tps = bmark_param_group_dict['avg_tps']
+        avg_ept = bmark_param_group_dict['avg_ept']
+        batch_size = bmark_param_group_dict['batch_size']
+        assert(len(avg_tps) == len(avg_ept) and
+               len(avg_ept) == len(batch_size))
+
+        for avg_tps_val, avg_ept_val, batch_size_val in zip(avg_tps, avg_ept, batch_size):
+            # Calculate the number of required GPU servers
+            # Each GPU server contains 8 GPUs
+            # (tokens / sec) / ((tokens / sec) / gpu_server)
+            num_gpu_servers_req = math.ceil(required_tps / (avg_tps_val * 8))
+
+            # Calulate the total server PKG power/energy required to service the workload
+            if pkg_power_load not in gpu_server_carbon_data:
+                raise ValueError('plot_tco_breakdown: pkg_power_load not found in gpu_server_carbon_data')
+            single_server_pkg_power = gpu_server_carbon_data[pkg_power_load]
+            total_pkg_power = single_server_pkg_power * num_gpu_servers_req
+            total_pkg_energy_joules = total_pkg_power * workload_duration_s * PUE
+            total_pkg_energy_kWh = joules_to_kWh(total_pkg_energy_joules)
+            total_pkg_energy_cost = total_pkg_energy_kWh * usd_per_kWh
+
+            # Calculate the total server DRAM power required to service the workload
+            if ram_power_load not in gpu_server_carbon_data:
+                raise ValueError('plot_tco_breakdown: ram_power_load not found in gpu_server_carbon_data')
+            single_server_ram_power = gpu_server_carbon_data[ram_power_load]
+            total_ram_power = single_server_ram_power * num_gpu_servers_req
+            total_ram_energy_joules = total_ram_power * workload_duration_s * PUE
+            total_ram_energy_kWh = joules_to_kWh(total_ram_energy_joules)
+            total_ram_energy_cost = total_ram_energy_kWh * usd_per_kWh
+
+            # Calculate the total GPU energy required to compute the workload
+            # (joules / token) * (tokens / sec) * sec
+            total_gpu_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
+            total_gpu_energy_kWh = joules_to_kWh(total_gpu_energy_joules)
+            total_gpu_energy_cost = total_gpu_energy_kWh * usd_per_kWh
+
+            # Calculate OpEx costs from energy usage and rate
+            total_opex_cost = total_pkg_energy_cost + total_ram_energy_cost + total_gpu_energy_cost
+            total_opex_costs.append(total_opex_cost)
+            total_pkg_energy_costs.append(total_pkg_energy_cost)
+            total_ram_energy_costs.append(total_ram_energy_cost)
+            total_gpu_energy_costs.append(total_gpu_energy_cost)
+
+            server_lifetime_s = years_to_sec(server_lifetime_y)
+
+            # CapEx costs are 0 for second-life V100s
+            if second_life and bmark_param_group_dict['gpu_type'] == 'v10032gb':
+                total_server_cpu_cost, total_server_dram_cost, total_server_ssd_cost, total_server_gpu_cost = 0, 0, 0, 0
+            else:
+                # Calculate CapEx costs from CPU
+                single_server_cpu_cost = gpu_server_cost_data['CPU']
+                total_server_cpu_cost = single_server_cpu_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+                # Calculate CapEx costs from DRAM
+                single_server_dram_cost = gpu_server_cost_data['DRAM']
+                total_server_dram_cost = single_server_dram_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+                # Calculate CapEx costs from SSD
+                single_server_ssd_cost = gpu_server_cost_data['SSD']
+                total_server_ssd_cost = single_server_ssd_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+                # Calculate CapEx costs from GPU
+                single_server_gpu_cost = gpu_server_cost_data['GPU']
+                total_server_gpu_cost = single_server_gpu_cost * num_gpu_servers_req * (workload_duration_s / server_lifetime_s)
+
+            # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
+            total_capex_cost = total_server_cpu_cost + total_server_dram_cost + total_server_ssd_cost + total_server_gpu_cost
+            total_capex_costs.append(total_capex_cost)
+            total_server_cpu_costs.append(total_server_cpu_cost)
+            total_server_dram_costs.append(total_server_dram_cost)
+            total_server_ssd_costs.append(total_server_ssd_cost)
+            total_server_gpu_costs.append(total_server_gpu_cost)
+
+            model_size = bmark_param_group_dict['model_size']
+            gpu_type = bmark_param_group_dict['gpu_type']
+            bar_labels.append(f'{model_size}_{gpu_type}_{batch_size_val}')
+
+            total_overall_cost = total_opex_cost + total_capex_cost
+            total_overall_costs.append(total_overall_cost)
+
+    fig, ax = plt.subplots()
+    bar_width = 0.5
+    bar_positions = range(len(bar_labels))
+
+    cpu_bars = ax.bar(
+        bar_positions,
+        total_server_cpu_costs,
+        bar_width,
+        label='CPU CapEx',
+        color='#022b5f'
+    )
+    dram_bars = ax.bar(
+        bar_positions,
+        total_server_dram_costs,
+        bar_width,
+        bottom=total_server_cpu_costs,
+        label='DRAM CapEx',
+        color='#1071a4'
+    )
+    ssd_bars = ax.bar(
+        bar_positions,
+        total_server_ssd_costs,
+        bar_width,
+        bottom=[i+j for i,j in zip(total_server_cpu_costs, total_server_dram_costs)],
+        label='SSD CapEx',
+        color='#5bbfd7'
+    )
+    gpu_bars = ax.bar(
+        bar_positions,
+        total_server_gpu_costs,
+        bar_width,
+        bottom=[i+j+k for i,j,k in zip(total_server_cpu_costs, total_server_dram_costs, total_server_ssd_costs)],
+        label='GPU CapEx',
+        color='#b3e8ec'
+    )
+
+    pkg_energy_bars = ax.bar(
+        bar_positions,
+        total_pkg_energy_costs,
+        bar_width,
+        bottom=[i+j+k+l for i,j,k,l in zip(total_server_cpu_costs, total_server_dram_costs, total_server_ssd_costs, total_server_gpu_costs)],
+        label='Pkg OpEx',
+        color='#5c3923'
+    )
+    ram_energy_bars = ax.bar(
+        bar_positions,
+        total_ram_energy_costs,
+        bar_width,
+        bottom=[i+j+k+l+m for i,j,k,l,m in zip(total_server_cpu_costs, total_server_dram_costs, total_server_ssd_costs, total_server_gpu_costs, total_pkg_energy_costs)],
+        label='RAM OpEx',
+        color='#bb7542'
+    )
+    gpu_energy_bars = ax.bar(
+        bar_positions,
+        total_gpu_energy_costs,
+        bar_width,
+        bottom=[i+j+k+l+m+n for i,j,k,l,m,n in zip(total_server_cpu_costs, total_server_dram_costs, total_server_ssd_costs, total_server_gpu_costs, total_pkg_energy_costs, total_ram_energy_costs)],
+        label='GPU OpEx',
+        color='#ffb65a'
+    )
+
+    ax.set_xlabel('Workload')
+    ax.set_ylabel('Cost (USD)')
     ax.set_title(plot_name)
     ax.set_xticks(bar_positions)
     ax.set_xticklabels(bar_labels, rotation=45, ha='right', fontsize=8)
