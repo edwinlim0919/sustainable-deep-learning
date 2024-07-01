@@ -317,7 +317,7 @@ def plot_tbi_vs_epi(
     plt.setp(legend.get_texts(), fontsize='small')
     plt.setp(legend.get_patches(), scalex=0.5, scaley=0.5)
     plt.tight_layout()
-    plt.savefig('plots/' + plot_filename)
+    plt.savefig('plotting/plots/' + plot_filename)
 
 
 #  - This is theoretical user-perceived latency to provide a bound for tbi (time between images).
