@@ -59,7 +59,7 @@ async def get_nvsmi_info(gpu_type: str):
             datetime_string = f"{current_date} {time_string}"
             datetime_object = datetime.strptime(datetime_string, "%Y-%m-%d %H:%M:%S")
             timestamp = datetime_object.timestamp()
-            nvsmi_dict['timestamp_raw'] = timestamp
+            nvsmi_dict['timestamp_raw'] = f"{timestamp:.6f}"  # Changed to 6 decimal places
             timestamp_found = True
 
         # Correlate readings with a specific GPU
