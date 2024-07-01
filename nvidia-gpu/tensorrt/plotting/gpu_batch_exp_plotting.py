@@ -405,7 +405,7 @@ def plot_ips_vs_tbi(
     plt.setp(legend.get_texts(), fontsize='small')
     plt.setp(legend.get_patches(), scalex=0.5, scaley=0.5)
     plt.tight_layout()
-    plt.savefig('plots/' + plot_filename)
+    plt.savefig('plotting/plots/' + plot_filename)
     
 
 def main(args):
