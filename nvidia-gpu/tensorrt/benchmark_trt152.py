@@ -71,10 +71,10 @@ def benchmark(model, image_directory, output_file, max_batch_size=1, dtype='fp32
                 timings.append(inference_time)
                 f_out.write(f"iteration: {i}/{nruns}\n")
                 f_out.write(f"batch_files: {batch_files}\n")
-                f_out.write(f"start_time: {start_time:.2f}\n")  # Start time in seconds
-                f_out.write(f"end_time: {end_time:.2f}\n\n")    # End time in seconds
+                f_out.write(f"start_time: {start_time:.6f}\n")  # Start time in seconds
+                f_out.write(f"end_time: {end_time:.6f}\n\n")    # End time in seconds
                 if i % 10 == 0:
-                    print(f'Iteration {i}/{nruns}, ave batch time {np.mean(timings):.2f} ms')
+                    print(f'Iteration {i}/{nruns}, ave batch time {np.mean(timings):.6f} ms')
                     
     print("Input shape:", batch.size())
     print("Type of features:", type(features))
@@ -83,7 +83,7 @@ def benchmark(model, image_directory, output_file, max_batch_size=1, dtype='fp32
             print(f"Output feature {i} size:", feature.size())
     else:
         print("Output features size:", features.size())
-    print(f'Average batch time: {np.mean(timings):.2f} ms')
+    print(f'Average batch time: {np.mean(timings):.6f} ms')
 
     return timings
 
