@@ -321,7 +321,7 @@ def plot_tco_breakeven(
     workload_duration_s, # how long are we running this load for? (in seconds)
     usd_per_kWh,         # USD per kWh (regional electricity price)
     PUE,                 # Power Usage Efficiency
-    server_lifetime_y,      # expected lifetime of a GPU (in years)
+    server_lifetime_y,   # expected lifetime of a GPU (in years)
     usd_per_a10040gb,
     usd_per_v10032gb,
     plot_filename,
@@ -482,8 +482,6 @@ def plot_tcf_breakdown(
     gCO2eq_per_kWh,      # gC02eq per kWh (regional carbon intensity)
     PUE,                 # Power Usage Efficiency
     server_lifetime_y,   # expected lifetime of a GPU (in years)
-    #kgCO2eq_per_a10040gb,
-    #kgCO2eq_per_v10032gb,
     second_life,
     pkg_power_load,
     ram_power_load,
@@ -546,10 +544,8 @@ def plot_tcf_breakdown(
             print(f'{key}: {val}')
 
         if bmark_param_group_dict['gpu_type'] == 'a10040gb':
-            #gpu_embodied = kgCO2eq_per_a10040gb
             gpu_server_carbon_data = server_carbon_data.aws_p4d_24xlarge_carbon
         elif bmark_param_group_dict['gpu_type'] == 'v10032gb':
-            #gpu_embodied = kgCO2eq_per_v10032gb
             gpu_server_carbon_data = server_carbon_data.aws_p3dn_24xlarge_carbon
         else:
             raise ValueError('plot_tcf_breakdown: gpu_type not found in bmark_param_group_dict')
@@ -638,8 +634,6 @@ def plot_tcf_breakdown(
     bar_width = 0.5
     bar_positions = range(len(bar_labels))
 
-    #embodied_bars = ax.bar(bar_positions, total_embodied_carbons, bar_width, label='Embodied')
-    #operational_bars = ax.bar(bar_positions, total_operational_carbons, bar_width, bottom=total_embodied_carbons, label='Operational')
     cpu_bars = ax.bar(
         bar_positions,
         total_server_cpu_carbons,
@@ -703,19 +697,6 @@ def plot_tcf_breakdown(
     ax.set_xticks(bar_positions)
     ax.set_xticklabels(bar_labels, rotation=45, ha='right', fontsize=8)
     ax.legend()
-
-    # Add cost number to capex and opex bars
-    #for bar, embodied_carbon, operational_carbon in zip(embodied_bars, total_embodied_carbons, total_operational_carbons):
-    #    height = bar.get_height()
-    #    ax.text(
-    #        bar.get_x() + bar.get_width() / 2.0, height / 2,
-    #        f'{embodied_carbon:.1f}', ha='center', va='bottom', color='black', fontsize=8
-    #    )
-    #    ax.text(
-    #        bar.get_x() + bar.get_width() / 2.0, height + operational_carbon / 2,
-    #        f'{operational_carbon:.1f}', ha='center', va='bottom', color='black', fontsize=8
-    #    )
-
     plt.tight_layout(pad=2.0)
     plt.savefig('plots/' + plot_filename)
 
@@ -885,8 +866,6 @@ def plot_tco_breakdown(
     bar_width = 0.5
     bar_positions = range(len(bar_labels))
 
-    #capex_bars = ax.bar(bar_positions, total_capex_costs, bar_width, label='CapEx')
-    #opex_bars = ax.bar(bar_positions, total_opex_costs, bar_width, bottom=total_capex_costs, label='OpEx')
     cpu_bars = ax.bar(
         bar_positions,
         total_server_cpu_costs,
@@ -950,19 +929,6 @@ def plot_tco_breakdown(
     ax.set_xticks(bar_positions)
     ax.set_xticklabels(bar_labels, rotation=45, ha='right', fontsize=8)
     ax.legend()
-
-    # Add cost number to capex and opex bars
-    #for bar, capex, opex in zip(cpu_bars, total_capex_costs, total_opex_costs):
-    #    height = bar.get_height()
-    #    ax.text(
-    #        bar.get_x() + bar.get_width() / 2.0, height / 2,
-    #        f'{capex:.1f}', ha='center', va='bottom', color='black', fontsize=8
-    #    )
-    #    ax.text(
-    #        bar.get_x() + bar.get_width() / 2.0, height + opex / 2,
-    #        f'{opex:.1f}', ha='center', va='bottom', color='black', fontsize=8
-    #    )
-
     plt.tight_layout(pad=2.0)
     plt.savefig('plots/' + plot_filename)
 
@@ -1394,8 +1360,6 @@ def main(args):
             args.usd_per_kWh,
             args.pue,
             args.server_lifetime_y,
-            #args.usd_per_a10040gb,
-            #args.usd_per_v10032gb,
             args.second_life,
             args.pkg_power_load,
             args.ram_power_load,
@@ -1412,8 +1376,6 @@ def main(args):
             args.gCO2eq_per_kWh,
             args.pue,
             args.server_lifetime_y,
-            #args.kgCO2eq_per_a10040gb,
-            #args.kgCO2eq_per_v10032gb,
             args.second_life,
             args.pkg_power_load,
             args.ram_power_load,
@@ -1547,26 +1509,6 @@ if __name__ == '__main__':
         type=int,
         help='specify the lifetime of datacenter GPU servers in years'
     )
-    #parser.add_argument(
-    #    '--usd_per_a10040gb',
-    #    type=int,
-    #    help='specify the price in USD of a single 40GB SXM4 A100 GPU'
-    #)
-    #parser.add_argument(
-    #    '--usd_per_v10032gb',
-    #    type=int,
-    #    help='specify the price in USD of a single 32GB PCIE V100S GPU'
-    #)
-    #parser.add_argument(
-    #    '--kgCO2eq_per_a10040gb',
-    #    type=int,
-    #    help='specify the estimated embodied carbon of manufacturing a single 40GB SXM4 A100 GPU'
-    #)
-    #parser.add_argument(
-    #    '--kgCO2eq_per_v10032gb',
-    #    type=int,
-    #    help='specify the estimated embodied carbon of manufacturing a single 32GB PCIE V100S GPU'
-    #)
     parser.add_argument(
         '--plot_filename',
         type=str,
