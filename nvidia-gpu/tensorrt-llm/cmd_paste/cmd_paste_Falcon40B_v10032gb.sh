@@ -125,3 +125,14 @@ sudo docker cp b250d4dd5d36:/TensorRT-LLM/examples/falcon/outputs/40B/fp16/tp2-p
 # /TensorRT-LLM/examples/falcon
 rm -rf ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch16/
 
+# max batch size 24
+# /TensorRT-LLM/examples/falcon
+trtllm-build --checkpoint_dir ./falcon/40b-instruct/trt_ckpt/fp16/tp2-pp2/ --gemm_plugin float16 --gpt_attention_plugin float16 --output_dir ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch24/ --workers 2 --max_batch_size 24
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+python3 benchmarking/nvsmi_monitor.py --output_dir ./outputs/falcon/40B/fp16/tp2-pp2-batch24/ --output_file nvsmi_numreqsample0_iter50_max1000_v10032gb.out --container_id b250d4dd5d36 --container_output_dir /TensorRT-LLM/examples/falcon/ --container_stop_file container_stop.txt --gpu_type v10032gb --multi_node --worker_ips 130.127.134.35 --ssh_username edwinlim
+# /TensorRT-LLM/examples/falcon
+mpirun -np 4 --hostfile hostfile --allow-run-as-root --oversubscribe -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=eth1 -x NCCL_IB_DISABLE=1 python3 ../benchmark_trtllm.py --tokenizer_dir ./falcon/40b-instruct/ --engine_dir ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch24/ --dataset_path ../ShareGPT_V3_unfiltered_cleaned_split.json --num_requests_sample 0 --max_batch_size 24 --max_input_tokens 1000 --max_output_tokens 1000 --output_dir /TensorRT-LLM/examples/falcon/outputs/40B/fp16/tp2-pp2-batch24/ --output_file bmark_numreqsample0_iter50_max1000_v10032gb.out --container_output_dir /TensorRT-LLM/examples/falcon/ --container_stop_file container_stop.txt --random_seed 42 --num_iterations 50
+# /dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm
+sudo docker cp b250d4dd5d36:/TensorRT-LLM/examples/falcon/outputs/40B/fp16/tp2-pp2-batch24/bmark_numreqsample0_iter50_max1000_v10032gb.out ./outputs/falcon/40B/fp16/tp2-pp2-batch24/bmark_numreqsample0_iter50_max1000_v10032gb.out
+# /TensorRT-LLM/examples/falcon
+rm -rf ./falcon/40b-instruct/trt_engines/fp16/tp2-pp2-batch24/
