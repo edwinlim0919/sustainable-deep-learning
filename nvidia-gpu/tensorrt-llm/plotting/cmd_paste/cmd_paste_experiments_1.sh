@@ -832,11 +832,7 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths "/dev/shm/sustainable-dee
 								  --ram_power_load     "ram_power_50" \
 								  --plot_tcf_breakdown
 
-python3 gpu_batch_exp_plotting.py --bmark_output_paths  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch1/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
-													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch8/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
-													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch16/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
-													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch24/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
-													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch32/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+python3 gpu_batch_exp_plotting.py --bmark_output_paths  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch32/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch40/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch48/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch56/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
@@ -848,11 +844,7 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths  "/dev/shm/sustainable-de
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch192/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch256/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch384/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
-								  --nvsmi_output_paths  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch1/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
-													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch8/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
-													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch16/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
-													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch24/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
-													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch32/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --nvsmi_output_paths  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch32/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch40/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch48/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch56/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
@@ -864,11 +856,7 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths  "/dev/shm/sustainable-de
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch192/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch256/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
 													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch384/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
-								  --bmark_params        "40B 1 1000 a10040gb" \
-													    "40B 8 1000 a10040gb" \
-													    "40B 16 1000 a10040gb" \
-													    "40B 24 1000 a10040gb" \
-													    "40B 32 1000 a10040gb" \
+								  --bmark_params		"40B 32 1000 a10040gb" \
 													    "40B 40 1000 a10040gb" \
 													    "40B 48 1000 a10040gb" \
 													    "40B 56 1000 a10040gb" \
@@ -892,6 +880,111 @@ python3 gpu_batch_exp_plotting.py --bmark_output_paths  "/dev/shm/sustainable-de
 								  --server_lifetime_y	5 \
 								  --pkg_power_load      "pkg_power_50" \
 								  --ram_power_load      "ram_power_50" \
-								  --plot_filename		"falcon40B_tco_breakdown_varied_throughput.png" \
+								  --plot_filename		"falcon40B_tco_breakdown_varied_throughput_32_onwards.png" \
 								  --plot_name			"Falcon 40B TCO Breakdown" \
 								  --plot_tco_breakdown
+
+python3 gpu_batch_exp_plotting.py --bmark_output_paths  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch32/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch40/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch48/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch56/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch64/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch80/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch96/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch128/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch160/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch192/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch256/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch384/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --nvsmi_output_paths  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch32/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch40/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch48/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch56/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch64/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch80/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch96/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch128/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch160/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch192/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch256/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/falcon/40B/bf16/tp4-pp1-batch384/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+								  --bmark_params		"40B 32 1000 a10040gb" \
+													    "40B 40 1000 a10040gb" \
+													    "40B 48 1000 a10040gb" \
+													    "40B 56 1000 a10040gb" \
+													    "40B 64 1000 a10040gb" \
+													    "40B 80 1000 a10040gb" \
+													    "40B 96 1000 a10040gb" \
+													    "40B 128 1000 a10040gb" \
+													    "40B 160 1000 a10040gb" \
+													    "40B 192 1000 a10040gb" \
+													    "40B 256 1000 a10040gb" \
+													    "40B 384 1000 a10040gb" \
+								  --bmark_param_groups  "40B X 1000 a10040gb" \
+								  --gpu_idxs		    0 \
+								                        1 \
+													    2 \
+													    3 \
+								  --required_tps	    1000000 \
+								  --workload_duration_s 3600 \
+								  --gCO2eq_per_kWh      24 \
+								  --pue					1.1 \
+								  --server_lifetime_y	5 \
+								  --pkg_power_load      "pkg_power_50" \
+								  --ram_power_load      "ram_power_50" \
+								  --plot_filename		"falcon40B_tcf_breakdown_varied_throughput_32_onwards.png" \
+								  --plot_name			"Falcon 40B TCF Breakdown" \
+								  --plot_tcf_breakdown
+
+# TCO breakdown for 3 different single-gpu throughputs
+python3 gpu_batch_exp_plotting.py --bmark_output_paths  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-12-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-22-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-8-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-14-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-4-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-8-batch/bmark_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-2-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-4-batch/bmark_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --nvsmi_output_paths  "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-12-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-22-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-8-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/7B/fp16/1-gpu-14-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-4-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-8-batch/nvsmi_numreqsample0_iter100_max1000_a10040gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-1-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-2-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+													    "/dev/shm/sustainable-deep-learning/nvidia-gpu/tensorrt-llm/outputs/llama/13B/fp16/1-gpu-4-batch/nvsmi_numreqsample0_iter100_max1000_v10032gb.out" \
+								  --bmark_params        "7B 1 1000 a10040gb" \
+													    "7B 12 1000 a10040gb" \
+													    "7B 22 1000 a10040gb" \
+													    "7B 1 1000 v10032gb" \
+													    "7B 8 1000 v10032gb" \
+													    "7B 14 1000 v10032gb" \
+													    "13B 1 1000 a10040gb" \
+													    "13B 4 1000 a10040gb" \
+													    "13B 8 1000 a10040gb" \
+													    "13B 1 1000 v10032gb" \
+													    "13B 2 1000 v10032gb" \
+													    "13B 4 1000 v10032gb" \
+								  --bmark_param_groups  "7B X 1000 a10040gb" \
+								  					    "7B X 1000 v10032gb" \
+													    "13B X 1000 a10040gb" \
+													    "13B X 1000 v10032gb" \
+								  --gpu_idxs		    0 \
+								  --required_tps        1000000 \
+								  --workload_duration_s 3600 \
+								  --usd_per_kWh         0.165 \
+								  --pue				    1.1 \
+								  --server_lifetime_y   5 \
+								  --pkg_power_load      "pkg_power_50" \
+								  --ram_power_load      "ram_power_50" \
+								  --plot_filename       "llama2_tco_breakeven_analysis.png" \
+								  --plot_name		    "Llama2 TCO Breakeven Analysis" \
+								  --plot_tco_breakeven

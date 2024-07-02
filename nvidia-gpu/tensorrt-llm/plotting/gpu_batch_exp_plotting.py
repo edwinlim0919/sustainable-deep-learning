@@ -313,134 +313,134 @@ def g_to_kg(g):
     return kg
 
 
-def plot_tco_breakeven_old(
-    bmark_entries,
-    bmark_param_groups,
-    gpu_idxs,
-    required_tps,        # the current load
-    workload_duration_s, # how long are we running this load for? (in seconds)
-    usd_per_kWh,         # USD per kWh (regional electricity price)
-    PUE,                 # Power Usage Efficiency
-    server_lifetime_y,   # expected lifetime of a GPU (in years)
-    usd_per_a10040gb,
-    usd_per_v10032gb,
-    plot_filename,
-    plot_name
-):
-    plotting_metrics = [
-        'batch_size',
-        'avg_ept',
-        'avg_tps'
-    ]
-    bmark_param_group_dicts = group_experiment_data(
-        bmark_entries,
-        bmark_param_groups,
-        plotting_metrics
-    )
-    plotting_knob = 'batch_size'
-    for bmark_entry in bmark_entries:
-        batch_size = bmark_entry['batch_size']
-        update_experiment_data(
-            bmark_param_group_dicts,
-            plotting_knob,
-            plotting_knob,
-            batch_size,
-            bmark_entry
-        )
-
-    # Calculate TPS
-    calculate_avg_tps(
-        bmark_entries,
-        bmark_param_groups,
-        plotting_knob,
-        bmark_param_group_dicts
-    )
-    # Calculate EPT
-    calculate_avg_ept(
-        bmark_entries,
-        bmark_param_groups,
-        plotting_knob,
-        gpu_idxs,
-        bmark_param_group_dicts
-    )
-
-    bar_labels = []
-    new_total_opex_costs = []
-    new_total_capex_costs = []
-    new_total_overall_costs = []
-    breakeven_lifetimes = []
-    breakeven_groups = {}
-    # Group together data from the same model but different GPU
-    for bmark_param_group_dict in bmark_param_group_dicts:
-        print('\n\n')
-        for key, val in bmark_param_group_dict.items():
-            print(f'{key}: {val}')
-
-        if bmark_param_group_dict['model_size'] not in breakeven_groups:
-            breakeven_groups[bmark_param_group_dict['model_size']] = {}
-        breakeven_groups[bmark_param_group_dict['model_size']][bmark_param_group_dict['gpu_type']] = bmark_param_group_dict
-
-    for model_size, gpu_entries in breakeven_groups.items():
-        # First, calculate costs for a10040gb (new)
-        new_bmark_param_group_dict = gpu_entries['a10040gb']
-        gpu_price = usd_per_a10040gb
-        new_avg_tps = new_bmark_param_group_dict['avg_tps']
-        new_avg_ept = new_bmark_param_group_dict['avg_ept']
-        new_batch_size = new_bmark_param_group_dict['batch_size']
-        assert(len(new_avg_tps) == len(new_avg_ept) and
-               len(new_avg_ept) == len(new_batch_size))
-
-        for avg_tps_val, avg_ept_val, batch_size_val in zip(new_avg_tps, new_avg_ept, new_batch_size):
-            # Calculate the number of required GPUs
-            # (tokens / sec) / ((tokens / sec) / gpu)
-            num_gpus_req = math.ceil(required_tps / avg_tps_val)
-
-            # Calculate the total energy required to compute the workload
-            # (joules / token) * (tokens / sec) * sec
-            total_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
-            total_energy_kWh = joules_to_kWh(total_energy_joules)
-
-            # Calculate OpEx costs from energy usage and rate
-            total_opex_cost = total_energy_kWh * usd_per_kWh
-
-            # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
-            gpu_lifetime_s = years_to_sec(server_lifetime_y)
-            total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
-            total_overall_cost = total_opex_cost + total_capex_cost
-
-            model_size = bmark_param_group_dict['model_size']
-            gpu_type = bmark_param_group_dict['gpu_type']
-            bar_labels.append(f'{model_size}_{gpu_type}_{batch_size_val}')
-            new_total_opex_costs.append(total_opex_cost)
-            new_total_capex_costs.append(total_capex_cost)
-            new_total_overall_costs.append(total_overall_cost)
-
-        # Then, calculate breakeven for v10032gb (old) given a10040gb cost
-        old_bmark_param_group_dict = gpu_entries['v10032gb']
-        gpu_price = usd_per_v10032gb
-        old_avg_tps = old_bmark_param_group_dict['avg_tps']
-        old_avg_ept = old_bmark_param_group_dict['avg_ept']
-        old_batch_size = old_bmark_param_group_dict['batch_size']
-        print(f'old_avg_tps: {old_avg_tps}')
-        print(f'old_avg_ept: {old_avg_ept}')
-        print(f'old_batch_size: {old_batch_size}')
-        print(f'new_total_overall_costs: {new_total_overall_costs}')
-        assert(len(old_avg_tps) == len(old_avg_ept) and
-               len(old_avg_ept) == len(old_batch_size) and
-               len(old_batch_size) == len(new_total_overall_costs))
-
-        for avg_tps_val, avg_ept_val, batch_size_val, new_total_overall_cost_val in zip(old_avg_tps, old_avg_ept, old_batch_size, new_total_overall_costs):
-            # Find how many years it takes
-            workload_joules_per_second = avg_ept_val * required_tps * PUE
-            workload_kWh_per_second = joules_to_kWh(workload_joules_per_second)
-            workload_usd_per_second = workload_kWh_per_second * usd_per_kWh
-
-            breakeven_lifetime_s = new_total_overall_cost_val / workload_usd_per_second
-            breakeven_lifetime_y = sec_to_years(breakeven_lifetime_s)
-            breakeven_lifetimes.append(breakeven_lifetime_y)
-
-    print(f'new_total_overall_costs: {new_total_overall_costs}')
-    print(f'breakeven_lifetimes: {breakeven_lifetimes}')
+#def plot_tco_breakeven_old(
+#    bmark_entries,
+#    bmark_param_groups,
+#    gpu_idxs,
+#    required_tps,        # the current load
+#    workload_duration_s, # how long are we running this load for? (in seconds)
+#    usd_per_kWh,         # USD per kWh (regional electricity price)
+#    PUE,                 # Power Usage Efficiency
+#    server_lifetime_y,   # expected lifetime of a GPU (in years)
+#    usd_per_a10040gb,
+#    usd_per_v10032gb,
+#    plot_filename,
+#    plot_name
+#):
+#    plotting_metrics = [
+#        'batch_size',
+#        'avg_ept',
+#        'avg_tps'
+#    ]
+#    bmark_param_group_dicts = group_experiment_data(
+#        bmark_entries,
+#        bmark_param_groups,
+#        plotting_metrics
+#    )
+#    plotting_knob = 'batch_size'
+#    for bmark_entry in bmark_entries:
+#        batch_size = bmark_entry['batch_size']
+#        update_experiment_data(
+#            bmark_param_group_dicts,
+#            plotting_knob,
+#            plotting_knob,
+#            batch_size,
+#            bmark_entry
+#        )
+#
+#    # Calculate TPS
+#    calculate_avg_tps(
+#        bmark_entries,
+#        bmark_param_groups,
+#        plotting_knob,
+#        bmark_param_group_dicts
+#    )
+#    # Calculate EPT
+#    calculate_avg_ept(
+#        bmark_entries,
+#        bmark_param_groups,
+#        plotting_knob,
+#        gpu_idxs,
+#        bmark_param_group_dicts
+#    )
+#
+#    bar_labels = []
+#    new_total_opex_costs = []
+#    new_total_capex_costs = []
+#    new_total_overall_costs = []
+#    breakeven_lifetimes = []
+#    breakeven_groups = {}
+#    # Group together data from the same model but different GPU
+#    for bmark_param_group_dict in bmark_param_group_dicts:
+#        print('\n\n')
+#        for key, val in bmark_param_group_dict.items():
+#            print(f'{key}: {val}')
+#
+#        if bmark_param_group_dict['model_size'] not in breakeven_groups:
+#            breakeven_groups[bmark_param_group_dict['model_size']] = {}
+#        breakeven_groups[bmark_param_group_dict['model_size']][bmark_param_group_dict['gpu_type']] = bmark_param_group_dict
+#
+#    for model_size, gpu_entries in breakeven_groups.items():
+#        # First, calculate costs for a10040gb (new)
+#        new_bmark_param_group_dict = gpu_entries['a10040gb']
+#        gpu_price = usd_per_a10040gb
+#        new_avg_tps = new_bmark_param_group_dict['avg_tps']
+#        new_avg_ept = new_bmark_param_group_dict['avg_ept']
+#        new_batch_size = new_bmark_param_group_dict['batch_size']
+#        assert(len(new_avg_tps) == len(new_avg_ept) and
+#               len(new_avg_ept) == len(new_batch_size))
+#
+#        for avg_tps_val, avg_ept_val, batch_size_val in zip(new_avg_tps, new_avg_ept, new_batch_size):
+#            # Calculate the number of required GPUs
+#            # (tokens / sec) / ((tokens / sec) / gpu)
+#            num_gpus_req = math.ceil(required_tps / avg_tps_val)
+#
+#            # Calculate the total energy required to compute the workload
+#            # (joules / token) * (tokens / sec) * sec
+#            total_energy_joules = avg_ept_val * required_tps * workload_duration_s * PUE
+#            total_energy_kWh = joules_to_kWh(total_energy_joules)
+#
+#            # Calculate OpEx costs from energy usage and rate
+#            total_opex_cost = total_energy_kWh * usd_per_kWh
+#
+#            # Calculate CapEx costs from workload duration, single gpu price, and gpu lifetime
+#            gpu_lifetime_s = years_to_sec(server_lifetime_y)
+#            total_capex_cost = num_gpus_req * gpu_price * (workload_duration_s / gpu_lifetime_s)
+#            total_overall_cost = total_opex_cost + total_capex_cost
+#
+#            model_size = bmark_param_group_dict['model_size']
+#            gpu_type = bmark_param_group_dict['gpu_type']
+#            bar_labels.append(f'{model_size}_{gpu_type}_{batch_size_val}')
+#            new_total_opex_costs.append(total_opex_cost)
+#            new_total_capex_costs.append(total_capex_cost)
+#            new_total_overall_costs.append(total_overall_cost)
+#
+#        # Then, calculate breakeven for v10032gb (old) given a10040gb cost
+#        old_bmark_param_group_dict = gpu_entries['v10032gb']
+#        gpu_price = usd_per_v10032gb
+#        old_avg_tps = old_bmark_param_group_dict['avg_tps']
+#        old_avg_ept = old_bmark_param_group_dict['avg_ept']
+#        old_batch_size = old_bmark_param_group_dict['batch_size']
+#        print(f'old_avg_tps: {old_avg_tps}')
+#        print(f'old_avg_ept: {old_avg_ept}')
+#        print(f'old_batch_size: {old_batch_size}')
+#        print(f'new_total_overall_costs: {new_total_overall_costs}')
+#        assert(len(old_avg_tps) == len(old_avg_ept) and
+#               len(old_avg_ept) == len(old_batch_size) and
+#               len(old_batch_size) == len(new_total_overall_costs))
+#
+#        for avg_tps_val, avg_ept_val, batch_size_val, new_total_overall_cost_val in zip(old_avg_tps, old_avg_ept, old_batch_size, new_total_overall_costs):
+#            # Find how many years it takes
+#            workload_joules_per_second = avg_ept_val * required_tps * PUE
+#            workload_kWh_per_second = joules_to_kWh(workload_joules_per_second)
+#            workload_usd_per_second = workload_kWh_per_second * usd_per_kWh
+#
+#            breakeven_lifetime_s = new_total_overall_cost_val / workload_usd_per_second
+#            breakeven_lifetime_y = sec_to_years(breakeven_lifetime_s)
+#            breakeven_lifetimes.append(breakeven_lifetime_y)
+#
+#    print(f'new_total_overall_costs: {new_total_overall_costs}')
+#    print(f'breakeven_lifetimes: {breakeven_lifetimes}')
 
     #fig, ax = plt.subplots()
     #bar_width = 0.5
@@ -488,6 +488,7 @@ def plot_tcf_breakdown(
     plot_filename,
     plot_name
 ):
+    num_bmark_gpus = len(gpu_idxs)
     plotting_metrics = [
         'batch_size',
         'avg_ept',
@@ -557,10 +558,12 @@ def plot_tcf_breakdown(
                len(avg_ept) == len(batch_size))
 
         for avg_tps_val, avg_ept_val, batch_size_val in zip(avg_tps, avg_ept, batch_size):
+            # For multi-GPU benchmarks, normalize tps to a per-GPU basis
+            avg_tps_per_gpu = avg_tps_val / num_bmark_gpus
             # Calculate the number of required GPU servers
             # Each GPU server contains 8 GPUs
             # (tokens / sec) / ((tokens / sec) / gpu_server)
-            num_gpu_servers_req = math.ceil(required_tps / (avg_tps_val * 8))
+            num_gpu_servers_req = math.ceil(required_tps / (avg_tps_per_gpu * 8))
 
             # Calulate the total server PKG power/energy required to service the workload
             if pkg_power_load not in gpu_server_carbon_data:
@@ -654,7 +657,7 @@ def plot_tcf_breakdown(
         total_server_ssd_carbons,
         bar_width,
         bottom=[i+j for i,j in zip(total_server_cpu_carbons, total_server_dram_carbons)],
-        label='SSD CapEx',
+        label='SSD Emb.',
         color='#5bbfd7'
     )
     gpu_bars = ax.bar(
@@ -662,7 +665,7 @@ def plot_tcf_breakdown(
         total_server_gpu_carbons,
         bar_width,
         bottom=[i+j+k for i,j,k in zip(total_server_cpu_carbons, total_server_dram_carbons, total_server_ssd_carbons)],
-        label='GPU CapEx',
+        label='GPU Emb.',
         color='#b3e8ec'
     )
 
@@ -671,7 +674,7 @@ def plot_tcf_breakdown(
         total_pkg_energy_carbons,
         bar_width,
         bottom=[i+j+k+l for i,j,k,l in zip(total_server_cpu_carbons, total_server_dram_carbons, total_server_ssd_carbons, total_server_gpu_carbons)],
-        label='Pkg OpEx',
+        label='Pkg Op.',
         color='#5c3923'
     )
     ram_energy_bars = ax.bar(
@@ -679,7 +682,7 @@ def plot_tcf_breakdown(
         total_ram_energy_carbons,
         bar_width,
         bottom=[i+j+k+l+m for i,j,k,l,m in zip(total_server_cpu_carbons, total_server_dram_carbons, total_server_ssd_carbons, total_server_gpu_carbons, total_pkg_energy_carbons)],
-        label='RAM OpEx',
+        label='RAM Op.',
         color='#bb7542'
     )
     gpu_energy_bars = ax.bar(
@@ -687,7 +690,7 @@ def plot_tcf_breakdown(
         total_gpu_energy_carbons,
         bar_width,
         bottom=[i+j+k+l+m+n for i,j,k,l,m,n in zip(total_server_cpu_carbons, total_server_dram_carbons, total_server_ssd_carbons, total_server_gpu_carbons, total_pkg_energy_carbons, total_ram_energy_carbons)],
-        label='GPU OpEx',
+        label='GPU Op.',
         color='#ffb65a'
     )
 
@@ -716,6 +719,8 @@ def plot_tco_breakeven(
     plot_filename,
     plot_name
 ):
+    # TODO: Need to account for how many GPUs the benchmark used
+    num_bmark_gpus = len(gpu_idxs)
     plotting_metrics = [
         'batch_size',
         'avg_ept',
@@ -769,7 +774,7 @@ def plot_tco_breakeven(
     # 3) Calculate total energy required to compute <required_tps> for <workload_duration_s> given <avg_ept>
     for bmark_param_group_dict in bmark_param_group_dicts:
         for key, val in bmark_param_group_dict.items():
-            print(f'{key}: {val}')
+            print(f'\n{key}: {val}\n')
 
         if bmark_param_group_dict['gpu_type'] == 'a10040gb':
             gpu_server_cost_data = server_cost_data.aws_p4d_24xlarge_cost
@@ -787,10 +792,12 @@ def plot_tco_breakeven(
                len(avg_ept) == len(batch_size))
 
         for avg_tps_val, avg_ept_val, batch_size_val in zip(avg_tps, avg_ept, batch_size):
+            # For multi-GPU benchmarks, normalize tps to a per-GPU basis
+            avg_tps_per_gpu = avg_tps_val / num_bmark_gpus
             # Calculate the number of required GPU servers
             # Each GPU server contains 8 GPUs
             # (tokens / sec) / ((tokens / sec) / gpu_server)
-            num_gpu_servers_req = math.ceil(required_tps / (avg_tps_val * 8))
+            num_gpu_servers_req = math.ceil(required_tps / (avg_tps_per_gpu * 8))
 
             # Calulate the total server PKG power/energy required to service the workload
             if pkg_power_load not in gpu_server_carbon_data:
@@ -948,6 +955,7 @@ def plot_tco_breakdown(
     plot_filename,
     plot_name
 ):
+    num_bmark_gpus = len(gpu_idxs)
     plotting_metrics = [
         'batch_size',
         'avg_ept',
@@ -1019,10 +1027,12 @@ def plot_tco_breakdown(
                len(avg_ept) == len(batch_size))
 
         for avg_tps_val, avg_ept_val, batch_size_val in zip(avg_tps, avg_ept, batch_size):
+            # For multi-GPU benchmarks, normalize tps to a per-GPU basis
+            avg_tps_per_gpu = avg_tps_val / num_bmark_gpus
             # Calculate the number of required GPU servers
             # Each GPU server contains 8 GPUs
             # (tokens / sec) / ((tokens / sec) / gpu_server)
-            num_gpu_servers_req = math.ceil(required_tps / (avg_tps_val * 8))
+            num_gpu_servers_req = math.ceil(required_tps / (avg_tps_per_gpu * 8))
 
             # Calulate the total server PKG power/energy required to service the workload
             if pkg_power_load not in gpu_server_carbon_data:
